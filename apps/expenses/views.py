@@ -1,41 +1,54 @@
 from contextlib import suppress
+from datetime import timedelta
 from itertools import groupby
 
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.settlement.engine import SettlementError, to_base
 from apps.trips.access import get_membership
+from apps.trips.summary import my_balance, trip_settlement
+from apps.trips.templatetags.ui import format_amount
 
 from .forms import ExpenseForm
 from .models import Expense
+
+MAX_DAY_CHIPS = 14
 
 
 def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
     expenses = list(trip.expenses.select_related("payer").prefetch_related("beneficiaries"))
-    people_count = trip.participants.count()
     rates = trip.rate_map()
-    total = None
-    with suppress(SettlementError):
-        total = sum((to_base(e.amount, e.currency, trip.base_currency, rates) for e in expenses), 0)
-    days = [(day, list(items)) for day, items in groupby(expenses, key=lambda e: e.date)]
-    return render(
-        request,
-        "expenses/list.html",
-        {
-            "trip": trip,
-            "membership": membership,
-            "days": days,
-            "people_count": people_count,
-            "total": total,
-            "tab": "expenses",
-        },
-    )
+    for e in expenses:
+        e.base_amount = None
+        with suppress(SettlementError):
+            e.base_amount = to_base(e.amount, e.currency, trip.base_currency, rates)
+    days = []
+    for day, items in groupby(expenses, key=lambda e: e.date):
+        items = list(items)
+        amounts = [e.base_amount for e in items]
+        days.append((day, items, None if None in amounts else sum(amounts)))
+    context = {
+        "trip": trip,
+        "membership": membership,
+        "days": days,
+        "multi_year": len({day.year for day, _items, _sum in days}) > 1,
+        "people_count": trip.participants.count(),
+        "tab": "expenses",
+    }
+    try:
+        result = trip_settlement(trip)
+        context["total"] = result.total
+        context["my_balance"] = my_balance(trip, result, request.user)
+    except SettlementError as error:
+        context["error"] = str(error)
+    return render(request, "expenses/list.html", context)
 
 
 def _initial(request: HttpRequest, trip) -> dict:
@@ -54,6 +67,40 @@ def _initial(request: HttpRequest, trip) -> dict:
     }
 
 
+def _trip_days(trip) -> list:
+    """Every trip day, for one-tap day chips; empty when the dates are unknown or the trip is long."""
+    if not trip.start_date or not trip.end_date or trip.end_date < trip.start_date:
+        return []
+    count = (trip.end_date - trip.start_date).days + 1
+    if count > MAX_DAY_CHIPS:
+        return []
+    return [trip.start_date + timedelta(days=i) for i in range(count)]
+
+
+def _form_context(trip, membership, form, expense=None) -> dict:
+    participants = list(trip.participants.prefetch_related("sponsors"))
+    days = _trip_days(trip)
+    return {
+        "trip": trip,
+        "membership": membership,
+        "form": form,
+        "expense": expense,
+        "trip_days": days,
+        "trip_day_isos": [d.isoformat() for d in days],
+        "rates": {code: str(rate) for code, rate in trip.rate_map().items()},
+        "sponsored": [(p, list(p.sponsors.all())) for p in participants if p.sponsors.all()],
+    }
+
+
+def _saved_text(expense) -> str:
+    return _("%(what)s, %(amount)s %(currency)s (%(payer)s paid)") % {
+        "what": expense,
+        "amount": format_amount(expense.amount, expense.currency),
+        "currency": expense.currency,
+        "payer": expense.payer.name,
+    }
+
+
 def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
@@ -66,15 +113,11 @@ def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
         expense.created_by = expense.updated_by = request.user
         expense.save()
         form.save_m2m()
-        messages.success(request, _("Expense added."))
+        messages.success(request, _("Added: %(expense)s") % {"expense": _saved_text(expense)})
         if "add_another" in request.POST:
             return redirect("expense_create", trip_id=trip.id)
         return redirect("trip", trip_id=trip.id)
-    return render(
-        request,
-        "expenses/form.html",
-        {"trip": trip, "membership": membership, "form": form, "tab": "expenses"},
-    )
+    return render(request, "expenses/form.html", _form_context(trip, membership, form))
 
 
 def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
@@ -86,18 +129,10 @@ def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
         expense.updated_by = request.user
         expense.save()
         form.save_m2m()
-        messages.success(request, _("Expense saved."))
+        messages.success(request, _("Saved: %(expense)s") % {"expense": _saved_text(expense)})
         return redirect("trip", trip_id=trip_id)
     return render(
-        request,
-        "expenses/form.html",
-        {
-            "trip": membership.trip,
-            "membership": membership,
-            "form": form,
-            "expense": expense,
-            "tab": "expenses",
-        },
+        request, "expenses/form.html", _form_context(membership.trip, membership, form, expense)
     )
 
 
@@ -108,7 +143,7 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
         expense.deleted_at = timezone.now()
         expense.updated_by = request.user
         expense.save(update_fields=["deleted_at", "updated_by", "updated_at"])
-        messages.success(request, _("Expense deleted."))
+        messages.success(request, _("Deleted: %(expense)s") % {"expense": _saved_text(expense)})
         return redirect("trip", trip_id=trip_id)
     return render(
         request,
@@ -116,8 +151,10 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
         {
             "trip": membership.trip,
             "membership": membership,
-            "object": f"{expense} — {expense.amount} {expense.currency}",
+            "expense": expense,
+            "object": str(expense),
+            "warning": _("It will be left out of all totals."),
             "button": _("Delete expense"),
-            "back": "trip",
+            "back": reverse("expense_edit", args=[trip_id, expense.id]),
         },
     )

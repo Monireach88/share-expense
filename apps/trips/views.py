@@ -1,8 +1,11 @@
+from contextlib import suppress
+
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -12,14 +15,21 @@ from apps.settlement.engine import SettlementError
 from .access import get_membership
 from .forms import ExchangeRateForm, MemberAddForm, ParticipantForm, TripForm
 from .models import ExchangeRate, Participant, Trip, TripMember
-from .summary import named, trip_settlement
+from .summary import my_balance, named, trip_settlement
 
 
 def home(request: HttpRequest) -> HttpResponse:
-    trips = Trip.objects.filter(memberships__user=request.user).annotate(
-        expense_count=Count("expenses", filter=Q(expenses__deleted_at__isnull=True), distinct=True),
-        people_count=Count("participants", distinct=True),
+    trips = list(
+        Trip.objects.filter(memberships__user=request.user).annotate(
+            people_count=Count("participants", distinct=True)
+        )
     )
+    for trip in trips:
+        trip.total = trip.my_balance = None
+        with suppress(SettlementError):
+            result = trip_settlement(trip)
+            trip.total = result.total
+            trip.my_balance = my_balance(trip, result, request.user)
     return render(request, "trips/home.html", {"trips": trips})
 
 
@@ -100,7 +110,7 @@ def rate_delete(request: HttpRequest, trip_id, rate_id) -> HttpResponse:
             "object": f"{rate.currency} {rate.rate}",
             "blocked": _("Expenses use this currency. Change them first.") if in_use else "",
             "button": _("Delete rate"),
-            "back": "trip_settings",
+            "back": reverse("trip_settings", args=[trip_id]),
         },
     )
 
@@ -121,7 +131,7 @@ def trip_delete(request: HttpRequest, trip_id) -> HttpResponse:
             "object": membership.trip.name,
             "warning": _("All expenses of this trip are deleted too. This cannot be undone."),
             "button": _("Delete trip"),
-            "back": "trip_settings",
+            "back": reverse("trip_settings", args=[trip_id]),
         },
     )
 
@@ -129,21 +139,11 @@ def trip_delete(request: HttpRequest, trip_id) -> HttpResponse:
 def people(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
-    participant_form = ParticipantForm(trip=trip, prefix="p")
     member_form = MemberAddForm(trip=trip, prefix="m")
     if request.method == "POST":
         if not membership.is_owner:
             return HttpResponse(status=403)
-        if "add_participant" in request.POST:
-            participant_form = ParticipantForm(request.POST, trip=trip, prefix="p")
-            if participant_form.is_valid():
-                participant = participant_form.save(commit=False)
-                participant.trip = trip
-                participant.save()
-                participant_form.save_m2m()
-                messages.success(request, _("%(name)s added.") % {"name": participant.name})
-                return redirect("people", trip_id=trip.id)
-        elif "add_member" in request.POST:
+        if "add_member" in request.POST:
             member_form = MemberAddForm(request.POST, trip=trip, prefix="m")
             if member_form.is_valid():
                 TripMember.objects.create(trip=trip, user=member_form.user)
@@ -160,10 +160,29 @@ def people(request: HttpRequest, trip_id) -> HttpResponse:
             "membership": membership,
             "participants": trip.participants.select_related("user").prefetch_related("sponsors"),
             "members": trip.memberships.select_related("user").order_by("-role", "created_at"),
-            "participant_form": participant_form,
             "member_form": member_form,
             "tab": "people",
         },
+    )
+
+
+def participant_create(request: HttpRequest, trip_id) -> HttpResponse:
+    membership = get_membership(request, trip_id, owner_only=True)
+    trip = membership.trip
+    form = ParticipantForm(request.POST or None, trip=trip)
+    if request.method == "POST" and form.is_valid():
+        participant = form.save(commit=False)
+        participant.trip = trip
+        participant.save()
+        form.save_m2m()
+        messages.success(request, _("%(name)s added.") % {"name": participant.name})
+        if "add_another" in request.POST:
+            return redirect("participant_create", trip_id=trip.id)
+        return redirect("people", trip_id=trip.id)
+    return render(
+        request,
+        "trips/participant_form.html",
+        {"trip": trip, "membership": membership, "form": form},
     )
 
 
@@ -212,7 +231,7 @@ def participant_delete(request: HttpRequest, trip_id, participant_id) -> HttpRes
             if in_use
             else "",
             "button": _("Remove person"),
-            "back": "people",
+            "back": reverse("participant_edit", args=[trip_id, participant.id]),
         },
     )
 
@@ -237,7 +256,7 @@ def summary(request: HttpRequest, trip_id) -> HttpResponse:
     trip = membership.trip
     context = {"trip": trip, "membership": membership, "tab": "summary"}
     try:
-        context["summary"] = named(trip, trip_settlement(trip))
+        context["summary"] = named(trip, trip_settlement(trip), request.user)
     except SettlementError as error:
         context["error"] = str(error)
     return render(request, "trips/summary.html", context)

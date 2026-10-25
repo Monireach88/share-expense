@@ -26,7 +26,7 @@ The calculation lives in `apps/settlement/engine.py`. It uses no database, and i
 
 ## Stack
 
-- Python 3.14, Django 6.1, HTMX 2, Pico CSS 2
+- Python 3.14, Django 6.1, HTMX 2, own CSS (no framework), Lucide icons
 - PostgreSQL 18
 - Docker (development and production targets), gunicorn, whitenoise
 - pytest, ruff, GitHub Actions

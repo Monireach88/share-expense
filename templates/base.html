@@ -1,46 +1,47 @@
-{% load static i18n %}<!doctype html>
+{% load static i18n ui %}<!doctype html>
 {% get_current_language as LANG %}
 <html lang="{{ LANG }}">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1d23" media="(prefers-color-scheme: dark)">
   <title>{% block title %}{% translate "Share Expense" %}{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'vendor/pico.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  {% block head %}{% endblock %}
 </head>
-<body hx-boost="true" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<body class="{% block body_class %}{% endblock %}" hx-boost="true" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <header class="app-header">
-    <nav class="container">
-      <ul><li><a class="brand" href="{% url 'home' %}">{% translate "Share Expense" %}</a></li></ul>
+    <div class="container">
+      {% block back %}
+      <a class="brand" href="{% url 'home' %}"><span class="brand-mark" aria-hidden="true">S</span>{% translate "Share Expense" %}</a>
+      {% endblock %}
       {% if user.is_authenticated %}
-      <ul>
-        <li>
-          <details class="dropdown">
-            <summary>{{ user.display_name }}</summary>
-            <ul dir="rtl">
-              <li><a href="{% url 'password_change' %}">{% translate "Change password" %}</a></li>
-              {% if user.is_staff %}<li><a href="{% url 'admin:index' %}" hx-boost="false">{% translate "Admin" %}</a></li>{% endif %}
-              <li>
-                <form method="post" action="{% url 'logout' %}">{% csrf_token %}
-                  <button type="submit" class="secondary outline">{% translate "Log out" %}</button>
-                </form>
-              </li>
-            </ul>
-          </details>
-        </li>
-      </ul>
+      <details class="menu">
+        <summary aria-label="{% translate 'Account menu' %}"><span class="avatar" aria-hidden="true">{{ user.display_name|first|upper }}</span></summary>
+        <div class="menu-panel">
+          <div class="who"><strong>{{ user.display_name }}</strong><div class="tiny muted">{{ user.username }}</div></div>
+          <a class="menu-item" href="{% url 'home' %}">{% translate "My trips" %}</a>
+          <a class="menu-item" href="{% url 'password_change' %}">{% icon "key-round" %}{% translate "Change password" %}</a>
+          {% if user.is_staff %}<a class="menu-item" href="{% url 'admin:index' %}" hx-boost="false">{% icon "shield" %}{% translate "Admin" %}</a>{% endif %}
+          <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+            <button type="submit" class="menu-item">{% icon "log-out" %}{% translate "Log out" %}</button>
+          </form>
+        </div>
+      </details>
       {% endif %}
-    </nav>
+    </div>
   </header>
-  <main class="container">
+  <main class="container {% block main_class %}{% endblock %}">
     {% if messages %}
     <ul class="messages" role="status">
-      {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      {% for message in messages %}<li class="{{ message.tags }}">{% if message.tags == "error" %}{% icon "triangle-alert" %}{% else %}{% icon "circle-check" %}{% endif %}<span>{{ message }}</span></li>{% endfor %}
     </ul>
     {% endif %}
     {% block content %}{% endblock %}
   </main>
+  {% block bar %}{% endblock %}
 </body>
 </html>

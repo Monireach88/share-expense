@@ -1,38 +1,53 @@
-{% extends "base.html" %}{% load i18n %}
+{% extends "base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Trip settings" %} · {{ trip.name }}{% endblock %}
+{% block back %}<a class="back" href="{% url 'trip' trip.id %}">{% icon "chevron-left" %}<span>{{ trip.name }}</span></a>{% endblock %}
 {% block content %}
-{% include "trips/_trip_header.html" %}
-<section>
-  <h2>{% translate "Trip details" %}</h2>
-  <form method="post">{% csrf_token %}
-    {{ form.non_field_errors }}
-    {% for field in form %}{% include "_field.html" %}{% endfor %}
-    <button type="submit">{% translate "Save trip" %}</button>
+<h1 class="page-title">{% translate "Trip settings" %}</h1>
+<div class="stack-lg" style="margin-top: 16px">
+<section class="card">
+  <h2 class="section-title">{% translate "Trip details" %}</h2>
+  <form method="post" class="stack">{% csrf_token %}
+    {% include "_form_errors.html" %}
+    {% include "_field.html" with field=form.name %}
+    {% include "_field.html" with field=form.country %}
+    <div class="two">
+      {% include "_field.html" with field=form.start_date %}
+      {% include "_field.html" with field=form.end_date %}
+    </div>
+    {% include "_field.html" with field=form.base_currency %}
+    <button type="submit" class="btn btn-block">{% translate "Save trip" %}</button>
   </form>
 </section>
-<section>
-  <h2>{% translate "Exchange rates" %}</h2>
-  <p class="muted">{% blocktranslate with base=trip.base_currency %}One fixed rate per currency for the whole trip, agreed by the group. Expenses in other currencies are converted to {{ base }}.{% endblocktranslate %}</p>
+
+<section class="card">
+  <h2 class="section-title" style="margin-bottom: 4px">{% translate "Exchange rates" %}</h2>
+  <p class="lead" style="margin: 0 0 12px">{% blocktranslate with base=trip.base_currency %}One fixed rate per currency for the whole trip. Expenses in other currencies are converted to {{ base }}.{% endblocktranslate %}</p>
   {% if trip.rates.all %}
-  <ul class="list">
+  <ul class="list" style="margin-bottom: 16px">
     {% for rate in trip.rates.all %}
-    <li><span>1 {{ trip.base_currency }} = <span class="num">{{ rate.rate.normalize }}</span> {{ rate.currency }}</span>
-      <a href="{% url 'rate_delete' trip.id rate.id %}">{% translate "Delete" %}</a></li>
+    <li class="row">
+      <span class="row-main num">1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}</span>
+      <a class="link-danger" href="{% url 'rate_delete' trip.id rate.id %}">{% translate "Remove" %}</a>
+    </li>
     {% endfor %}
   </ul>
   {% else %}
-  <p>{% translate "No other currencies yet." %}</p>
+  <p class="muted" style="margin-bottom: 16px">{% translate "No other currencies yet." %}</p>
   {% endif %}
-  <form method="post" action="{% url 'rate_save' trip.id %}">{% csrf_token %}
-    {{ rate_form.non_field_errors }}
-    <div class="grid">
-      <div>{% include "_field.html" with field=rate_form.currency %}</div>
-      <div>{% include "_field.html" with field=rate_form.rate %}</div>
+  <form method="post" action="{% url 'rate_save' trip.id %}" class="stack">{% csrf_token %}
+    {% include "_form_errors.html" with form=rate_form %}
+    <div class="two">
+      {% include "_field.html" with field=rate_form.currency %}
+      {% include "_field.html" with field=rate_form.rate %}
     </div>
-    <button type="submit" class="secondary">{% translate "Save rate" %}</button>
+    <button type="submit" class="btn btn-secondary btn-block">{% translate "Save rate" %}</button>
   </form>
 </section>
-<section>
-  <h2>{% translate "Danger zone" %}</h2>
-  <a href="{% url 'trip_delete' trip.id %}" role="button" class="secondary outline">{% translate "Delete trip" %}</a>
+
+<section class="card card-danger">
+  <h2 class="section-title" style="margin-bottom: 4px">{% translate "Delete this trip" %}</h2>
+  <p class="lead" style="margin: 0 0 12px">{% translate "This deletes all its expenses too." %}</p>
+  <a class="btn btn-danger" href="{% url 'trip_delete' trip.id %}">{% translate "Delete trip" %}</a>
 </section>
+</div>
 {% endblock %}

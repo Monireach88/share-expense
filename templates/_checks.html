@@ -1,7 +1,6 @@
-{% load i18n %}
-<fieldset class="checks">
+{% load ui %}<fieldset>
   <legend>{{ field.label }}</legend>
-  {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-  {{ field }}
-  {{ field.errors }}
+  {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+  <div class="chips">{% for choice in field %}<label>{{ choice.tag }}{{ choice.choice_label }}</label>{% endfor %}</div>
+  {% for error in field.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
 </fieldset>

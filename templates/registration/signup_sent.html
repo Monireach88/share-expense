@@ -1,8 +1,11 @@
-{% extends "base.html" %}{% load i18n %}
+{% extends "base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Request sent" %}{% endblock %}
+{% block main_class %}narrow{% endblock %}
 {% block content %}
-<article>
-  <h1>{% translate "Request sent" %}</h1>
+<div class="card empty" style="margin-top: 24px">
+  <div class="empty-icon" aria-hidden="true">📨</div>
+  <h1 class="page-title">{% translate "Request sent" %}</h1>
   <p>{% translate "The admin will approve your account. Then you can log in with your username and password." %}</p>
-  <a href="{% url 'login' %}" role="button">{% translate "Back to log in" %}</a>
-</article>
+  <a class="btn" href="{% url 'login' %}">{% translate "Back to log in" %}</a>
+</div>
 {% endblock %}

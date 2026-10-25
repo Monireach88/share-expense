@@ -9,6 +9,7 @@ from django.urls import reverse
 from apps.expenses.models import Expense
 from apps.trips.models import ExchangeRate, Participant, Trip, TripMember
 from apps.trips.summary import trip_settlement
+from apps.trips.templatetags.ui import format_amount
 
 pytestmark = pytest.mark.django_db
 SHEET = Path(__file__).parent / "fixtures" / "sheets" / "vn_20260531.json"
@@ -65,6 +66,7 @@ def test_non_member_gets_404_on_every_trip_page(client, trip, make_user):
         reverse("expense_create", args=[trip.id]),
         reverse("expense_edit", args=[trip.id, expense.id]),
         reverse("expense_delete", args=[trip.id, expense.id]),
+        reverse("participant_create", args=[trip.id]),
         reverse("participant_edit", args=[trip.id, person.id]),
         reverse("trip_delete", args=[trip.id]),
     ]
@@ -94,11 +96,9 @@ def test_member_can_record_expenses_but_not_manage_the_trip(client, trip, make_u
     assert client.get(reverse("trip_settings", args=[trip.id])).status_code == 403
     assert client.get(reverse("trip_delete", args=[trip.id])).status_code == 403
     assert (
-        client.post(
-            reverse("people", args=[trip.id]), {"add_participant": "", "p-name": "X"}
-        ).status_code
-        == 403
+        client.post(reverse("participant_create", args=[trip.id]), {"name": "X"}).status_code == 403
     )
+    assert not trip.participants.filter(name="X").exists()
 
 
 def test_expense_cannot_use_a_person_from_another_trip(owner_client, owner, trip, make_trip):
@@ -146,8 +146,8 @@ def test_summary_page_shows_who_pays_whom(owner_client, trip):
     add_expense(trip, owner_p, [owner_p, friend], "30")
     response = owner_client.get(reverse("summary", args=[trip.id]))
     html = response.content.decode()
-    assert "Friend</strong> → <strong>Owner" in html
-    assert "15.00 USD" in html
+    assert '<strong>Friend</strong> <span class="verb">pays</span> <strong>Owner</strong>' in html
+    assert '15.00 <span class="cur">USD</span>' in html
 
 
 def test_sponsor_chain_is_rejected(owner_client, trip):
@@ -190,3 +190,41 @@ def test_real_sheet_through_the_database_matches_the_spreadsheet(owner, make_tri
     for row in trip_settlement(trip).people:
         expected = Decimal(str(data["expected_balances"][by_id[row.participant]]))
         assert abs(row.balance - expected) <= Decimal("0.01")
+
+
+def test_money_shows_whole_units_without_cents():
+    assert format_amount(Decimal("600000"), "VND") == "600,000"
+    assert format_amount(Decimal("42.5"), "USD") == "42.50"
+    assert format_amount(Decimal("12.5"), "VND") == "12.50"
+
+
+def expense_payload(trip, **extra):
+    return {
+        "amount": "10",
+        "currency": "USD",
+        "category": "food",
+        "payer": trip.participants.first().id,
+        "beneficiaries": [p.id for p in trip.participants.all()],
+        "date": "2026-06-01",
+        **extra,
+    }
+
+
+def test_amount_accepts_thousand_separators(owner_client, trip):
+    owner_client.post(reverse("rate_save", args=[trip.id]), {"currency": "VND", "rate": "26200"})
+    payload = expense_payload(trip, amount="450,000", currency="VND")
+    assert owner_client.post(reverse("expense_create", args=[trip.id]), payload).status_code == 302
+    assert trip.expenses.get().amount == Decimal("450000")
+
+
+def test_other_date_chip_uses_the_typed_date(owner_client, trip):
+    payload = expense_payload(trip, date="other", date_other="2026-05-20")
+    assert owner_client.post(reverse("expense_create", args=[trip.id]), payload).status_code == 302
+    assert str(trip.expenses.get().date) == "2026-05-20"
+
+
+def test_owner_adds_a_traveller_on_its_own_page(owner_client, trip):
+    url = reverse("participant_create", args=[trip.id])
+    response = owner_client.post(url, {"name": "Grandma", "add_another": ""})
+    assert response.status_code == 302 and response.url == url
+    assert trip.participants.filter(name="Grandma").exists()

@@ -23,6 +23,7 @@ urlpatterns = [
     ),
     path("trips/<uuid:trip_id>/summary/", views.summary, name="summary"),
     path("trips/<uuid:trip_id>/people/", views.people, name="people"),
+    path("trips/<uuid:trip_id>/people/new/", views.participant_create, name="participant_create"),
     path(
         "trips/<uuid:trip_id>/people/<uuid:participant_id>/",
         views.participant_edit,

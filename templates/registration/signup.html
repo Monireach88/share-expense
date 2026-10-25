@@ -1,14 +1,15 @@
 {% extends "base.html" %}{% load i18n %}
 {% block title %}{% translate "Request an account" %}{% endblock %}
+{% block main_class %}narrow{% endblock %}
 {% block content %}
-<article>
-  <h1>{% translate "Request an account" %}</h1>
+<div class="auth-intro">
+  <h1 class="page-title">{% translate "Request an account" %}</h1>
   <p>{% translate "The admin approves every new account. You can log in after approval." %}</p>
-  <form method="post">{% csrf_token %}
-    {{ form.non_field_errors }}
-    {% for field in form %}{% include "_field.html" %}{% endfor %}
-    <button type="submit">{% translate "Send request" %}</button>
-  </form>
-  <p><a href="{% url 'login' %}">{% translate "Back to log in" %}</a></p>
-</article>
+</div>
+<form method="post" class="card stack">{% csrf_token %}
+  {% include "_form_errors.html" %}
+  {% for field in form %}{% include "_field.html" %}{% endfor %}
+  <button type="submit" class="btn btn-block">{% translate "Send request" %}</button>
+</form>
+<p class="auth-alt"><a href="{% url 'login' %}">{% translate "Back to log in" %}</a></p>
 {% endblock %}

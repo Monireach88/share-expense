@@ -1,0 +1,12 @@
+{% load i18n ui %}{% if form.errors %}
+<div class="note note-error" id="form-errors" tabindex="-1" role="alert" autofocus>
+  {% icon "triangle-alert" %}
+  <div>
+    <strong>{% blocktranslate count n=form.errors|length %}Please fix 1 thing.{% plural %}Please fix {{ n }} things.{% endblocktranslate %}</strong>
+    <ul>
+      {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+      {% for field in form %}{% if field.errors %}<li><a href="#{{ field.id_for_label|default:field.auto_id }}">{{ field.label }}</a>: {{ field.errors.0 }}</li>{% endif %}{% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}

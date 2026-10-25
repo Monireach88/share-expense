@@ -1,35 +1,84 @@
-{% extends "base.html" %}{% load i18n %}
+{% extends "base.html" %}{% load i18n static ui %}
+{% block title %}{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}{% endblock %}
+{% block body_class %}has-bar{% endblock %}
+{% block back %}<a class="back" href="{% url 'trip' trip.id %}">{% icon "chevron-left" %}<span>{{ trip.name }}</span></a>{% endblock %}
 {% block content %}
-{% include "trips/_trip_header.html" %}
-<h2>{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}</h2>
-<form method="post">{% csrf_token %}
-  {{ form.non_field_errors }}
-  <div class="grid">
-    <div>{% include "_field.html" with field=form.amount %}</div>
-    <div>{% include "_field.html" with field=form.currency %}</div>
-  </div>
-  {% include "_field.html" with field=form.description %}
-  {% include "_field.html" with field=form.category %}
-  {% include "_field.html" with field=form.payer %}
-  <fieldset class="checks">
-    <legend>{{ form.beneficiaries.label }}</legend>
-    <small>{{ form.beneficiaries.help_text }}</small>
-    <div class="actions">
-      <button type="button" class="secondary outline" onclick="this.closest('fieldset').querySelectorAll('input[type=checkbox]').forEach(c => c.checked = true)">{% translate "Everyone" %}</button>
-      <button type="button" class="secondary outline" onclick="this.closest('fieldset').querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false)">{% translate "Nobody" %}</button>
+<h1 class="page-title">{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}</h1>
+<form method="post" id="expense-form" class="stack-lg" style="margin-top: 16px" novalidate
+      data-base="{{ trip.base_currency }}">
+  {% csrf_token %}
+  {% include "_form_errors.html" %}
+
+  <div class="field">
+    <label for="{{ form.amount.id_for_label }}">{{ form.amount.label }}</label>
+    <div class="amount-row">
+      {{ form.amount }}
+      {% if form.currency.field.choices|length > 1 %}
+        <div class="chips" role="radiogroup" aria-label="{{ form.currency.label }}">{% for choice in form.currency %}<label>{{ choice.tag }}{{ choice.choice_label }}</label>{% endfor %}</div>
+      {% else %}
+        <span class="only-cur">{{ trip.base_currency }}</span><input type="hidden" name="currency" value="{{ trip.base_currency }}">
+      {% endif %}
     </div>
-    {{ form.beneficiaries }}
-    {{ form.beneficiaries.errors }}
-  </fieldset>
-  {% include "_field.html" with field=form.date %}
-  <div class="actions">
-    <button type="submit">{% translate "Save" %}</button>
-    {% if expense %}
-      <a href="{% url 'expense_delete' trip.id expense.id %}" role="button" class="secondary outline">{% translate "Delete expense" %}</a>
-    {% else %}
-      <button type="submit" name="add_another" class="secondary">{% translate "Save and add another" %}</button>
-    {% endif %}
+    <p class="preview num" data-preview aria-live="polite"></p>
+    {% for error in form.amount.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+    {% for error in form.currency.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
   </div>
-  {% if expense %}<p class="muted">{% blocktranslate with who=expense.created_by.display_name|default:"?" when=expense.created_at|date:"j M Y H:i" %}Added by {{ who }} on {{ when }}.{% endblocktranslate %}{% if expense.updated_by and expense.updated_at|date:"U" != expense.created_at|date:"U" %} {% blocktranslate with who=expense.updated_by.display_name when=expense.updated_at|date:"j M Y H:i" %}Last changed by {{ who }} on {{ when }}.{% endblocktranslate %}{% endif %}</p>{% endif %}
+
+  {% include "_field.html" with field=form.description %}
+
+  {% include "_checks.html" with field=form.payer %}
+
+  <fieldset data-beneficiaries>
+    <legend>{{ form.beneficiaries.label }}</legend>
+    <p class="split-line" data-split aria-live="polite"></p>
+    <div class="chips" style="margin-top: 8px">
+      <label data-everyone hidden><input type="checkbox">{% translate "Everyone" %}</label>
+      {% for choice in form.beneficiaries %}<label>{{ choice.tag }}{{ choice.choice_label }}</label>{% endfor %}
+    </div>
+    {% for person, sponsors in sponsored %}<p class="help" style="margin-top: 8px">{% blocktranslate with name=person.name by=sponsors|join:", " %}{{ name }}’s share is paid by {{ by }}.{% endblocktranslate %}</p>{% endfor %}
+    {% for error in form.beneficiaries.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+  </fieldset>
+
+  <fieldset>
+    <legend>{{ form.category.label }}</legend>
+    <div class="chips">{% for choice in form.category %}<label>{{ choice.tag }}<span aria-hidden="true">{{ choice.data.value|type_emoji }}</span>{{ choice.choice_label }}</label>{% endfor %}</div>
+    {% for error in form.category.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+  </fieldset>
+
+  {% if trip_days %}
+  {% with chosen=form.date_iso %}
+  <fieldset>
+    <legend>{{ form.date.label }}</legend>
+    <div class="chips days">
+      {% for d in trip_days %}{% with iso=d|date:"Y-m-d" %}<label><input type="radio" name="date" value="{{ iso }}" {% if iso == chosen %}checked{% endif %}>{{ d|date:"D j" }}</label>{% endwith %}{% endfor %}
+      <label><input type="radio" name="date" value="other" {% if chosen not in trip_day_isos %}checked{% endif %}>{% translate "Other date" %}</label>
+    </div>
+    <div class="other-date"><input type="date" name="date_other" value="{{ chosen }}" aria-label="{% translate 'Other date' %}"></div>
+    {% for error in form.date.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+  </fieldset>
+  {% endwith %}
+  {% else %}
+  {% include "_field.html" with field=form.date %}
+  {% endif %}
+
+  {% if expense %}
+  <div class="form-foot">
+    <a class="link-danger" href="{% url 'expense_delete' trip.id expense.id %}">{% translate "Delete this expense" %}</a>
+    <p class="tiny muted">{% blocktranslate with who=expense.created_by.display_name|default:"?" when=expense.created_at|date:"j M Y H:i" %}Added by {{ who }} on {{ when }}.{% endblocktranslate %}{% if expense.updated_by and expense.updated_at|date:"U" != expense.created_at|date:"U" %} {% blocktranslate with who=expense.updated_by.display_name when=expense.updated_at|date:"j M Y H:i" %}Last changed by {{ who }} on {{ when }}.{% endblocktranslate %}{% endif %}</p>
+  </div>
+  {% endif %}
 </form>
+{{ rates|json_script:"trip-rates" }}
+<script src="{% static 'js/expense_form.js' %}"></script>
+{% endblock %}
+{% block bar %}
+<div class="bottom-bar"><div class="container">
+  {% if expense %}
+    <a class="btn btn-secondary" href="{% url 'trip' trip.id %}">{% translate "Cancel" %}</a>
+    <button type="submit" form="expense-form" class="btn">{% translate "Save changes" %}</button>
+  {% else %}
+    <button type="submit" form="expense-form" name="add_another" class="btn btn-secondary">{% translate "Save + add another" %}</button>
+    <button type="submit" form="expense-form" class="btn">{% translate "Save expense" %}</button>
+  {% endif %}
+</div></div>
 {% endblock %}

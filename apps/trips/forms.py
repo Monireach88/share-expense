@@ -13,6 +13,11 @@ class TripForm(forms.ModelForm):
         fields = ["name", "country", "start_date", "end_date", "base_currency"]
         widgets = {"start_date": DATE_INPUT, "end_date": DATE_INPUT}
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        country = self.fields["country"]
+        country.choices = [("", _("Choose a country (optional)")), *list(country.choices)[1:]]
+
     def clean(self):
         cleaned = super().clean()
         start, end = cleaned.get("start_date"), cleaned.get("end_date")
@@ -35,6 +40,8 @@ class ExchangeRateForm(forms.ModelForm):
     def __init__(self, *args, trip: Trip, **kwargs):
         super().__init__(*args, **kwargs)
         self.trip = trip
+        currency = self.fields["currency"]
+        currency.choices = [("", _("Choose")), *list(currency.choices)[1:]]
         self.fields["rate"].help_text = _("How many units of this currency make 1 %(base)s.") % {
             "base": trip.base_currency
         }
@@ -67,7 +74,12 @@ class ParticipantForm(forms.ModelForm):
         self.fields["sponsors"].queryset = others
         self.fields["user"].queryset = get_user_model().objects.filter(memberships__trip=trip)
         self.fields["user"].label_from_instance = lambda u: f"{u.display_name} ({u.username})"
-        self.fields["user"].help_text = _("Optional. Only accounts added to this trip are listed.")
+        self.fields["user"].empty_label = _("No account")
+        self.fields["user"].help_text = _(
+            "Optional. Link the person's own account so the app can show them their balance."
+        )
+        self.fields["sponsors"].label = _("Who pays for this person?")
+        self.fields["sponsors"].help_text = _("Leave empty if they pay for themselves.")
 
     def clean_name(self):
         name = self.cleaned_data["name"].strip()
