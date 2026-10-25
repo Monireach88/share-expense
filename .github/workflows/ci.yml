@@ -50,3 +50,38 @@ jobs:
 
       - name: Test
         run: uv run pytest -q
+
+  # Every push to main that passes the tests goes live. The runner joins the tailnet for the
+  # length of the job, because the server has no public SSH; the deploy key can only run
+  # scripts/deploy.sh (a forced command on the server), which deploys exactly this commit.
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://share-expense.monireach.com
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    env:
+      SERVER: 100.92.87.110
+    steps:
+      - name: Join the tailnet
+        uses: tailscale/github-action@d1b6cd204f8dceda5b3eaad7f1f767be390056cd # v4.2.0
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          ping: ${{ env.SERVER }}
+
+      - name: Deploy this commit
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          # The server's own host key, so the job cannot be sent to another machine.
+          echo "$SERVER ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDcGZAH/IuPF2hRLeq/F1Z4APG7nyfNwVfEiAWKC8pQ+" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes "ops@$SERVER" "$GITHUB_SHA"

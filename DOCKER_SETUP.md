@@ -100,6 +100,31 @@ Requirements: a server with Docker and `make`, and a domain on Cloudflare.
 
 The production image runs as a non-root user, collects static files at build time, and serves them with whitenoise. With `DJANGO_DEBUG=false`, Django redirects HTTP to HTTPS, sets secure cookies and sends HSTS. `/health/` answers on plain HTTP for uptime checks.
 
+### Automatic deploy
+
+Every push to `main` runs CI (`.github/workflows/ci.yml`). When the `test` job passes, the `deploy` job puts that exact commit live:
+
+1. The GitHub runner joins your Tailscale network for the length of the job (the server has no public SSH).
+2. It logs in with a deploy key whose `authorized_keys` line forces one command, `scripts/deploy.sh`, so the key cannot open a shell.
+3. `scripts/deploy.sh` checks that the commit is on `main`, fast-forwards the server checkout to it, runs `make up ENV=prod`, and waits up to 60 seconds for `/health/`. A failure turns the job red and prints the last 50 web log lines. Every run is appended to `~/logs/share-expense-deploy.log` on the server.
+
+One-time setup:
+
+1. Tailscale admin console, Access controls: own a tag `tag:ci` and allow it to reach only the server on port 22:
+   ```json
+   "tagOwners": { "tag:ci": ["autogroup:admin"] },
+   "grants": [ { "src": ["tag:ci"], "dst": ["<server Tailscale IP>"], "ip": ["tcp:22"] } ]
+   ```
+2. Tailscale admin console, Settings → OAuth clients: create a client with the `auth_keys` write scope and tag `tag:ci`. Store it in the repo: `gh secret set TS_OAUTH_CLIENT_ID` and `gh secret set TS_OAUTH_SECRET`.
+3. Create a deploy key and add its public half to the server user's `~/.ssh/authorized_keys`, with the forced command in front:
+   ```
+   command="/home/<user>/projects/share-expense/scripts/deploy.sh",from="100.64.0.0/10",restrict ssh-ed25519 AAAA... share-expense-deploy
+   ```
+   Store the private half with `gh secret set DEPLOY_SSH_KEY < <key file>`, then delete the file.
+4. Put the server's Tailscale IP in `SERVER` and its SSH host key in the `known_hosts` line of the `deploy` job.
+
+Deploy by hand (same script): `scripts/deploy.sh $(git rev-parse origin/main)` on the server.
+
 Backup: `make backup ENV=prod` writes a gzipped `pg_dump` to `~/backups/share-expense/` (change with `BACKUP_DIR=...`) and keeps the newest 14. Run it daily from cron:
 
 ```
