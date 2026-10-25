@@ -150,6 +150,34 @@ def test_summary_page_shows_who_pays_whom(owner_client, trip):
     assert '15.00 <span class="cur">USD</span>' in html
 
 
+def test_summary_groups_people_and_shows_my_total(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    third = Participant.objects.create(trip=trip, name="Third")
+    add_expense(trip, owner_p, [owner_p, friend, third], "30")
+    response = owner_client.get(reverse("summary", args=[trip.id]))
+    summary = response.context["summary"]
+    assert summary["me"]["person"] == owner_p
+    assert [r["person"] for r in summary["get_back"]] == [owner_p]
+    assert {r["person"] for r in summary["owe"]} == {friend, third}
+    # Balances sum to zero, so the money to move is the total owed and the total to get back.
+    assert summary["to_move"] == Decimal("20")
+    html = response.content.decode()
+    assert "You get back in total" in html
+    assert "Suggested payments" in html
+
+
+def test_summary_shows_what_a_debtor_owes(client, trip, make_user):
+    owner_p, friend = trip.participants.all()
+    friend_user = make_user("friend")
+    TripMember.objects.create(trip=trip, user=friend_user)
+    friend.user = friend_user
+    friend.save()
+    add_expense(trip, owner_p, [owner_p, friend], "30")
+    client.force_login(friend_user)
+    html = client.get(reverse("summary", args=[trip.id])).content.decode()
+    assert "You owe in total" in html
+
+
 def test_sponsor_chain_is_rejected(owner_client, trip):
     owner_p, friend = trip.participants.all()
     child = Participant.objects.create(trip=trip, name="Child")

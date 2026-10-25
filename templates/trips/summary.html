@@ -6,9 +6,45 @@
 {% if error %}
   <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Ask the trip owner to add the rate." %}{% endif %}</div></div>
 {% else %}
+  {% if summary.me %}
+  <div class="card">
+    <div class="balance">
+      {% if summary.me.row.balance > 0 %}
+        <span class="label">{% translate "You get back in total" %}</span>
+        <span class="big num pos"><span class="dir">↑</span> {{ summary.me.row.balance|money:summary.currency }}</span>
+      {% elif summary.me.row.balance < 0 %}
+        <span class="label">{% translate "You owe in total" %}</span>
+        <span class="big num neg"><span class="dir">↓</span> {{ summary.me.row.balance|amount:summary.currency }} <span class="cur">{{ summary.currency }}</span></span>
+      {% else %}
+        <span class="label">{% translate "You are even" %}</span>
+        <span class="big num muted">0</span>
+      {% endif %}
+    </div>
+    <p class="balance-foot tiny muted">{% if summary.me.row.balance > 0 %}{% translate "Collect it from the people who owe money, in any way you agree." %}{% elif summary.me.row.balance < 0 %}{% translate "Pay it to the people who get money back, in any way you agree." %}{% else %}{% translate "You do not need to pay or collect anything." %}{% endif %}</p>
+  </div>
+  {% endif %}
+
   <section>
+    <h2 class="section-title">{% translate "Each person" %}</h2>
+    {% if summary.get_back %}
+    <h3 class="group-head"><span>{% translate "Get money back" %}</span><span class="num pos">{{ summary.to_move|money:summary.currency }}</span></h3>
+    <ul class="list">{% for item in summary.get_back %}{% include "trips/_person_row.html" with currency=summary.currency %}{% endfor %}</ul>
+    {% endif %}
+    {% if summary.owe %}
+    <h3 class="group-head"><span>{% translate "Owe money" %}</span><span class="num neg">{{ summary.to_move|money:summary.currency }}</span></h3>
+    <ul class="list">{% for item in summary.owe %}{% include "trips/_person_row.html" with currency=summary.currency %}{% endfor %}</ul>
+    {% endif %}
+    {% if summary.even %}
+    <h3 class="group-head"><span>{% translate "Even" %}</span></h3>
+    <ul class="list">{% for item in summary.even %}{% include "trips/_person_row.html" with currency=summary.currency %}{% endfor %}</ul>
+    {% endif %}
+    <p class="tiny muted" style="margin-top: 8px">{% blocktranslate with c=summary.currency %}All amounts in {{ c }}.{% endblocktranslate %}{% for rate in trip.rates.all %} 1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}.{% endfor %} {% translate "Tap a name to see how it was calculated." %}</p>
+  </section>
+
+  <section>
+    <h2 class="section-title" style="margin-bottom: 4px">{% translate "Suggested payments" %}</h2>
     {% if summary.transfers %}
-      <p class="lead" style="margin-bottom: 8px">{% blocktranslate count n=summary.transfers|length %}To settle the trip, 1 payment:{% plural %}To settle the trip, {{ n }} payments:{% endblocktranslate %}</p>
+      <p class="lead" style="margin: 0 0 12px">{% blocktranslate count n=summary.transfers|length %}One way to settle with the fewest payments: 1 payment. You can also agree on other payments; the totals above stay the same.{% plural %}One way to settle with the fewest payments: {{ n }} payments. You can also agree on other payments; the totals above stay the same.{% endblocktranslate %}</p>
       <ul class="list">
         {% for t in summary.transfers %}
         <li class="transfer{% if t.is_me %} me{% endif %}">
@@ -20,37 +56,6 @@
     {% else %}
       <ul class="messages"><li class="success" style="animation: none">{% icon "circle-check" %}<span>{% translate "Everyone is even. Nobody needs to pay anyone." %}</span></li></ul>
     {% endif %}
-  </section>
-
-  <section>
-    <h2 class="section-title">{% translate "Each person" %}</h2>
-    <ul class="list">
-      {% for item in summary.people %}
-      <li>
-        <details class="person">
-          <summary>
-            <span class="row-main">
-              <span class="row-title" style="display:block">{{ item.person.name }}{% if item.is_me %} <span class="you">({% translate "you" %})</span>{% endif %}</span>
-              {% if item.person.sponsors.all %}<span class="row-sub" style="display:block">{% translate "covered by" %} {{ item.person.sponsors.all|join:", " }}</span>{% endif %}
-            </span>
-            <span class="row-end">
-              {% if item.row.balance > 0 %}<span class="tiny muted" style="display:block">{% translate "gets back" %}</span><span class="num pos dir">↑ {{ item.row.balance|amount:summary.currency }}</span>
-              {% elif item.row.balance < 0 %}<span class="tiny muted" style="display:block">{% translate "owes" %}</span><span class="num neg dir">↓ {{ item.row.balance|amount:summary.currency }}</span>
-              {% else %}<span class="muted">{% translate "even" %}</span>{% endif %}
-            </span>
-            {% icon "chevron-left" "chev" %}
-          </summary>
-          <dl class="num">
-            <dt>{% translate "Paid" %}</dt><dd>{{ item.row.paid|amount:summary.currency }}</dd>
-            <dt>{% translate "Own share" %}</dt><dd>{{ item.row.own_share|amount:summary.currency }}</dd>
-            {% if item.row.responsible_for != item.row.own_share %}<dt>{% translate "Share they pay for (with people they cover)" %}</dt><dd>{{ item.row.responsible_for|amount:summary.currency }}</dd>{% endif %}
-            <dt><strong>{% translate "Paid minus share" %}</strong></dt><dd><strong>{% if item.row.balance < 0 %}−{% endif %}{{ item.row.balance|amount:summary.currency }}</strong></dd>
-          </dl>
-        </details>
-      </li>
-      {% endfor %}
-    </ul>
-    <p class="tiny muted" style="margin-top: 8px">{% blocktranslate with c=summary.currency %}All amounts in {{ c }}.{% endblocktranslate %}{% for rate in trip.rates.all %} 1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}.{% endfor %} {% translate "Tap a name to see how it was calculated." %}</p>
   </section>
 
   <section>

@@ -86,6 +86,11 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
 .neg { color: var(--neg); }
 .page-title { font-size: 24px; }
 .section-title { font-size: 20px; margin-bottom: var(--s3); }
+.group-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3);
+  font-size: 15px; font-weight: 600; margin: var(--s4) 0 var(--s2); padding-inline: var(--s1);
+}
+.section-title + .group-head { margin-top: 0; }
 .lead { font-size: 15px; color: var(--muted); margin-top: var(--s1); }
 
 /* ---------- App header ---------- */

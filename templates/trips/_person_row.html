@@ -1,0 +1,22 @@
+{% load i18n ui %}<li>
+  <details class="person">
+    <summary>
+      <span class="row-main">
+        <span class="row-title" style="display:block">{{ item.person.name }}{% if item.is_me %} <span class="you">({% translate "you" %})</span>{% endif %}</span>
+        {% if item.person.sponsors.all %}<span class="row-sub" style="display:block">{% translate "covered by" %} {{ item.person.sponsors.all|join:", " }}</span>{% endif %}
+      </span>
+      <span class="row-end">
+        {% if item.row.balance > 0 %}<span class="num pos dir">↑ {{ item.row.balance|amount:currency }}</span>
+        {% elif item.row.balance < 0 %}<span class="num neg dir">↓ {{ item.row.balance|amount:currency }}</span>
+        {% else %}<span class="muted">0</span>{% endif %}
+      </span>
+      {% icon "chevron-left" "chev" %}
+    </summary>
+    <dl class="num">
+      <dt>{% translate "Paid" %}</dt><dd>{{ item.row.paid|amount:currency }}</dd>
+      <dt>{% translate "Own share" %}</dt><dd>{{ item.row.own_share|amount:currency }}</dd>
+      {% if item.row.responsible_for != item.row.own_share %}<dt>{% translate "Share they pay for (with people they cover)" %}</dt><dd>{{ item.row.responsible_for|amount:currency }}</dd>{% endif %}
+      <dt><strong>{% translate "Paid minus share" %}</strong></dt><dd><strong>{% if item.row.balance < 0 %}−{% endif %}{{ item.row.balance|amount:currency }}</strong></dd>
+    </dl>
+  </details>
+</li>

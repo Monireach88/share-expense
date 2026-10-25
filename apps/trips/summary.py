@@ -40,17 +40,25 @@ def named(trip: Trip, result: SettlementResult, user=None) -> dict:
     people = {p.id: p for p in trip.participants.prefetch_related("sponsors")}
     labels = dict(Expense._meta.get_field("category").choices)
     largest = max(result.by_category.values(), default=0)
+    rows = [
+        {
+            "person": people[s.participant],
+            "row": s,
+            "is_me": people[s.participant].user_id == user.id if user else False,
+        }
+        for s in result.people
+    ]
+    get_back = sorted((r for r in rows if r["row"].balance > 0), key=lambda r: -r["row"].balance)
+    owe = sorted((r for r in rows if r["row"].balance < 0), key=lambda r: r["row"].balance)
     return {
         "total": result.total,
         "currency": result.base_currency,
-        "people": [
-            {
-                "person": people[s.participant],
-                "row": s,
-                "is_me": people[s.participant].user_id == user.id if user else False,
-            }
-            for s in result.people
-        ],
+        "me": next((r for r in rows if r["is_me"]), None),
+        "get_back": get_back,
+        "owe": owe,
+        "even": [r for r in rows if r["row"].balance == 0],
+        # Balances sum to zero, so this is also the total owed: the money that must move.
+        "to_move": sum((r["row"].balance for r in get_back), Decimal(0)),
         "transfers": [
             {
                 "sender": people[t.sender],
