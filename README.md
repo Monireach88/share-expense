@@ -36,8 +36,7 @@ The calculation lives in `apps/settlement/engine.py`. It uses no database, and i
 Prerequisites: Docker with Compose v2, `make`, and an [nginx-proxy](https://github.com/nginx-proxy/nginx-proxy) container on an external Docker network called `proxy-network`. The compose files publish no ports; nginx-proxy routes traffic by host name.
 
 ```bash
-cp .env.example .env
-make dev
+make up                 # first run copies .env.example to .env
 make superuser          # your admin account
 sudo sh -c 'echo "127.0.0.1 share-expense.local" >> /etc/hosts'
 ```
@@ -46,7 +45,7 @@ Open http://share-expense.local and log in.
 
 | Command | What it does |
 |---|---|
-| `make dev` / `make down` | Start / stop |
+| `make up` / `make down` | Start / stop every service (add `ENV=prod` for production) |
 | `make logs` | Follow the web logs |
 | `make test` | Run all tests against the real Postgres |
 | `make lint` | ruff check and format check |

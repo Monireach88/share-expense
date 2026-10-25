@@ -26,8 +26,7 @@ The data volume mounts at `/var/lib/postgresql`, which is what Postgres 18 image
 ## Local development
 
 ```bash
-cp .env.example .env      # first time only
-make dev                  # migrates, then runs runserver with auto-reload
+make up                   # first run copies .env.example to .env; migrates, then runs runserver with auto-reload
 make superuser            # first time only
 ```
 
@@ -37,19 +36,23 @@ The code is mounted into the container, so edits reload at once. After changing 
 
 ## Makefile reference
 
+Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compose.<ENV>.yml` and `.env` / `.env.prod`. Targets marked *dev only* always use the dev stack. Plain `make` is the same as `make up`.
+
 | Command | Description |
 |---|---|
-| `make dev` | Start the dev environment |
-| `make down` | Stop it |
+| `make up` | Build if needed and start every service |
+| `make down` | Stop every service |
+| `make restart` | Restart every service |
 | `make rebuild` | Rebuild images and recreate containers |
+| `make ps` | Service status |
 | `make logs` | Follow web logs |
 | `make migrate` | Apply migrations |
-| `make migrations` | Generate migrations from model changes |
+| `make migrations` | Generate migrations from model changes (dev only) |
 | `make superuser` | Create the admin account |
 | `make shell` | Bash in the web container |
-| `make test` | pytest against the real Postgres |
-| `make lint` | ruff check + ruff format --check |
-| `make clean` | Stop and **delete the database volume** |
+| `make test` | pytest against the real Postgres (dev only) |
+| `make lint` | ruff check + ruff format --check (dev only) |
+| `make clean` | Stop and **delete the database volume** (dev only) |
 
 ## Environment variables
 
@@ -83,8 +86,8 @@ Requirements on the server: Docker, the `nginx-proxy` container and its Let's En
 cp .env.example .env.prod
 # set DJANGO_DEBUG=false, DJANGO_SECRET_KEY, DJANGO_ALLOWED_HOSTS, DJANGO_CSRF_TRUSTED_ORIGINS,
 # POSTGRES_PASSWORD (and the same password in DATABASE_URL), VIRTUAL_HOST
-docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
-docker compose --env-file .env.prod -f docker-compose.prod.yml exec web python manage.py createsuperuser
+make up ENV=prod
+make superuser ENV=prod
 ```
 
 The production image runs as a non-root user, collects static files at build time, and serves them with whitenoise. With `DJANGO_DEBUG=false`, Django redirects HTTP to HTTPS, sets secure cookies and sends HSTS. `/health/` answers on plain HTTP for uptime checks.
