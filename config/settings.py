@@ -98,7 +98,9 @@ AXES_FAILURE_LIMIT = int(os.environ.get("AXES_FAILURE_LIMIT", "5"))
 AXES_COOLOFF_TIME = 1
 AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 AXES_RESET_ON_SUCCESS = True
-AXES_IPWARE_PROXY_COUNT = int(os.environ.get("AXES_IPWARE_PROXY_COUNT", "0"))
+# Header that holds the real visitor IP behind a proxy, e.g. HTTP_X_FORWARDED_FOR or HTTP_CF_CONNECTING_IP.
+CLIENT_IP_HEADER = os.environ.get("CLIENT_IP_HEADER", "")
+AXES_CLIENT_IP_CALLABLE = "apps.accounts.client_ip.client_ip"
 
 LANGUAGE_CODE = "en"
 LANGUAGES = [("en", "English")]

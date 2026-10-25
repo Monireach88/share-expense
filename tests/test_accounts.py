@@ -55,3 +55,30 @@ def test_login_is_locked_after_five_failures(client, make_user):
         client.post(reverse("login"), {"username": "victim", "password": "wrong"})
     response = client.post(reverse("login"), {"username": "victim", "password": PASSWORD})
     assert response.status_code == 429
+
+
+def test_lock_uses_the_ip_our_proxy_added(rf, settings):
+    from apps.accounts.client_ip import client_ip
+
+    settings.CLIENT_IP_HEADER = "HTTP_X_FORWARDED_FOR"
+    spoofed = rf.get("/", HTTP_X_FORWARDED_FOR="1.1.1.1, 203.0.113.9", REMOTE_ADDR="172.18.0.2")
+    assert client_ip(spoofed) == "203.0.113.9"
+    assert client_ip(rf.get("/", REMOTE_ADDR="172.18.0.2")) == "172.18.0.2"
+    settings.CLIENT_IP_HEADER = ""
+    assert client_ip(spoofed) == "172.18.0.2"
+
+
+def test_lock_is_per_ip(client, make_user, settings):
+    settings.CLIENT_IP_HEADER = "HTTP_X_FORWARDED_FOR"
+    make_user("victim")
+    for _ in range(5):
+        client.post(
+            reverse("login"),
+            {"username": "victim", "password": "x"},
+            HTTP_X_FORWARDED_FOR="198.51.100.1",
+        )
+    other_ip = {"HTTP_X_FORWARDED_FOR": "198.51.100.2"}
+    response = client.post(
+        reverse("login"), {"username": "victim", "password": PASSWORD}, **other_ip
+    )
+    assert response.status_code == 302

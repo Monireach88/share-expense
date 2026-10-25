@@ -1,4 +1,8 @@
-name: share-expense
+name: share-expense-prod
+
+# Production: every service in one file. Visitors reach the app through a
+# Cloudflare Tunnel (the cloudflared service dials out to Cloudflare), so the
+# server opens no ports and Cloudflare provides HTTPS.
 
 services:
 
@@ -8,23 +12,24 @@ services:
       target: production
     image: share-expense:${IMAGE_TAG:-local}
     env_file: .env.prod
-    environment:
-      VIRTUAL_HOST: ${VIRTUAL_HOST}
-      VIRTUAL_PORT: "8000"
-      LETSENCRYPT_HOST: ${VIRTUAL_HOST}
     expose:
       - "8000"
     depends_on:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     deploy:
       resources:
         limits: {cpus: "1.0", memory: 512M}
         reservations: {memory: 128M}
     networks:
       - share-expense-net
-      - proxy-network
 
   postgres:
     image: postgres:18-alpine
@@ -45,11 +50,25 @@ services:
       timeout: 5s
       retries: 10
 
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.0
+    # Sends every request for the tunnel's host name to the web service.
+    command: tunnel --no-autoupdate run --url http://web:8000
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in .env.prod}
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: {cpus: "0.5", memory: 128M}
+    networks:
+      - share-expense-net
+
 volumes:
   postgres-data:
 
 networks:
   share-expense-net:
     driver: bridge
-  proxy-network:
-    external: true

@@ -18,8 +18,9 @@
 |---|---|---|
 | `web` | `./Dockerfile` (`development` target in dev, `production` in prod) | Django app |
 | `postgres` | `postgres:18-alpine` | Database; network alias `share-expense-postgres` |
+| `cloudflared` (prod only) | `cloudflare/cloudflared` | Cloudflare Tunnel: carries visitors from Cloudflare to `web` |
 
-**No ports are published to the host.** HTTP reaches `web` through the shared `nginx-proxy` container on the external `proxy-network`, using `VIRTUAL_HOST` and `VIRTUAL_PORT=8000`. `postgres` stays on the internal `share-expense-net` network only.
+**No ports are published to the host.** In dev, HTTP reaches `web` through the shared `nginx-proxy` container on the external `proxy-network`, using `VIRTUAL_HOST` and `VIRTUAL_PORT=8000`. In production, the `cloudflared` service dials out to Cloudflare, so the server needs no open port, no web server and no certificate: Cloudflare serves HTTPS. `postgres` stays on the internal `share-expense-net` network only.
 
 The data volume mounts at `/var/lib/postgresql`, which is what Postgres 18 images expect (not `/var/lib/postgresql/data`).
 
@@ -68,8 +69,8 @@ Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compos
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `postgres` / `postgres` / `share_expense` | strong password | Used by the postgres container |
 | `DATABASE_URL` | `postgres://postgres:postgres@share-expense-postgres:5432/share_expense` | same, with the real password | Used by Django |
 | `AXES_FAILURE_LIMIT` | `5` | | Failed logins before a 1-hour lock |
-| `AXES_IPWARE_PROXY_COUNT` | `1` | `1` | Proxies in front of the app, so the real client IP is used |
-| `VIRTUAL_HOST` | — | your domain | nginx-proxy route and Let's Encrypt certificate (prod compose) |
+| `CLIENT_IP_HEADER` | `HTTP_X_FORWARDED_FOR` | `HTTP_CF_CONNECTING_IP` | Header with the real visitor IP, so a login lock hits the attacker and not everyone behind the proxy |
+| `CLOUDFLARE_TUNNEL_TOKEN` | — | **required** | `cloudflared tunnel token <tunnel-name>` |
 | `GUNICORN_WORKERS` | — | `2` | |
 
 `.env.example` lists all of them. Real `.env` files are never committed.
@@ -80,15 +81,21 @@ Django migrations live in `apps/*/migrations/`. After a model change: `make migr
 
 ## Production
 
-Requirements on the server: Docker, the `nginx-proxy` container and its Let's Encrypt companion on `proxy-network`, and a DNS record for your domain.
+Requirements: a server with Docker and `make`, and a domain on Cloudflare.
 
-```bash
-cp .env.example .env.prod
-# set DJANGO_DEBUG=false, DJANGO_SECRET_KEY, DJANGO_ALLOWED_HOSTS, DJANGO_CSRF_TRUSTED_ORIGINS,
-# POSTGRES_PASSWORD (and the same password in DATABASE_URL), VIRTUAL_HOST
-make up ENV=prod
-make superuser ENV=prod
-```
+1. Create the tunnel and its DNS record (on any machine where `cloudflared tunnel login` was done):
+   ```bash
+   cloudflared tunnel create share-expense
+   cloudflared tunnel route dns share-expense share-expense.example.com
+   cloudflared tunnel token share-expense      # goes into CLOUDFLARE_TUNNEL_TOKEN
+   ```
+   If `~/.cloudflared/config.yml` names another tunnel, it overrides the name above; add `--config <empty file>` and check the `tunnelID` that `route dns` prints.
+2. On the server, `cp .env.example .env.prod` and set: `DJANGO_DEBUG=false`, `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS=<domain>,localhost` (`localhost` is for the container health check), `DJANGO_CSRF_TRUSTED_ORIGINS=https://<domain>`, `POSTGRES_PASSWORD` (and the same password in `DATABASE_URL`), `CLIENT_IP_HEADER=HTTP_CF_CONNECTING_IP` and `CLOUDFLARE_TUNNEL_TOKEN`.
+3. Start it and create the admin account:
+   ```bash
+   make up ENV=prod
+   make superuser ENV=prod
+   ```
 
 The production image runs as a non-root user, collects static files at build time, and serves them with whitenoise. With `DJANGO_DEBUG=false`, Django redirects HTTP to HTTPS, sets secure cookies and sends HSTS. `/health/` answers on plain HTTP for uptime checks.
 
@@ -98,7 +105,8 @@ Backup: `docker compose --env-file .env.prod -f docker-compose.prod.yml exec pos
 
 | Problem | Fix |
 |---|---|
-| `network proxy-network declared as external, but could not be found` | Start nginx-proxy first, or `docker network create proxy-network` |
+| `network proxy-network declared as external, but could not be found` (dev) | Start nginx-proxy first, or `docker network create proxy-network` |
+| Production site shows Cloudflare error 1033 | The tunnel is down: `make logs ENV=prod` is web only, so check `docker logs share-expense-prod-cloudflared-1` |
 | Browser cannot reach `share-expense.local` | Add the `/etc/hosts` line above |
 | `CSRF verification failed` in production | `DJANGO_CSRF_TRUSTED_ORIGINS` must contain the full `https://` origin |
 | Login says "locked" | 5 failed attempts; wait 1 hour, or `python manage.py axes_reset` in the web container |

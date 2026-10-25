@@ -33,7 +33,7 @@ The calculation lives in `apps/settlement/engine.py`. It uses no database, and i
 
 ## Run it locally
 
-Prerequisites: Docker with Compose v2, `make`, and an [nginx-proxy](https://github.com/nginx-proxy/nginx-proxy) container on an external Docker network called `proxy-network`. The compose files publish no ports; nginx-proxy routes traffic by host name.
+Prerequisites: Docker with Compose v2, `make`, and an [nginx-proxy](https://github.com/nginx-proxy/nginx-proxy) container on an external Docker network called `proxy-network`. The dev compose file publishes no ports; nginx-proxy routes traffic by host name.
 
 ```bash
 make up                 # first run copies .env.example to .env
@@ -59,7 +59,7 @@ Open http://share-expense.local and log in.
 
 ## Self-hosting
 
-See [`DOCKER_SETUP.md`](DOCKER_SETUP.md) for production: `docker-compose.prod.yml`, the `.env.prod` values and HTTPS.
+Production runs the app, Postgres and a [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) from one compose file, so the server opens no ports and Cloudflare provides HTTPS: `make up ENV=prod`. Steps and `.env.prod` values are in [`DOCKER_SETUP.md`](DOCKER_SETUP.md).
 
 ## Roadmap
 
