@@ -54,6 +54,9 @@ class PersonSummary:
     own_share: Decimal = Decimal("0.00")
     responsible_for: Decimal = Decimal("0.00")
     balance: Decimal = Decimal("0.00")
+    # The part of ``paid`` that covered this person's own ``responsible_for``. The rest of
+    # ``paid`` was for others, and the rest of ``responsible_for`` others paid for them.
+    paid_for_self: Decimal = Decimal("0.00")
 
 
 @dataclass
@@ -158,6 +161,7 @@ def settle(
 
     paid: dict[ParticipantId, Fraction] = defaultdict(Fraction)
     own: dict[ParticipantId, Fraction] = defaultdict(Fraction)
+    paid_for_self: dict[ParticipantId, Fraction] = defaultdict(Fraction)
     by_category: dict[str, Fraction] = defaultdict(Fraction)
     total = Fraction(0)
 
@@ -176,6 +180,9 @@ def settle(
         total += cents
         for person in beneficiaries:
             own[person] += cents / len(beneficiaries)
+            payers = covered_by[person]
+            if expense.payer in payers:
+                paid_for_self[expense.payer] += cents / len(beneficiaries) / len(payers)
 
     responsible: dict[ParticipantId, Fraction] = defaultdict(Fraction)
     for person in participants:
@@ -193,6 +200,7 @@ def settle(
             own_share=_cents(_to_cents(own[p])),
             responsible_for=_cents(_to_cents(responsible[p])),
             balance=balances[p],
+            paid_for_self=_cents(_to_cents(paid_for_self[p])),
         )
         for p in participants
     ]

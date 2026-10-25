@@ -8,6 +8,6 @@
 </div>
 <nav class="tabs" aria-label="{% translate 'Trip sections' %}">
   <a href="{% url 'trip' trip.id %}" {% if tab == "expenses" %}aria-current="page"{% endif %}>{% translate "Expenses" %}</a>
-  <a href="{% url 'summary' trip.id %}" {% if tab == "summary" %}aria-current="page"{% endif %}>{% translate "Who pays whom" %}</a>
+  <a href="{% url 'summary' trip.id %}" {% if tab == "summary" %}aria-current="page"{% endif %}>{% translate "Balances" %}</a>
   <a href="{% url 'people' trip.id %}" {% if tab == "people" %}aria-current="page"{% endif %}>{% translate "People" %}</a>
 </nav>

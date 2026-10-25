@@ -1,75 +1,22 @@
 {% extends "base.html" %}{% load i18n ui %}
-{% block title %}{% translate "Who pays whom" %} · {{ trip.name }}{% endblock %}
+{% block title %}{% translate "Balances" %} · {{ trip.name }}{% endblock %}
 {% block content %}
 {% include "trips/_trip_header.html" %}
 <div class="stack-lg" style="margin-top: 16px">
 {% if error %}
   <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Ask the trip owner to add the rate." %}{% endif %}</div></div>
 {% else %}
-  {% if summary.me %}
-  <div class="card">
-    <div class="balance">
-      {% if summary.me.row.balance > 0 %}
-        <span class="label">{% translate "You get back in total" %}</span>
-        <span class="big num pos"><span class="dir">↑</span> {{ summary.me.row.balance|money:summary.currency }}</span>
-      {% elif summary.me.row.balance < 0 %}
-        <span class="label">{% translate "You owe in total" %}</span>
-        <span class="big num neg"><span class="dir">↓</span> {{ summary.me.row.balance|amount:summary.currency }} <span class="cur">{{ summary.currency }}</span></span>
-      {% else %}
-        <span class="label">{% translate "You are even" %}</span>
-        <span class="big num muted">0</span>
-      {% endif %}
-    </div>
-    <p class="balance-foot tiny muted">{% if summary.me.row.balance > 0 %}{% translate "Collect it from the people who owe money, in any way you agree." %}{% elif summary.me.row.balance < 0 %}{% translate "Pay it to the people who get money back, in any way you agree." %}{% else %}{% translate "You do not need to pay or collect anything." %}{% endif %}</p>
-  </div>
-  {% endif %}
+  {% if summary.me %}<div class="card">{% include "trips/_my_card.html" with why=True %}</div>{% endif %}
 
   <section>
-    <h2 class="section-title">{% translate "Each person" %}</h2>
-    {% if summary.get_back %}
-    <h3 class="group-head"><span>{% translate "Get money back" %}</span><span class="num pos">{{ summary.to_move|money:summary.currency }}</span></h3>
-    <ul class="list">{% for item in summary.get_back %}{% include "trips/_person_row.html" with currency=summary.currency %}{% endfor %}</ul>
-    {% endif %}
-    {% if summary.owe %}
-    <h3 class="group-head"><span>{% translate "Owe money" %}</span><span class="num neg">{{ summary.to_move|money:summary.currency }}</span></h3>
-    <ul class="list">{% for item in summary.owe %}{% include "trips/_person_row.html" with currency=summary.currency %}{% endfor %}</ul>
-    {% endif %}
-    {% if summary.even %}
-    <h3 class="group-head"><span>{% translate "Even" %}</span></h3>
-    <ul class="list">{% for item in summary.even %}{% include "trips/_person_row.html" with currency=summary.currency %}{% endfor %}</ul>
-    {% endif %}
-    <p class="tiny muted" style="margin-top: 8px">{% blocktranslate with c=summary.currency %}All amounts in {{ c }}.{% endblocktranslate %}{% for rate in trip.rates.all %} 1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}.{% endfor %} {% translate "Tap a name to see how it was calculated." %}</p>
-  </section>
-
-  <section>
-    <h2 class="section-title" style="margin-bottom: 4px">{% translate "Suggested payments" %}</h2>
-    {% if summary.transfers %}
-      <p class="lead" style="margin: 0 0 12px">{% blocktranslate count n=summary.transfers|length %}One way to settle with the fewest payments: 1 payment. You can also agree on other payments; the totals above stay the same.{% plural %}One way to settle with the fewest payments: {{ n }} payments. You can also agree on other payments; the totals above stay the same.{% endblocktranslate %}</p>
-      <ul class="list">
-        {% for t in summary.transfers %}
-        <li class="transfer{% if t.is_me %} me{% endif %}">
-          <span class="who"><strong>{{ t.sender }}</strong> <span class="verb">{% translate "pays" %}</span> <strong>{{ t.receiver }}</strong>{% if t.is_me %}<br><span class="you">{% translate "You" %}</span>{% endif %}</span>
-          <span class="amt num">{{ t.amount|money:summary.currency }}</span>
-        </li>
-        {% endfor %}
-      </ul>
+    <h2 class="section-title">{% translate "Balances" %}</h2>
+    <ul class="list">{% for item in summary.rows %}{% include "trips/_person_row.html" with currency=summary.currency %}{% endfor %}</ul>
+    {% if summary.payment_count %}
+    <p class="tiny muted" style="margin-top: 8px">{% translate "The “Pays” lines settle the trip with the fewest payments. You can agree on other payments; the balances stay the same." %}</p>
     {% else %}
-      <ul class="messages"><li class="success" style="animation: none">{% icon "circle-check" %}<span>{% translate "Everyone is even. Nobody needs to pay anyone." %}</span></li></ul>
+    <ul class="messages" style="margin-top: 12px"><li class="success" style="animation: none">{% icon "circle-check" %}<span>{% translate "Everyone is even. Nobody needs to pay anyone." %}</span></li></ul>
     {% endif %}
-  </section>
-
-  <section>
-    <h2 class="section-title">{% translate "By type" %}</h2>
-    {% if summary.by_category %}
-    <div class="card">
-      <ul class="bars">
-        {% for c in summary.by_category %}
-        <li><span><span aria-hidden="true">{{ c.code|type_emoji }}</span> {{ c.label }}</span><span class="num">{{ c.amount|money:summary.currency }}</span><span class="bar" aria-hidden="true"><span style="--w: {{ c.percent }}%"></span></span></li>
-        {% endfor %}
-      </ul>
-      <p class="balance-foot" style="margin-top: 8px"><span>{% translate "Total" %}</span><strong class="num">{{ summary.total|money:summary.currency }}</strong></p>
-    </div>
-    {% else %}<p class="muted">{% translate "No expenses yet." %}</p>{% endif %}
+    <p class="tiny muted" style="margin-top: 8px">{% blocktranslate with c=summary.currency %}All amounts in {{ c }}.{% endblocktranslate %}{% for rate in trip.rates.all %} 1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}.{% endfor %}</p>
   </section>
 {% endif %}
 </div>

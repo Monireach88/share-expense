@@ -1,0 +1,31 @@
+{% load i18n ui %}{% with me=summary.me cur=summary.currency %}
+<div class="balance">
+  {% if me.row.balance > 0 %}
+    <span class="label">{% translate "You get back" %}</span>
+    <span class="big num pos"><span class="dir">↑</span> {{ me.row.balance|money:cur }}</span>
+  {% elif me.row.balance < 0 %}
+    <span class="label">{% translate "You owe" %}</span>
+    <span class="big num neg"><span class="dir">↓</span> {{ me.row.balance|amount:cur }} <span class="cur">{{ cur }}</span></span>
+  {% else %}
+    <span class="label">{% translate "You are even" %}</span>
+    <span class="big num muted">0</span>
+  {% endif %}
+</div>
+<ul class="settle-lines">
+  {% for t in me.pays %}<li>{% blocktranslate with name=t.person.name amount=t.amount|money:cur %}Pay {{ name }} {{ amount }}{% endblocktranslate %}</li>{% endfor %}
+  {% if me.same_amount and me.paid_by|length > 1 %}<li>{% blocktranslate with names=me.payer_names amount=me.same_amount|money:cur %}{{ names }} each pay you {{ amount }}{% endblocktranslate %}</li>
+  {% else %}{% for t in me.paid_by %}<li>{% blocktranslate with name=t.person.name amount=t.amount|money:cur %}{{ name }} pays you {{ amount }}{% endblocktranslate %}</li>{% endfor %}{% endif %}
+  {% if not me.row.balance %}<li class="muted">{% translate "You do not need to pay or collect anything." %}</li>{% endif %}
+</ul>
+{% if why and me.row.balance %}
+<details class="why">
+  <summary>{% icon "chevron-left" "chev" %}{% translate "Why?" %}</summary>
+  <dl class="num">
+    <dt>{% translate "You paid for others" %}</dt><dd>{{ me.for_others|money:cur }}</dd>
+    <dt>{% translate "Others paid for you" %}</dt><dd>{{ me.from_others|money:cur }}</dd>
+    <dt class="why-total">{% if me.row.balance > 0 %}{% translate "You get back" %}{% else %}{% translate "You owe" %}{% endif %}</dt><dd class="why-total">{{ me.row.balance|amount:cur }} <span class="cur">{{ cur }}</span></dd>
+  </dl>
+  <p class="tiny muted">{% translate "The app counts both directions, so only the difference is paid." %}</p>
+</details>
+{% endif %}
+{% endwith %}

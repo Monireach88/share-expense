@@ -87,6 +87,39 @@ def test_share_split_between_two_sponsors():
     assert balances == {"a": D("-5.00"), "b": D("-5.00"), "c": D("10.00")}
 
 
+def test_paid_for_self_splits_a_balance_into_both_directions():
+    # me pays a bus for all; maly pays a room for me alone and a snack for all.
+    people = ["me", "maly", "a", "b"]
+    result = settle(
+        people,
+        [
+            ExpenseInput("me", people, D("500"), "USD"),
+            ExpenseInput("maly", ["me"], D("500"), "USD"),
+            ExpenseInput("maly", people, D("20"), "USD"),
+        ],
+        base_currency="USD",
+    )
+    me, maly = result.people[0], result.people[1]
+    assert (me.paid - me.paid_for_self, me.responsible_for - me.paid_for_self) == (
+        D("375.00"),
+        D("505.00"),
+    )
+    assert (maly.paid - maly.paid_for_self, maly.responsible_for - maly.paid_for_self) == (
+        D("515.00"),
+        D("125.00"),
+    )
+
+
+def test_paying_for_the_person_you_cover_counts_as_paying_for_yourself():
+    result = settle(
+        ["a", "b", "c"],
+        [ExpenseInput("a", ["a", "c"], D("10"), "USD")],
+        base_currency="USD",
+        sponsors={"c": ["a"]},
+    )
+    assert result.people[0].paid_for_self == D("10.00")
+
+
 def test_three_way_split_rounds_without_losing_a_cent():
     result = settle(
         ["a", "b", "c"], [ExpenseInput("a", ["a", "b", "c"], D("10"), "USD")], base_currency="USD"

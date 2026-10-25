@@ -86,11 +86,6 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
 .neg { color: var(--neg); }
 .page-title { font-size: 24px; }
 .section-title { font-size: 20px; margin-bottom: var(--s3); }
-.group-head {
-  display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3);
-  font-size: 15px; font-weight: 600; margin: var(--s4) 0 var(--s2); padding-inline: var(--s1);
-}
-.section-title + .group-head { margin-top: 0; }
 .lead { font-size: 15px; color: var(--muted); margin-top: var(--s1); }
 
 /* ---------- App header ---------- */
@@ -144,7 +139,7 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
   color: var(--muted); border: 1px solid var(--line); background: var(--surface); margin-top: -6px;
 }
 .tabs {
-  display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: var(--s1);
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s1);
   padding: var(--s1); margin-top: var(--s3); border-radius: var(--r-card);
   background: var(--surface); border: 1px solid var(--line);
 }
@@ -236,23 +231,42 @@ a.row:hover { background: var(--bg); }
 .dir { display: inline-flex; align-items: center; gap: 2px; font-weight: 600; }
 
 /* ---------- Summary ---------- */
-.transfer { display: flex; align-items: center; gap: var(--s3); padding: var(--s4); min-height: 72px; }
-.transfer .who { flex: 1; min-width: 0; }
-.transfer .who strong { font-weight: 600; }
-.transfer .verb { color: var(--muted); }
-.transfer .amt { font-size: 20px; font-weight: 700; }
-.transfer.me { box-shadow: inset 4px 0 0 var(--accent); }
 .you { font-size: 13px; font-weight: 600; color: var(--accent); }
-.person summary {
-  display: flex; align-items: center; gap: var(--s3); padding: var(--s3) var(--s4); min-height: 64px;
-  cursor: pointer; list-style: none;
+.settle-lines { list-style: none; margin: var(--s2) 0 0; padding: 0; font-weight: 600; }
+.settle-lines li + li { margin-top: var(--s1); }
+.stats {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line);
 }
-.person summary::-webkit-details-marker { display: none; }
-.person summary .chev { transform: rotate(-90deg); transition: transform 0.15s; }
-.person[open] summary .chev { transform: rotate(90deg); }
-.person dl { margin: 0; padding: 0 var(--s4) var(--s4); display: grid; grid-template-columns: 1fr auto; gap: var(--s1) var(--s4); font-size: 15px; }
-.person dt { color: var(--muted); }
-.person dd { margin: 0; text-align: right; }
+.stats > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stats > div + div { border-left: 1px solid var(--line); padding-left: var(--s3); }
+.stats span { font-size: 13px; color: var(--muted); }
+.stats strong { font-size: 17px; font-weight: 700; }
+/* Closed sections: "Why?" on the Balances card and "Where the money went" on Expenses. */
+.why, .where { margin-top: var(--s3); }
+.why summary, .where summary {
+  display: flex; align-items: center; gap: var(--s2); min-height: 44px;
+  cursor: pointer; list-style: none; font-weight: 600; color: var(--accent);
+}
+.where summary { color: var(--fg); }
+.why summary::-webkit-details-marker, .where summary::-webkit-details-marker { display: none; }
+.why summary .chev, .where summary .chev { transform: rotate(-90deg); transition: transform 0.15s; order: 2; }
+.where summary .chev { margin-left: auto; }
+.why[open] summary .chev, .where[open] summary .chev { transform: rotate(90deg); }
+.why dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: var(--s1) var(--s4); font-size: 15px; }
+.why dt { color: var(--muted); }
+.why dd { margin: 0; text-align: right; }
+.why .why-total { font-weight: 700; color: var(--fg); padding-top: var(--s1); border-top: 1px solid var(--line); }
+.why p { margin: var(--s2) 0 0; }
+.bars-head { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: var(--s3) 0 0; }
+.prow { padding: var(--s3) var(--s4); }
+.prow.me { box-shadow: inset 4px 0 0 var(--accent); }
+.prow-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); }
+.prow-top .row-title { min-width: 0; }
+.prow-amt { flex: none; white-space: nowrap; }
+.prow-amt .num { font-weight: 600; }
+.prow .row-sub { margin-top: 2px; }
+.pays { margin-top: var(--s1); font-size: 15px; font-weight: 600; }
 .bars { list-style: none; margin: 0; padding: 0; }
 .bars li { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--s3); padding: var(--s2) 0; font-size: 15px; }
 .bars .bar { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: var(--bg); overflow: hidden; }

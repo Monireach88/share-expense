@@ -7,31 +7,43 @@
   <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Ask the trip owner to add the rate." %}{% endif %}</div></div>
 {% elif days %}
   <div class="card">
-    {% if my_balance is not None %}
-    <div class="balance">
-      {% if my_balance > 0 %}
-        <span class="label">{% translate "You get back" %}</span>
-        <span class="big num pos"><span class="dir">↑</span> {{ my_balance|money:trip.base_currency }}</span>
-      {% elif my_balance < 0 %}
-        <span class="label">{% translate "You owe" %}</span>
-        <span class="big num neg"><span class="dir">↓</span> {{ my_balance|amount:trip.base_currency }} <span class="cur">{{ trip.base_currency }}</span></span>
-      {% else %}
-        <span class="label">{% translate "You are even" %}</span>
-        <span class="big num muted">0</span>
-      {% endif %}
+    {% if summary.me %}
+      {% include "trips/_my_card.html" %}
+    {% else %}
+      <div class="balance">
+        <span class="label">{% translate "Trip total" %}</span>
+        <span class="big num">{{ summary.total|money:summary.currency }}</span>
+      </div>
+    {% endif %}
+    <div class="stats">
+      {% if summary.me %}<div><span>{% translate "Your cost" %}</span><strong class="num">{{ summary.me.row.responsible_for|amount:summary.currency }}</strong></div>{% endif %}
+      {% if today_total is not None %}<div><span>{% translate "Today" %}</span><strong class="num">{{ today_total|amount:summary.currency }}</strong></div>{% endif %}
+      {% if summary.me %}<div><span>{% translate "Trip total" %}</span><strong class="num">{{ summary.total|amount:summary.currency }}</strong></div>
+      {% else %}<div><span>{% translate "Payments to settle" %}</span><strong class="num">{{ summary.payment_count }}</strong></div>{% endif %}
     </div>
     <div class="balance-foot">
-      <span class="muted">{% translate "Trip total" %} <strong class="num" style="color: var(--fg)">{{ total|money:trip.base_currency }}</strong></span>
-      <a href="{% url 'summary' trip.id %}">{% translate "Who pays whom" %} ›</a>
+      {% if summary.me %}<span class="muted tiny">{% blocktranslate with c=summary.currency %}Amounts in {{ c }}{% endblocktranslate %}</span>
+      {% else %}<span class="muted tiny">{% translate "Link your account to a traveller on the People tab to see your balance." %}</span>{% endif %}
+      <a href="{% url 'summary' trip.id %}">{% translate "Balances" %} ›</a>
     </div>
-    {% else %}
-    <div class="balance">
-      <span class="label">{% translate "Trip total" %}</span>
-      <span class="big num">{{ total|money:trip.base_currency }}</span>
-    </div>
-    <div class="balance-foot"><span class="muted tiny">{% translate "Link your account to a traveller on the People tab to see your balance." %}</span><a href="{% url 'summary' trip.id %}">{% translate "Who pays whom" %} ›</a></div>
-    {% endif %}
   </div>
+  <details class="card where">
+    <summary>{% icon "chevron-left" "chev" %}{% translate "Where the money went" %}</summary>
+    <h3 class="bars-head">{% translate "By type" %}</h3>
+    <ul class="bars">
+      {% for c in summary.by_category %}
+      <li><span><span aria-hidden="true">{{ c.code|type_emoji }}</span> {{ c.label }}</span><span class="num">{{ c.amount|money:summary.currency }}</span><span class="bar" aria-hidden="true"><span style="--w: {{ c.percent }}%"></span></span></li>
+      {% endfor %}
+    </ul>
+    {% if by_day|length > 1 %}
+    <h3 class="bars-head">{% translate "By day" %}</h3>
+    <ul class="bars">
+      {% for d in by_day %}
+      <li><span>{% if multi_year %}{{ d.day|date:"D j M Y" }}{% else %}{{ d.day|date:"D j M" }}{% endif %}</span><span class="num">{{ d.amount|money:summary.currency }}</span><span class="bar" aria-hidden="true"><span style="--w: {{ d.percent }}%"></span></span></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </details>
 {% endif %}
 
 {% for day, items, subtotal in days %}

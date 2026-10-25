@@ -1,5 +1,6 @@
 from contextlib import suppress
 from datetime import timedelta
+from decimal import Decimal
 from itertools import groupby
 
 from django.contrib import messages
@@ -11,7 +12,7 @@ from django.utils.translation import gettext as _
 
 from apps.settlement.engine import SettlementError, to_base
 from apps.trips.access import get_membership
-from apps.trips.summary import my_balance, trip_settlement
+from apps.trips.summary import named, trip_settlement
 from apps.trips.templatetags.ui import format_amount
 
 from .forms import ExpenseForm
@@ -43,12 +44,25 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         "tab": "expenses",
     }
     try:
-        result = trip_settlement(trip)
-        context["total"] = result.total
-        context["my_balance"] = my_balance(trip, result, request.user)
+        context["summary"] = named(trip, trip_settlement(trip), request.user)
     except SettlementError as error:
         context["error"] = str(error)
+    else:
+        today = timezone.localdate()
+        if _in_trip(trip, today):
+            context["today_total"] = next((t for d, _i, t in days if d == today), Decimal(0))
+        largest = max((t for _d, _i, t in days), default=0)
+        context["by_day"] = [
+            {"day": day, "amount": total, "percent": round(total * 100 / largest) if largest else 0}
+            for day, _items, total in reversed(days)
+        ]
     return render(request, "expenses/list.html", context)
+
+
+def _in_trip(trip, day) -> bool:
+    return (not trip.start_date or trip.start_date <= day) and (
+        not trip.end_date or day <= trip.end_date
+    )
 
 
 def _initial(request: HttpRequest, trip) -> dict:
@@ -56,11 +70,8 @@ def _initial(request: HttpRequest, trip) -> dict:
     last = trip.expenses.filter(created_by=request.user).order_by("-created_at").first()
     me = trip.participants.filter(user=request.user).first()
     today = timezone.localdate()
-    in_trip = (not trip.start_date or trip.start_date <= today) and (
-        not trip.end_date or today <= trip.end_date
-    )
     return {
-        "date": today if in_trip or not trip.start_date else trip.start_date,
+        "date": today if _in_trip(trip, today) or not trip.start_date else trip.start_date,
         "payer": me or (last.payer if last else None),
         "beneficiaries": list(trip.participants.all()),
         "currency": last.currency if last else trip.base_currency,

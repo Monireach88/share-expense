@@ -35,40 +35,63 @@ def my_balance(trip: Trip, result: SettlementResult, user) -> Decimal | None:
     return next((s.balance for s in result.people if s.participant == me), None)
 
 
+def _order(row: dict) -> tuple:
+    """Get back (largest first), then owe (largest first), then even, then covered people."""
+    balance = row["row"].balance
+    if balance > 0:
+        return (0, -balance)
+    if balance < 0:
+        return (1, balance)
+    return (3, 0) if row["covered_by"] else (2, 0)
+
+
 def named(trip: Trip, result: SettlementResult, user=None) -> dict:
     """Replace participant IDs with participants and category codes with labels, for templates."""
     people = {p.id: p for p in trip.participants.prefetch_related("sponsors")}
     labels = dict(Expense._meta.get_field("category").choices)
     largest = max(result.by_category.values(), default=0)
-    rows = [
-        {
-            "person": people[s.participant],
-            "row": s,
-            "is_me": people[s.participant].user_id == user.id if user else False,
-        }
-        for s in result.people
-    ]
-    get_back = sorted((r for r in rows if r["row"].balance > 0), key=lambda r: -r["row"].balance)
-    owe = sorted((r for r in rows if r["row"].balance < 0), key=lambda r: r["row"].balance)
+    covers = {pid: [] for pid in people}
+    for person in people.values():
+        for sponsor in person.sponsors.all():
+            covers[sponsor.id].append(person)
+    rows = []
+    for s in result.people:
+        person = people[s.participant]
+        rows.append(
+            {
+                "person": person,
+                "row": s,
+                "is_me": bool(user) and person.user_id == user.id,
+                "covers": covers[person.id],
+                "covered_by": list(person.sponsors.all()),
+                "pays": [
+                    {"person": people[t.receiver], "amount": t.amount}
+                    for t in result.transfers
+                    if t.sender == s.participant
+                ],
+                "paid_by": [
+                    {"person": people[t.sender], "amount": t.amount}
+                    for t in result.transfers
+                    if t.receiver == s.participant
+                ],
+                "for_others": s.paid - s.paid_for_self,
+                # Taken from the balance, not from responsible_for, so the two lines of
+                # "Why?" always differ by exactly the balance shown after rounding.
+                "from_others": s.paid - s.paid_for_self - s.balance,
+            }
+        )
+    rows.sort(key=_order)
+    me = next((r for r in rows if r["is_me"]), None)
+    if me and me["paid_by"]:
+        amounts = {t["amount"] for t in me["paid_by"]}
+        me["same_amount"] = amounts.pop() if len(amounts) == 1 else None
+        me["payer_names"] = ", ".join(t["person"].name for t in me["paid_by"])
     return {
         "total": result.total,
         "currency": result.base_currency,
-        "me": next((r for r in rows if r["is_me"]), None),
-        "get_back": get_back,
-        "owe": owe,
-        "even": [r for r in rows if r["row"].balance == 0],
-        # Balances sum to zero, so this is also the total owed: the money that must move.
-        "to_move": sum((r["row"].balance for r in get_back), Decimal(0)),
-        "transfers": [
-            {
-                "sender": people[t.sender],
-                "receiver": people[t.receiver],
-                "amount": t.amount,
-                "is_me": bool(user)
-                and user.id in (people[t.sender].user_id, people[t.receiver].user_id),
-            }
-            for t in result.transfers
-        ],
+        "me": me,
+        "rows": rows,
+        "payment_count": len(result.transfers),
         "by_category": [
             {
                 "code": code,

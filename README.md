@@ -10,7 +10,8 @@ It was built to replace a spreadsheet, and it gives the same numbers as that spr
 - **Participants are just names.** Grandma does not need an account to be part of a trip.
 - **Sponsors:** a participant can be covered by one or more other people (a child by a parent). Their share moves to the sponsors, split equally.
 - **Expenses:** date, payer, beneficiaries (everyone by default), type, description, amount and currency. The amount is split equally among the beneficiaries. Deleted expenses are kept in the database but left out of the totals.
-- **Summary:** for each person, what they paid, their own share, the shares they cover and their balance; totals by expense type; and the shortest "who pays whom" list (at most one transfer fewer than the number of people).
+- **Balances:** one list of each person's balance (paid minus share, with the shares they cover), each payer row showing whom to pay so the trip settles with the fewest payments, and a "Why?" view that splits your own balance into what you paid for others and what others paid for you.
+- **Trip dashboard** (top of the Expenses tab): your balance, what the trip cost you, today's spending, the trip total, and spending by type and by day.
 - **Exact money:** amounts are stored as decimals, shares are kept as exact fractions, and balances are rounded once so they always add up to exactly zero.
 - **Accounts:** anyone can request an account; it stays inactive until the admin approves it in the admin page. The admin can also create accounts directly. Login is locked for 1 hour after 5 wrong passwords.
 - **Roles per trip:** the **owner** manages people, members, rates and the trip itself; a **member** adds, edits and deletes expenses. Every expense records who created and who last changed it.

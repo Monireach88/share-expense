@@ -141,41 +141,56 @@ def test_deleted_expense_is_kept_but_left_out_of_totals(owner_client, trip):
     assert all(p.balance == 0 for p in trip_settlement(trip).people)
 
 
-def test_summary_page_shows_who_pays_whom(owner_client, trip):
+def test_balances_page_puts_each_payment_on_the_payer_row(owner_client, trip):
     owner_p, friend = trip.participants.all()
     add_expense(trip, owner_p, [owner_p, friend], "30")
     response = owner_client.get(reverse("summary", args=[trip.id]))
+    rows = response.context["summary"]["rows"]
+    assert [r["person"] for r in rows] == [owner_p, friend]
+    assert rows[1]["pays"] == [{"person": owner_p, "amount": Decimal("15.00")}]
     html = response.content.decode()
-    assert '<strong>Friend</strong> <span class="verb">pays</span> <strong>Owner</strong>' in html
-    assert '15.00 <span class="cur">USD</span>' in html
+    assert "Pays Owner 15.00" in html
+    assert "Friend pays you 15.00" in html
 
 
-def test_summary_groups_people_and_shows_my_total(owner_client, trip):
-    owner_p, friend = trip.participants.all()
-    third = Participant.objects.create(trip=trip, name="Third")
-    add_expense(trip, owner_p, [owner_p, friend, third], "30")
-    response = owner_client.get(reverse("summary", args=[trip.id]))
-    summary = response.context["summary"]
-    assert summary["me"]["person"] == owner_p
-    assert [r["person"] for r in summary["get_back"]] == [owner_p]
-    assert {r["person"] for r in summary["owe"]} == {friend, third}
-    # Balances sum to zero, so the money to move is the total owed and the total to get back.
-    assert summary["to_move"] == Decimal("20")
-    html = response.content.decode()
-    assert "You get back in total" in html
-    assert "Suggested payments" in html
-
-
-def test_summary_shows_what_a_debtor_owes(client, trip, make_user):
+def test_balances_why_shows_both_directions_for_a_debtor(client, trip, make_user):
     owner_p, friend = trip.participants.all()
     friend_user = make_user("friend")
     TripMember.objects.create(trip=trip, user=friend_user)
     friend.user = friend_user
     friend.save()
-    add_expense(trip, owner_p, [owner_p, friend], "30")
+    add_expense(trip, friend, [owner_p, friend], "20")
+    add_expense(trip, owner_p, [friend], "50")
     client.force_login(friend_user)
-    html = client.get(reverse("summary", args=[trip.id])).content.decode()
-    assert "You owe in total" in html
+    response = client.get(reverse("summary", args=[trip.id]))
+    me = response.context["summary"]["me"]
+    # Friend paid 10 for Owner; Owner paid 50 for Friend; so Friend owes 40.
+    assert (me["for_others"], me["from_others"], me["row"].balance) == (
+        Decimal("10.00"),
+        Decimal("50.00"),
+        Decimal("-40.00"),
+    )
+    assert "Pay Owner 40.00" in response.content.decode()
+
+
+def test_expenses_tab_shows_the_trip_dashboard(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p, friend], "30")
+    response = owner_client.get(reverse("trip", args=[trip.id]))
+    html = response.content.decode()
+    for label in ("Your cost", "Trip total", "Where the money went", "By type"):
+        assert label in html
+    # The trip has no dates, so every day is a trip day.
+    assert response.context["today_total"] is not None
+
+
+def test_today_is_hidden_outside_the_trip_dates(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    trip.start_date, trip.end_date = date(2020, 1, 1), date(2020, 1, 5)
+    trip.save()
+    add_expense(trip, owner_p, [owner_p, friend], "30")
+    response = owner_client.get(reverse("trip", args=[trip.id]))
+    assert "today_total" not in response.context
 
 
 def test_sponsor_chain_is_rejected(owner_client, trip):
