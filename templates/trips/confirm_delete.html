@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% block title %}{{ button }}{% endblock %}
+{% block back %}<a class="back" href="{{ back }}">{% icon "chevron-left" %}<span>{% translate "Back" %}</span></a>{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ button }}?</h1>
+<div class="card" style="margin-top: 16px">
+  {% if expense %}
+  <p class="row-title">{% if expense.description %}{{ expense.description }}{% else %}{{ expense.get_category_display }}{% endif %}</p>
+  <p class="num" style="margin-top: 4px; font-size: 24px; font-weight: 700">{{ expense.amount|money:expense.currency }}</p>
+  <p class="row-sub">{% blocktranslate with payer=expense.payer.name %}{{ payer }} paid{% endblocktranslate %} · {{ expense.date|date:"D j M Y" }}</p>
+  {% else %}
+  <p class="row-title">{{ object }}</p>
+  {% endif %}
+</div>
+{% if blocked %}
+<div class="note note-error" style="margin-top: 16px">{% icon "triangle-alert" %}<div>{{ blocked }}</div></div>
+{% elif warning %}
+<div class="note" style="margin-top: 16px">{% icon "triangle-alert" %}<div>{{ warning }}</div></div>
+{% endif %}
+{% endblock %}
+{% block bar %}
+<div class="bottom-bar"><div class="container">
+  {% if blocked %}
+  <a class="btn btn-secondary" href="{{ back }}">{% translate "Back" %}</a>
+  {% else %}
+  <a class="btn btn-secondary" href="{{ back }}">{% translate "Cancel" %}</a>
+  <form method="post" style="display: contents">{% csrf_token %}<button type="submit" class="btn btn-danger">{{ button }}</button></form>
+  {% endif %}
+</div></div>
+{% endblock %}

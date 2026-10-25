@@ -1,0 +1,61 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% block title %}{% translate "People" %} · {{ trip.name }}{% endblock %}
+{% block content %}
+{% include "trips/_trip_header.html" %}
+<div class="stack-lg" style="margin-top: 16px">
+<section>
+  <h2 class="section-title" style="margin-bottom: 4px">{% translate "Travellers" %}</h2>
+  <p class="lead" style="margin: 0 0 12px">{% translate "Everyone who shares costs. They do not need an account." %}</p>
+  {% if participants %}
+  <ul class="list">
+    {% for p in participants %}
+    <li>
+      {% if membership.is_owner %}<a class="row" href="{% url 'participant_edit' trip.id p.id %}">{% else %}<div class="row">{% endif %}
+        <span class="avatar" aria-hidden="true">{{ p.name|first|upper }}</span>
+        <span class="row-main">
+          <span class="row-title" style="display:block">{{ p.name }}{% if p.user_id == user.id %} <span class="you">({% translate "you" %})</span>{% endif %}</span>
+          {% if p.sponsors.all or p.user %}<span style="display:block; margin-top: 2px">{% if p.sponsors.all %}<span class="tag">{% translate "covered by" %} {{ p.sponsors.all|join:", " }}</span>{% endif %}{% if p.user %}<span class="tag">{% translate "account" %}: {{ p.user.username }}</span>{% endif %}</span>{% endif %}
+        </span>
+        {% if membership.is_owner %}{% icon "chevron-left" "chev" %}{% endif %}
+      {% if membership.is_owner %}</a>{% else %}</div>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="card empty"><div class="empty-icon" aria-hidden="true">👥</div><p>{% translate "No travellers yet. Add everyone who shares costs." %}</p></div>
+  {% endif %}
+</section>
+
+<section>
+  <h2 class="section-title" style="margin-bottom: 4px">{% translate "Who can open this trip" %}</h2>
+  <p class="lead" style="margin: 0 0 12px">{% translate "People with an account here can add, edit and delete expenses." %}</p>
+  <ul class="list">
+    {% for m in members %}
+    <li class="row">
+      <span class="row-main">
+        <span class="row-title" style="display:block">{{ m.user.display_name }}</span>
+        <span class="row-sub" style="display:block">{{ m.user.username }} · {{ m.get_role_display }}</span>
+      </span>
+      {% if membership.is_owner and not m.is_owner %}
+      <form method="post" action="{% url 'member_remove' trip.id m.id %}" hx-confirm="{% translate 'Remove this account from the trip?' %}">{% csrf_token %}
+        <button type="submit" class="link-danger">{% translate "Remove" %}</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% if membership.is_owner %}
+  <form method="post" class="card" style="margin-top: 12px">{% csrf_token %}
+    {% include "_field.html" with field=member_form.username %}
+    <button type="submit" name="add_member" class="btn btn-secondary btn-block" style="margin-top: 12px">{% translate "Give access" %}</button>
+    <p class="help" style="margin-top: 8px">{% translate "They must have an approved account. Ask them for their username." %}</p>
+  </form>
+  {% endif %}
+</section>
+</div>
+{% endblock %}
+{% block bar %}{% if membership.is_owner %}
+<div class="bottom-bar"><div class="container">
+  <a class="btn" href="{% url 'participant_create' trip.id %}">{% icon "plus" %}{% translate "Add traveller" %}</a>
+</div></div>
+{% endif %}{% endblock %}

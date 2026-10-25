@@ -1,0 +1,81 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% block title %}{{ trip.name }}{% endblock %}
+{% block content %}
+{% include "trips/_trip_header.html" %}
+<div style="margin-top: 16px">
+{% if error %}
+  <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Ask the trip owner to add the rate." %}{% endif %}</div></div>
+{% elif days %}
+  <div class="card">
+    {% if summary.me %}
+      {% include "trips/_my_card.html" %}
+    {% else %}
+      <div class="balance">
+        <span class="label">{% translate "Trip total" %}</span>
+        <span class="big num">{{ summary.total|money:summary.currency }}</span>
+      </div>
+    {% endif %}
+    <div class="stats">
+      {% if summary.me %}<div><span>{% translate "Your cost" %}</span><strong class="num">{{ summary.me.row.responsible_for|amount:summary.currency }}</strong></div>{% endif %}
+      {% if today_total is not None %}<div><span>{% translate "Today" %}</span><strong class="num">{{ today_total|amount:summary.currency }}</strong></div>{% endif %}
+      {% if summary.me %}<div><span>{% translate "Trip total" %}</span><strong class="num">{{ summary.total|amount:summary.currency }}</strong></div>
+      {% else %}<div><span>{% translate "Payments to settle" %}</span><strong class="num">{{ summary.payment_count }}</strong></div>{% endif %}
+    </div>
+    <div class="balance-foot">
+      {% if summary.me %}<span class="muted tiny">{% blocktranslate with c=summary.currency %}Amounts in {{ c }}{% endblocktranslate %}</span>
+      {% else %}<span class="muted tiny">{% translate "Link your account to a traveller on the People tab to see your balance." %}</span>{% endif %}
+      <a href="{% url 'summary' trip.id %}">{% translate "Balances" %} ›</a>
+    </div>
+  </div>
+  <details class="card where">
+    <summary>{% icon "chevron-left" "chev" %}{% translate "Where the money went" %}</summary>
+    <h3 class="bars-head">{% translate "By type" %}</h3>
+    <ul class="bars">
+      {% for c in summary.by_category %}
+      <li><span><span aria-hidden="true">{{ c.code|type_emoji }}</span> {{ c.label }}</span><span class="num">{{ c.amount|money:summary.currency }}</span><span class="bar" aria-hidden="true"><span style="--w: {{ c.percent }}%"></span></span></li>
+      {% endfor %}
+    </ul>
+    {% if by_day|length > 1 %}
+    <h3 class="bars-head">{% translate "By day" %}</h3>
+    <ul class="bars">
+      {% for d in by_day %}
+      <li><span>{% if multi_year %}{{ d.day|date:"D j M Y" }}{% else %}{{ d.day|date:"D j M" }}{% endif %}</span><span class="num">{{ d.amount|money:summary.currency }}</span><span class="bar" aria-hidden="true"><span style="--w: {{ d.percent }}%"></span></span></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </details>
+{% endif %}
+
+{% for day, items, subtotal in days %}
+  <h2 class="day-head"><span>{% if multi_year %}{{ day|date:"D j M Y" }}{% else %}{{ day|date:"D j M" }}{% endif %}</span>{% if subtotal is not None %}<span class="num">{{ subtotal|money:trip.base_currency }}</span>{% endif %}</h2>
+  <ul class="list">
+    {% for e in items %}
+    <li>
+      <a class="row" href="{% url 'expense_edit' trip.id e.id %}">
+        <span class="type-icon" aria-hidden="true">{{ e.category|type_emoji }}</span>
+        <span class="row-main">
+          {% if e.description %}<span class="row-title" style="display:block">{{ e.description }}</span>{% else %}<span class="row-title placeholder" style="display:block">{{ e.get_category_display }}</span>{% endif %}
+          <span class="row-sub" style="display:block">{% blocktranslate with payer=e.payer.name %}{{ payer }} paid{% endblocktranslate %} · {% with n=e.beneficiaries.all|length %}{% if n == people_count %}{% translate "everyone" %}{% else %}{{ e.beneficiaries.all|join:", " }}{% endif %}{% endwith %}</span>
+        </span>
+        <span class="row-end">
+          <span class="num" style="display:block">{{ e.amount|money:e.currency }}</span>
+          {% if e.currency != trip.base_currency and e.base_amount is not None %}<span class="row-sub num" style="display:block">≈ {{ e.base_amount|money:trip.base_currency }}</span>{% endif %}
+        </span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+{% empty %}
+  <div class="card empty">
+    <div class="empty-icon" aria-hidden="true">🧾</div>
+    <p>{% translate "No expenses yet. Add the first one when someone pays." %}</p>
+    <a class="btn" href="{% url 'expense_create' trip.id %}">{% icon "plus" %}{% translate "Add expense" %}</a>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}
+{% block bar %}
+<div class="bottom-bar"><div class="container">
+  <a class="btn" href="{% url 'expense_create' trip.id %}">{% icon "plus" %}{% translate "Add expense" %}</a>
+</div></div>
+{% endblock %}

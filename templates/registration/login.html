@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Log in" %}{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<div class="auth-intro">
+  <div class="brand-mark" aria-hidden="true">S</div>
+  <h1 class="page-title">{% translate "Share Expense" %}</h1>
+  <p>{% translate "Share trip costs with your family. See who pays whom at the end." %}</p>
+</div>
+<form method="post" class="card stack">{% csrf_token %}
+  {% include "_form_errors.html" %}
+  {% include "_field.html" with field=form.username %}
+  {% include "_field.html" with field=form.password %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button type="submit" class="btn btn-block">{% translate "Log in" %}</button>
+</form>
+<p class="auth-alt">{% translate "No account yet?" %} <a href="{% url 'signup' %}">{% translate "Request one" %}</a></p>
+{% endblock %}

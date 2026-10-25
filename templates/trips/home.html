@@ -1,0 +1,36 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% block content %}
+<h1 class="page-title">{% translate "My trips" %}</h1>
+{% if trips %}
+<ul class="list" style="margin-top: 16px">
+  {% for trip in trips %}
+  <li>
+    <a class="row" href="{% url 'trip' trip.id %}">
+      <span class="row-main">
+        <span class="row-title" style="display:block">{{ trip.name }}</span>
+        <span class="row-sub" style="display:block">{% include "trips/_dates.html" %}{% if trip.country %}{{ trip.country.name }}{% else %}{{ trip.base_currency }}{% endif %}</span>
+        <span class="row-sub" style="display:block">{% blocktranslate count n=trip.people_count %}{{ n }} person{% plural %}{{ n }} people{% endblocktranslate %}{% if trip.total %} · {{ trip.total|money:trip.base_currency }}{% endif %}</span>
+      </span>
+      <span class="row-end">
+        {% if trip.my_balance > 0 %}<span class="tiny muted" style="display:block">{% translate "you get back" %}</span><span class="num pos dir">↑ {{ trip.my_balance|amount:trip.base_currency }}</span>
+        {% elif trip.my_balance < 0 %}<span class="tiny muted" style="display:block">{% translate "you owe" %}</span><span class="num neg dir">↓ {{ trip.my_balance|amount:trip.base_currency }}</span>{% endif %}
+      </span>
+      {% icon "chevron-left" "chev" %}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="card empty" style="margin-top: 16px">
+  <div class="empty-icon" aria-hidden="true">🧳</div>
+  <p>{% translate "You have no trips yet." %}</p>
+  <a class="btn" href="{% url 'trip_create' %}">{% icon "plus" %}{% translate "New trip" %}</a>
+  <p class="small" style="margin: 24px 0 0">{% translate "Or ask a trip owner to add you. Your username:" %} <strong>{{ user.username }}</strong></p>
+</div>
+{% endif %}
+{% endblock %}
+{% block bar %}{% if trips %}
+<div class="bottom-bar"><div class="container">
+  <a class="btn" href="{% url 'trip_create' %}">{% icon "plus" %}{% translate "New trip" %}</a>
+</div></div>
+{% endif %}{% endblock %}

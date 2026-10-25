@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Balances" %} · {{ trip.name }}{% endblock %}
+{% block content %}
+{% include "trips/_trip_header.html" %}
+<div class="stack-lg" style="margin-top: 16px">
+{% if error %}
+  <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Ask the trip owner to add the rate." %}{% endif %}</div></div>
+{% else %}
+  {% if summary.me %}<div class="card">{% include "trips/_my_card.html" with why=True %}</div>{% endif %}
+
+  <section>
+    <h2 class="section-title">{% translate "Balances" %}</h2>
+    <ul class="list">{% for item in summary.rows %}{% include "trips/_person_row.html" with currency=summary.currency %}{% endfor %}</ul>
+    {% if summary.payment_count %}
+    <p class="tiny muted" style="margin-top: 8px">{% translate "The “Pays” lines settle the trip with the fewest payments. You can agree on other payments; the balances stay the same." %}</p>
+    {% else %}
+    <ul class="messages" style="margin-top: 12px"><li class="success" style="animation: none">{% icon "circle-check" %}<span>{% translate "Everyone is even. Nobody needs to pay anyone." %}</span></li></ul>
+    {% endif %}
+    <p class="tiny muted" style="margin-top: 8px">{% blocktranslate with c=summary.currency %}All amounts in {{ c }}.{% endblocktranslate %}{% for rate in trip.rates.all %} 1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}.{% endfor %}</p>
+  </section>
+{% endif %}
+</div>
+{% endblock %}
