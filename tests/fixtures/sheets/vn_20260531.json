@@ -1,0 +1,374 @@
+{
+ "base_currency": "USD",
+ "rates": {
+  "VND": "26200.0"
+ },
+ "participants": [
+  "Person A",
+  "Person B",
+  "Person C",
+  "Person D",
+  "Person E",
+  "Person F"
+ ],
+ "sponsors": {
+  "Person A": [
+   "Person A"
+  ],
+  "Person B": [
+   "Person B"
+  ],
+  "Person C": [
+   "Person C"
+  ],
+  "Person D": [
+   "Person D"
+  ],
+  "Person E": [
+   "Person D"
+  ],
+  "Person F": [
+   "Person F"
+  ]
+ },
+ "expenses": [
+  {
+   "payer": "Person A",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "210.9",
+   "currency": "USD"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "74000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person C",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person F"
+   ],
+   "category": "F&B",
+   "amount": "4.5",
+   "currency": "USD"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "ACCOMMODAION",
+   "amount": "2170000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person D"
+   ],
+   "category": "F&B",
+   "amount": "160000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "100000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person F"
+   ],
+   "category": "F&B",
+   "amount": "1620000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person C"
+   ],
+   "category": "OTHER",
+   "amount": "195000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person F"
+   ],
+   "category": "OTHER",
+   "amount": "682000",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person D"
+   ],
+   "category": "OTHER",
+   "amount": "585000",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person B"
+   ],
+   "category": "OTHER",
+   "amount": "586000",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "133000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A"
+   ],
+   "category": "F&B",
+   "amount": "22000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person B"
+   ],
+   "category": "F&B",
+   "amount": "7000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "900000",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "920000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person D"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "1625000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person C"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "2290000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person B"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "285000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person E"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "1445000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person F"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "670000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person E"
+   ],
+   "category": "F&B",
+   "amount": "39000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person F"
+   ],
+   "category": "F&B",
+   "amount": "253000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person B"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "4316000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person F"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "2496000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person C"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "2880000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person C",
+    "Person B",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSLATION FEE",
+   "amount": "3000000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person F"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "600000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person D"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person A",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "171.0",
+   "currency": "USD"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "114000.0",
+   "currency": "VND"
+  }
+ ],
+ "expected_balances": {
+  "Person A": 221.75,
+  "Person B": -322.45,
+  "Person C": -324.46,
+  "Person D": 719.11,
+  "Person E": 0.0,
+  "Person F": -293.97
+ }
+}

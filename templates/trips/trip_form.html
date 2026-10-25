@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% block title %}{% translate "New trip" %}{% endblock %}
+{% block back %}<a class="back" href="{% url 'home' %}">{% icon "chevron-left" %}<span>{% translate "My trips" %}</span></a>{% endblock %}
+{% block content %}
+<h1 class="page-title">{% translate "New trip" %}</h1>
+<form method="post" id="trip-form" class="stack" style="margin-top: 16px">{% csrf_token %}
+  {% include "_form_errors.html" %}
+  {% include "_field.html" with field=form.name %}
+  {% include "_field.html" with field=form.country %}
+  <div class="two">
+    {% include "_field.html" with field=form.start_date %}
+    {% include "_field.html" with field=form.end_date %}
+  </div>
+  {% include "_field.html" with field=form.base_currency %}
+</form>
+{% endblock %}
+{% block bar %}
+<div class="bottom-bar"><div class="container">
+  <a class="btn btn-secondary" href="{% url 'home' %}">{% translate "Cancel" %}</a>
+  <button type="submit" form="trip-form" class="btn">{% translate "Create trip" %}</button>
+</div></div>
+{% endblock %}

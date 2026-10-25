@@ -1,0 +1,358 @@
+{
+ "base_currency": "USD",
+ "rates": {
+  "VND": "25000.0"
+ },
+ "participants": [
+  "Person A",
+  "Person B",
+  "Person C",
+  "Person D",
+  "Person E",
+  "Person F"
+ ],
+ "sponsors": {
+  "Person F": [
+   "Person C"
+  ]
+ },
+ "expenses": [
+  {
+   "payer": "Person A",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "120.0",
+   "currency": "USD"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "F&B",
+   "amount": "240000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "100000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "ACCOMMODAION",
+   "amount": "2300000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "120000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "F&B",
+   "amount": "3332000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A"
+   ],
+   "category": "OTHER",
+   "amount": "100000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "100000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "F&B",
+   "amount": "625000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person C",
+    "Person D",
+    "Person E"
+   ],
+   "category": "F&B",
+   "amount": "108000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSLATION FEE",
+   "amount": "100.0",
+   "currency": "USD"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSLATION FEE",
+   "amount": "600000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "F&B",
+   "amount": "87000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "60000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person C",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "F&B",
+   "amount": "2218000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person C",
+   "beneficiaries": [
+    "Person D"
+   ],
+   "category": "OTHER",
+   "amount": "782000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "3000000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C",
+    "Person D",
+    "Person E",
+    "Person F"
+   ],
+   "category": "F&B",
+   "amount": "50000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "590000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person F"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "205000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person B"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "1320000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person C"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "2060000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person D"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "1330000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person E"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "2450000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person A"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "3420000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person B"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "3420000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person D"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "3978000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person D",
+   "beneficiaries": [
+    "Person E"
+   ],
+   "category": "HOSPITAL FEE",
+   "amount": "2520000.0",
+   "currency": "VND"
+  }
+ ],
+ "expected_balances": {
+  "Person A": -166.61,
+  "Person B": -311.81,
+  "Person C": -216.46,
+  "Person D": 1017.35,
+  "Person E": -322.45,
+  "Person F": 0.0
+ }
+}

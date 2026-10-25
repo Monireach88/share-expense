@@ -1,0 +1,17 @@
+.git
+.env
+.env.*
+!.env.example
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.DS_Store
+*.log
+archive
+current_state
+CLAUDE.md
+PROJECT.md
+staticfiles
+.claude
