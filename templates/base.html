@@ -1,0 +1,46 @@
+{% load static i18n %}<!doctype html>
+{% get_current_language as LANG %}
+<html lang="{{ LANG }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}{% translate "Share Expense" %}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/pico.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+</head>
+<body hx-boost="true" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <header class="app-header">
+    <nav class="container">
+      <ul><li><a class="brand" href="{% url 'home' %}">{% translate "Share Expense" %}</a></li></ul>
+      {% if user.is_authenticated %}
+      <ul>
+        <li>
+          <details class="dropdown">
+            <summary>{{ user.display_name }}</summary>
+            <ul dir="rtl">
+              <li><a href="{% url 'password_change' %}">{% translate "Change password" %}</a></li>
+              {% if user.is_staff %}<li><a href="{% url 'admin:index' %}" hx-boost="false">{% translate "Admin" %}</a></li>{% endif %}
+              <li>
+                <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+                  <button type="submit" class="secondary outline">{% translate "Log out" %}</button>
+                </form>
+              </li>
+            </ul>
+          </details>
+        </li>
+      </ul>
+      {% endif %}
+    </nav>
+  </header>
+  <main class="container">
+    {% if messages %}
+    <ul class="messages" role="status">
+      {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

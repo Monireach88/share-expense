@@ -1,0 +1,244 @@
+{
+ "base_currency": "USD",
+ "rates": {
+  "VND": "25000.0"
+ },
+ "participants": [
+  "Person A",
+  "Person B",
+  "Person C"
+ ],
+ "sponsors": {
+  "Person A": [
+   "Person B"
+  ],
+  "Person C": [
+   "Person B"
+  ]
+ },
+ "expenses": [
+  {
+   "payer": "Person A",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "79.8",
+   "currency": "USD"
+  },
+  {
+   "payer": "Person A",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "ACCOMMODAION",
+   "amount": "47.82",
+   "currency": "USD"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "62000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "OTHER",
+   "amount": "15.0",
+   "currency": "USD"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "F&B",
+   "amount": "270000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "F&B",
+   "amount": "154000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B"
+   ],
+   "category": "F&B",
+   "amount": "160000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person C"
+   ],
+   "category": "F&B",
+   "amount": "63000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B"
+   ],
+   "category": "F&B",
+   "amount": "180000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B"
+   ],
+   "category": "F&B",
+   "amount": "60000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "F&B",
+   "amount": "189000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A"
+   ],
+   "category": "F&B",
+   "amount": "72000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "F&B",
+   "amount": "165000",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A"
+   ],
+   "category": "F&B",
+   "amount": "75000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "F&B",
+   "amount": "174000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A"
+   ],
+   "category": "F&B",
+   "amount": "75000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "F&B",
+   "amount": "845000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "F&B",
+   "amount": "192000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person A",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "106.4",
+   "currency": "USD"
+  },
+  {
+   "payer": "Person B",
+   "beneficiaries": [
+    "Person A",
+    "Person B",
+    "Person C"
+   ],
+   "category": "TRANSPORTATION",
+   "amount": "55000.0",
+   "currency": "VND"
+  },
+  {
+   "payer": "Person A",
+   "beneficiaries": [
+    "Person A"
+   ],
+   "category": "ACCOMMODAION",
+   "amount": "33.0",
+   "currency": "USD"
+  }
+ ],
+ "expected_balances": {
+  "Person A": 267.02,
+  "Person B": -267.03,
+  "Person C": 0.0
+ }
+}

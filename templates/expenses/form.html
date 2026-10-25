@@ -1,0 +1,35 @@
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+{% include "trips/_trip_header.html" %}
+<h2>{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}</h2>
+<form method="post">{% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="grid">
+    <div>{% include "_field.html" with field=form.amount %}</div>
+    <div>{% include "_field.html" with field=form.currency %}</div>
+  </div>
+  {% include "_field.html" with field=form.description %}
+  {% include "_field.html" with field=form.category %}
+  {% include "_field.html" with field=form.payer %}
+  <fieldset class="checks">
+    <legend>{{ form.beneficiaries.label }}</legend>
+    <small>{{ form.beneficiaries.help_text }}</small>
+    <div class="actions">
+      <button type="button" class="secondary outline" onclick="this.closest('fieldset').querySelectorAll('input[type=checkbox]').forEach(c => c.checked = true)">{% translate "Everyone" %}</button>
+      <button type="button" class="secondary outline" onclick="this.closest('fieldset').querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false)">{% translate "Nobody" %}</button>
+    </div>
+    {{ form.beneficiaries }}
+    {{ form.beneficiaries.errors }}
+  </fieldset>
+  {% include "_field.html" with field=form.date %}
+  <div class="actions">
+    <button type="submit">{% translate "Save" %}</button>
+    {% if expense %}
+      <a href="{% url 'expense_delete' trip.id expense.id %}" role="button" class="secondary outline">{% translate "Delete expense" %}</a>
+    {% else %}
+      <button type="submit" name="add_another" class="secondary">{% translate "Save and add another" %}</button>
+    {% endif %}
+  </div>
+  {% if expense %}<p class="muted">{% blocktranslate with who=expense.created_by.display_name|default:"?" when=expense.created_at|date:"j M Y H:i" %}Added by {{ who }} on {{ when }}.{% endblocktranslate %}{% if expense.updated_by and expense.updated_at|date:"U" != expense.created_at|date:"U" %} {% blocktranslate with who=expense.updated_by.display_name when=expense.updated_at|date:"j M Y H:i" %}Last changed by {{ who }} on {{ when }}.{% endblocktranslate %}{% endif %}</p>{% endif %}
+</form>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+{% include "trips/_trip_header.html" %}
+{% if error %}
+<article><p class="negative">⚠ {{ error }}</p></article>
+{% else %}
+<section>
+  <h2>{% translate "Who pays whom" %}</h2>
+  {% if summary.transfers %}
+  <ul class="list">
+    {% for t in summary.transfers %}
+    <li class="transfer"><span><strong>{{ t.sender }}</strong> → <strong>{{ t.receiver }}</strong></span>
+      <span class="num">{{ t.amount }} {{ summary.currency }}</span></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>{% translate "Everyone is even. Nobody needs to pay anyone." %}</p>
+  {% endif %}
+</section>
+<section>
+  <h2>{% translate "Per person" %}</h2>
+  <p class="muted">{% translate "Balance = paid − share they are responsible for (their own share, unless someone covers them, plus the shares of people they cover). Positive: the group owes them." %}</p>
+  <div class="overflow-auto">
+  <table class="striped">
+    <thead><tr>
+      <th scope="col">{% translate "Person" %}</th>
+      <th scope="col" class="num">{% translate "Paid" %}</th>
+      <th scope="col" class="num">{% translate "Own share" %}</th>
+      <th scope="col" class="num">{% translate "Responsible for" %}</th>
+      <th scope="col" class="num">{% translate "Balance" %}</th>
+    </tr></thead>
+    <tbody>
+    {% for item in summary.people %}
+      <tr>
+        <th scope="row">{{ item.person.name }}{% if item.person.sponsors.all %}<br><span class="muted">{% translate "covered by" %} {{ item.person.sponsors.all|join:", " }}</span>{% endif %}</th>
+        <td class="num">{{ item.row.paid }}</td>
+        <td class="num">{{ item.row.own_share }}</td>
+        <td class="num">{{ item.row.responsible_for }}</td>
+        <td class="num {% if item.row.balance > 0 %}positive{% elif item.row.balance < 0 %}negative{% endif %}">{{ item.row.balance }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot><tr><th scope="row">{% translate "Total" %}</th><td class="num">{{ summary.total }}</td><td></td><td></td><td></td></tr></tfoot>
+  </table>
+  </div>
+  <p class="muted">{% blocktranslate with c=summary.currency %}All amounts in {{ c }}.{% endblocktranslate %}</p>
+</section>
+<section>
+  <h2>{% translate "By type" %}</h2>
+  {% if summary.by_category %}
+  <ul class="list">
+    {% for label, amount in summary.by_category %}<li><span>{{ label }}</span><span class="num">{{ amount }} {{ summary.currency }}</span></li>{% endfor %}
+  </ul>
+  {% else %}<p>{% translate "No expenses yet." %}</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

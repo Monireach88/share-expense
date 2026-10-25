@@ -1,0 +1,30 @@
+# Environment files (real values never committed; .env.example is)
+.env
+.env.staging
+.env.prod
+
+# Python (regenerable: uv sync)
+__pycache__/
+*.py[cod]
+.venv/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Django (regenerable: python manage.py collectstatic)
+staticfiles/
+
+# Editors / OS
+.idea/
+.vscode/
+.claude/
+*.swp
+.DS_Store
+*.log
+
+# Private files: symlinks into Google Drive (no trailing slash: git sees a symlink as a file)
+/current_state
+/archive
+/CLAUDE.md
+/PROJECT.md

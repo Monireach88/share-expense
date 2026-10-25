@@ -1,0 +1,56 @@
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+{% include "trips/_trip_header.html" %}
+<section>
+  <h2>{% translate "Travellers" %}</h2>
+  <p class="muted">{% translate "Everyone who shares costs. They do not need an account." %}</p>
+  {% if participants %}
+  <ul class="list">
+    {% for p in participants %}
+    <li>
+      <span><strong>{{ p.name }}</strong>
+        {% if p.sponsors.all %}<br><span class="muted">{% translate "Covered by" %} {{ p.sponsors.all|join:", " }}</span>{% endif %}
+        {% if p.user %}<br><span class="muted">{% translate "Account" %}: {{ p.user.username }}</span>{% endif %}
+      </span>
+      {% if membership.is_owner %}<a href="{% url 'participant_edit' trip.id p.id %}">{% translate "Edit" %}</a>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>{% translate "No travellers yet." %}</p>
+  {% endif %}
+  {% if membership.is_owner %}
+  <form method="post">{% csrf_token %}
+    <h3>{% translate "Add a traveller" %}</h3>
+    {{ participant_form.non_field_errors }}
+    {% include "_field.html" with field=participant_form.name %}
+    {% if participant_form.fields.sponsors.queryset %}{% include "_checks.html" with field=participant_form.sponsors %}{% endif %}
+    {% include "_field.html" with field=participant_form.user %}
+    <button type="submit" name="add_participant">{% translate "Add traveller" %}</button>
+  </form>
+  {% endif %}
+</section>
+<section>
+  <h2>{% translate "Who can open this trip" %}</h2>
+  <ul class="list">
+    {% for m in members %}
+    <li>
+      <span>{{ m.user.display_name }} <span class="muted">({{ m.user.username }}) · {{ m.get_role_display }}</span></span>
+      {% if membership.is_owner and not m.is_owner %}
+      <form method="post" action="{% url 'member_remove' trip.id m.id %}" hx-confirm="{% translate 'Remove this account from the trip?' %}">{% csrf_token %}
+        <button type="submit" class="secondary outline">{% translate "Remove access" %}</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% if membership.is_owner %}
+  <form method="post">{% csrf_token %}
+    <h3>{% translate "Give an account access" %}</h3>
+    <p class="muted">{% translate "Members can add, edit and delete expenses. They must have an approved account." %}</p>
+    {% include "_field.html" with field=member_form.username %}
+    <button type="submit" name="add_member" class="secondary">{% translate "Add member" %}</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

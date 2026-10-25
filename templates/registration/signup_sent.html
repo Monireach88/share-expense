@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+<article>
+  <h1>{% translate "Request sent" %}</h1>
+  <p>{% translate "The admin will approve your account. Then you can log in with your username and password." %}</p>
+  <a href="{% url 'login' %}" role="button">{% translate "Back to log in" %}</a>
+</article>
+{% endblock %}

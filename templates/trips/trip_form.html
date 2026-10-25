@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+<h1>{% translate "New trip" %}</h1>
+<form method="post">{% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}{% include "_field.html" %}{% endfor %}
+  <button type="submit">{% translate "Create trip" %}</button>
+</form>
+{% endblock %}

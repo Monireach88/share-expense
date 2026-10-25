@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+<article>
+  <h1>{{ button }}</h1>
+  <p><strong>{{ object }}</strong></p>
+  {% if blocked %}
+    <p class="negative">⚠ {{ blocked }}</p>
+    <a href="{% url back trip.id %}" role="button" class="secondary">{% translate "Back" %}</a>
+  {% else %}
+    {% if warning %}<p class="negative">⚠ {{ warning }}</p>{% endif %}
+    <form method="post" class="actions">{% csrf_token %}
+      <button type="submit">{{ button }}</button>
+      <a href="{% url back trip.id %}" role="button" class="secondary outline">{% translate "Cancel" %}</a>
+    </form>
+  {% endif %}
+</article>
+{% endblock %}

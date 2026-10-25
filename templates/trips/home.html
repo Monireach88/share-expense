@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+<h1>{% translate "My trips" %}</h1>
+{% if trips %}
+<ul class="list">
+  {% for trip in trips %}
+  <li>
+    <a class="row-link" href="{% url 'trip' trip.id %}">
+      <strong>{{ trip.name }}</strong><br>
+      <span class="muted">{% if trip.start_date %}{{ trip.start_date|date:"j M Y" }} · {% endif %}{% blocktranslate count n=trip.people_count %}{{ n }} person{% plural %}{{ n }} people{% endblocktranslate %} · {% blocktranslate count n=trip.expense_count %}{{ n }} expense{% plural %}{{ n }} expenses{% endblocktranslate %}</span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<article>
+  <p>{% translate "You have no trips yet. Create one, or ask a trip owner to add you by your username:" %} <strong>{{ user.username }}</strong></p>
+</article>
+{% endif %}
+<a href="{% url 'trip_create' %}" role="button" class="fab">+ {% translate "New trip" %}</a>
+{% endblock %}

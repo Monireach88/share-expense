@@ -1,0 +1,176 @@
+import json
+from datetime import date
+from decimal import Decimal
+from pathlib import Path
+
+import pytest
+from django.urls import reverse
+
+from apps.expenses.models import Expense
+from apps.trips.models import ExchangeRate, Participant, Trip, TripMember
+from apps.trips.summary import trip_settlement
+
+pytestmark = pytest.mark.django_db
+SHEET = Path(__file__).parent / "fixtures" / "sheets" / "vn_20260531.json"
+
+
+def add_expense(trip, payer, beneficiaries, amount, currency="USD", **extra):
+    expense = Expense.objects.create(
+        trip=trip,
+        date=date(2026, 6, 1),
+        payer=payer,
+        amount=Decimal(amount),
+        currency=currency,
+        **extra,
+    )
+    expense.beneficiaries.set(beneficiaries)
+    return expense
+
+
+def test_creating_a_trip_makes_the_creator_owner_and_traveller(owner_client, owner):
+    response = owner_client.post(
+        reverse("trip_create"), {"name": "Bangkok", "base_currency": "USD"}
+    )
+    trip = Trip.objects.get(name="Bangkok")
+    assert response.status_code == 302
+    assert TripMember.objects.get(trip=trip, user=owner).is_owner
+    assert trip.participants.get().user == owner
+
+
+def test_non_member_gets_404_on_every_trip_page(client, trip, make_user):
+    client.force_login(make_user("stranger"))
+    expense = add_expense(trip, *trip.participants.all()[:1], trip.participants.all(), "10")
+    person = trip.participants.first()
+    urls = [
+        reverse("trip", args=[trip.id]),
+        reverse("summary", args=[trip.id]),
+        reverse("people", args=[trip.id]),
+        reverse("trip_settings", args=[trip.id]),
+        reverse("expense_create", args=[trip.id]),
+        reverse("expense_edit", args=[trip.id, expense.id]),
+        reverse("expense_delete", args=[trip.id, expense.id]),
+        reverse("participant_edit", args=[trip.id, person.id]),
+        reverse("trip_delete", args=[trip.id]),
+    ]
+    for url in urls:
+        assert client.get(url).status_code == 404, url
+
+
+def test_member_can_record_expenses_but_not_manage_the_trip(client, trip, make_user):
+    member = make_user("member")
+    TripMember.objects.create(trip=trip, user=member)
+    client.force_login(member)
+    payer = trip.participants.first()
+    response = client.post(
+        reverse("expense_create", args=[trip.id]),
+        {
+            "amount": "12.50",
+            "currency": "USD",
+            "category": "food",
+            "payer": payer.id,
+            "beneficiaries": [p.id for p in trip.participants.all()],
+            "date": "2026-06-01",
+        },
+    )
+    assert response.status_code == 302
+    expense = trip.expenses.get()
+    assert expense.created_by == member
+    assert client.get(reverse("trip_settings", args=[trip.id])).status_code == 403
+    assert client.get(reverse("trip_delete", args=[trip.id])).status_code == 403
+    assert (
+        client.post(
+            reverse("people", args=[trip.id]), {"add_participant": "", "p-name": "X"}
+        ).status_code
+        == 403
+    )
+
+
+def test_expense_cannot_use_a_person_from_another_trip(owner_client, owner, trip, make_trip):
+    other = make_trip(owner, name="Other trip", people=("Outsider",))
+    outsider = other.participants.get()
+    response = owner_client.post(
+        reverse("expense_create", args=[trip.id]),
+        {
+            "amount": "5",
+            "currency": "USD",
+            "category": "food",
+            "payer": outsider.id,
+            "beneficiaries": [outsider.id],
+            "date": "2026-06-01",
+        },
+    )
+    assert response.status_code == 200
+    assert not trip.expenses.exists()
+
+
+def test_currency_needs_an_exchange_rate(owner_client, trip):
+    payload = {
+        "amount": "74000",
+        "currency": "VND",
+        "category": "transport",
+        "payer": trip.participants.first().id,
+        "beneficiaries": [p.id for p in trip.participants.all()],
+        "date": "2026-06-01",
+    }
+    assert owner_client.post(reverse("expense_create", args=[trip.id]), payload).status_code == 200
+    owner_client.post(reverse("rate_save", args=[trip.id]), {"currency": "VND", "rate": "26200"})
+    assert owner_client.post(reverse("expense_create", args=[trip.id]), payload).status_code == 302
+
+
+def test_deleted_expense_is_kept_but_left_out_of_totals(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    expense = add_expense(trip, owner_p, [owner_p, friend], "20")
+    owner_client.post(reverse("expense_delete", args=[trip.id, expense.id]))
+    assert Expense.all_objects.get(pk=expense.pk).deleted_at is not None
+    assert all(p.balance == 0 for p in trip_settlement(trip).people)
+
+
+def test_summary_page_shows_who_pays_whom(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p, friend], "30")
+    response = owner_client.get(reverse("summary", args=[trip.id]))
+    html = response.content.decode()
+    assert "Friend</strong> → <strong>Owner" in html
+    assert "15.00 USD" in html
+
+
+def test_sponsor_chain_is_rejected(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    child = Participant.objects.create(trip=trip, name="Child")
+    child.sponsors.set([friend])
+    response = owner_client.post(
+        reverse("participant_edit", args=[trip.id, friend.id]),
+        {"name": "Friend", "sponsors": [owner_p.id]},
+    )
+    assert response.status_code == 200
+    assert not friend.sponsors.exists()
+
+
+def test_person_used_in_an_expense_cannot_be_removed(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, owner_p, [friend], "8")
+    owner_client.post(reverse("participant_delete", args=[trip.id, friend.id]))
+    assert Participant.objects.filter(pk=friend.pk).exists()
+
+
+def test_real_sheet_through_the_database_matches_the_spreadsheet(owner, make_trip):
+    data = json.loads(SHEET.read_text())
+    trip = make_trip(owner, people=data["participants"])
+    people = {p.name: p for p in trip.participants.all()}
+    for currency, rate in data["rates"].items():
+        ExchangeRate.objects.create(trip=trip, currency=currency, rate=Decimal(rate))
+    for name, sponsors in data["sponsors"].items():
+        people[name].sponsors.set([people[s] for s in sponsors if s != name])
+    for e in data["expenses"]:
+        if Decimal(e["amount"]) > 0:
+            add_expense(
+                trip,
+                people[e["payer"]],
+                [people[b] for b in e["beneficiaries"]],
+                e["amount"],
+                e["currency"],
+            )
+    by_id = {p.id: p.name for p in people.values()}
+    for row in trip_settlement(trip).people:
+        expected = Decimal(str(data["expected_balances"][by_id[row.participant]]))
+        assert abs(row.balance - expected) <= Decimal("0.01")

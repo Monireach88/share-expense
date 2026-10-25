@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+{% include "trips/_trip_header.html" %}
+<h2>{{ participant.name }}</h2>
+<form method="post">{% csrf_token %}
+  {{ form.non_field_errors }}
+  {% include "_field.html" with field=form.name %}
+  {% if form.fields.sponsors.queryset %}{% include "_checks.html" with field=form.sponsors %}{% endif %}
+  {% include "_field.html" with field=form.user %}
+  <div class="actions">
+    <button type="submit">{% translate "Save" %}</button>
+    <a href="{% url 'participant_delete' trip.id participant.id %}" role="button" class="secondary outline">{% translate "Remove person" %}</a>
+  </div>
+</form>
+{% endblock %}

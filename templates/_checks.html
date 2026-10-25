@@ -1,0 +1,7 @@
+{% load i18n %}
+<fieldset class="checks">
+  <legend>{{ field.label }}</legend>
+  {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+  {{ field }}
+  {{ field.errors }}
+</fieldset>
