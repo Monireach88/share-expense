@@ -1,6 +1,5 @@
 {% extends "base.html" %}{% load i18n static ui %}
 {% block title %}{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}{% endblock %}
-{% block body_class %}has-bar{% endblock %}
 {% block back %}<a class="back" href="{% url 'trip' trip.id %}">{% icon "chevron-left" %}<span>{{ trip.name }}</span></a>{% endblock %}
 {% block content %}
 <h1 class="page-title">{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}</h1>

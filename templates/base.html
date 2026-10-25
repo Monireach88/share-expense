@@ -12,7 +12,7 @@
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}" hx-boost="true" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<body hx-boost="true" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <header class="app-header">
     <div class="container">
       {% block back %}

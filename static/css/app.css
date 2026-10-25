@@ -71,7 +71,8 @@ img, svg { display: block; }
 .container { width: 100%; max-width: 640px; margin-inline: auto; padding-inline: var(--gutter) var(--gutter-r); }
 .narrow { max-width: 432px; }
 main.container { padding-block: var(--s4) var(--s6); }
-body.has-bar main.container { padding-bottom: calc(var(--bar-h) + var(--s5)); }
+/* :has(), not a body class: HTMX boost swaps the body's content but keeps the old <body> tag. */
+body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(--s5)); }
 
 .stack > * + * { margin-top: var(--s4); }
 .stack > [type="hidden"]:first-child + * { margin-top: 0; }
@@ -171,7 +172,7 @@ body.has-bar main.container { padding-bottom: calc(var(--bar-h) + var(--s5)); }
 }
 .actions { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
 
-/* Sticky bottom bar for the page's main action. body.has-bar reserves its space. */
+/* Sticky bottom bar for the page's main action. main.container reserves its space. */
 .bottom-bar {
   position: fixed; inset: auto 0 0 0; z-index: 15;
   background: var(--surface); border-top: 1px solid var(--line);

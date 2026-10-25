@@ -1,6 +1,5 @@
 {% extends "base.html" %}{% load i18n ui %}
 {% block title %}{% translate "People" %} · {{ trip.name }}{% endblock %}
-{% block body_class %}{% if membership.is_owner %}has-bar{% endif %}{% endblock %}
 {% block content %}
 {% include "trips/_trip_header.html" %}
 <div class="stack-lg" style="margin-top: 16px">
