@@ -82,3 +82,9 @@ def test_lock_is_per_ip(client, make_user, settings):
         reverse("login"), {"username": "victim", "password": PASSWORD}, **other_ip
     )
     assert response.status_code == 302
+
+
+def test_admin_carries_the_app_name(client, make_user):
+    admin_user = make_user("boss", is_staff=True, is_superuser=True)
+    client.force_login(admin_user)
+    assert "Share Expense admin" in client.get(reverse("admin:index")).content.decode()
