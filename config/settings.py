@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_htmx",
     "axes",
+    "django_countries",
     "apps.accounts",
     "apps.trips",
     "apps.expenses",

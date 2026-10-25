@@ -1,7 +1,7 @@
 {% load i18n %}
 <hgroup>
   <h1>{{ trip.name }}</h1>
-  <p class="muted">{% if trip.country %}{{ trip.country }} · {% endif %}{% if trip.start_date %}{{ trip.start_date|date:"j M Y" }}{% if trip.end_date and trip.end_date != trip.start_date %} – {{ trip.end_date|date:"j M Y" }}{% endif %} · {% endif %}{{ trip.base_currency }}</p>
+  <p class="muted">{% if trip.country %}{{ trip.country.name }} · {% endif %}{% if trip.start_date %}{{ trip.start_date|date:"j M Y" }}{% if trip.end_date and trip.end_date != trip.start_date %} – {{ trip.end_date|date:"j M Y" }}{% endif %} · {% endif %}{{ trip.base_currency }}</p>
 </hgroup>
 <nav class="tabs" aria-label="{% translate 'Trip sections' %}">
   <a href="{% url 'trip' trip.id %}" {% if tab == "expenses" %}aria-current="page"{% endif %}>{% translate "Expenses" %}</a>

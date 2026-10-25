@@ -37,6 +37,22 @@ def test_creating_a_trip_makes_the_creator_owner_and_traveller(owner_client, own
     assert trip.participants.get().user == owner
 
 
+def test_country_is_picked_from_the_world_list(owner_client):
+    form = owner_client.get(reverse("trip_create")).content.decode()
+    assert '<option value="KH">Cambodia</option>' in form
+    assert '<option value="VN">Vietnam</option>' in form
+    owner_client.post(
+        reverse("trip_create"), {"name": "Hanoi", "country": "VN", "base_currency": "USD"}
+    )
+    trip = Trip.objects.get(name="Hanoi")
+    assert trip.country.code == "VN"
+    assert "Vietnam ·" in owner_client.get(reverse("trip", args=[trip.id])).content.decode()
+    owner_client.post(
+        reverse("trip_create"), {"name": "Nowhere", "country": "Vietnam", "base_currency": "USD"}
+    )
+    assert not Trip.objects.filter(name="Nowhere").exists()
+
+
 def test_non_member_gets_404_on_every_trip_page(client, trip, make_user):
     client.force_login(make_user("stranger"))
     expense = add_expense(trip, *trip.participants.all()[:1], trip.participants.all(), "10")

@@ -3,6 +3,7 @@ import uuid
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django_countries.fields import CountryField
 
 from .currencies import CURRENCY_CHOICES, DEFAULT_CURRENCY
 
@@ -10,7 +11,7 @@ from .currencies import CURRENCY_CHOICES, DEFAULT_CURRENCY
 class Trip(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid7, editable=False)
     name = models.CharField(_("trip name"), max_length=120)
-    country = models.CharField(_("country"), max_length=80, blank=True)
+    country = CountryField(_("country"), blank=True)
     start_date = models.DateField(_("start date"), null=True, blank=True)
     end_date = models.DateField(_("end date"), null=True, blank=True)
     base_currency = models.CharField(
