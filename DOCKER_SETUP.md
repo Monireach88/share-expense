@@ -106,6 +106,8 @@ Backup: `make backup ENV=prod` writes a gzipped `pg_dump` to `~/backups/share-ex
 15 3 * * * cd ~/projects/share-expense && make backup ENV=prod >> ~/backups/share-expense/backup.log 2>&1
 ```
 
+Keep a copy off the server: make `~/backups/share-expense` a symlink to a folder that a cloud sync tool (for example an `rclone bisync` timer to Google Drive) already syncs. The Makefile writes through the link, and the sync copies new dumps out and removes pruned ones. Check that the sync tool's file size limit is larger than your dumps.
+
 Restore: `gunzip -c <file> | docker compose --env-file .env.prod -f docker-compose.prod.yml exec -T postgres psql -U postgres share_expense` (into an empty database).
 
 ## Troubleshooting
