@@ -53,6 +53,7 @@ Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compos
 | `make shell` | Bash in the web container |
 | `make test` | pytest against the real Postgres (dev only) |
 | `make lint` | ruff check + ruff format --check (dev only) |
+| `make backup` | Gzipped database dump, keeps the newest 14 |
 | `make clean` | Stop and **delete the database volume** (dev only) |
 
 ## Environment variables
@@ -99,7 +100,13 @@ Requirements: a server with Docker and `make`, and a domain on Cloudflare.
 
 The production image runs as a non-root user, collects static files at build time, and serves them with whitenoise. With `DJANGO_DEBUG=false`, Django redirects HTTP to HTTPS, sets secure cookies and sends HSTS. `/health/` answers on plain HTTP for uptime checks.
 
-Backup: `docker compose --env-file .env.prod -f docker-compose.prod.yml exec postgres pg_dump -U postgres share_expense > backup.sql`.
+Backup: `make backup ENV=prod` writes a gzipped `pg_dump` to `~/backups/share-expense/` (change with `BACKUP_DIR=...`) and keeps the newest 14. Run it daily from cron:
+
+```
+15 3 * * * cd ~/projects/share-expense && make backup ENV=prod >> ~/backups/share-expense/backup.log 2>&1
+```
+
+Restore: `gunzip -c <file> | docker compose --env-file .env.prod -f docker-compose.prod.yml exec -T postgres psql -U postgres share_expense` (into an empty database).
 
 ## Troubleshooting
 
