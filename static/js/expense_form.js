@@ -45,9 +45,10 @@
 
   if (everyone) {
     everyoneLabel.hidden = false;
-    everyone.addEventListener("change", () => {
+    // "input", not "change": a checkbox fires "input" first, and the form's own "input"
+    // listener would otherwise recount the people and undo this tap before we see it.
+    everyone.addEventListener("input", () => {
       people.forEach((p) => (p.checked = everyone.checked));
-      update();
     });
   }
   form.addEventListener("input", update);
