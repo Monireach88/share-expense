@@ -1,0 +1,12 @@
+# Opens a pull request when a newer cloudflared image is released, so security
+# fixes (such as the 2026-10 eMudhra certificate advisory) are not missed.
+# Only cloudflared is watched: a postgres major upgrade needs a planned migration.
+version: 2
+updates:
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    target-branch: "development"
+    allow:
+      - dependency-name: "cloudflare/cloudflared"
