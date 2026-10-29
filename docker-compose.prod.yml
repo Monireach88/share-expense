@@ -51,7 +51,7 @@ services:
       retries: 10
 
   cloudflared:
-    image: cloudflare/cloudflared:2026.10.0
+    image: cloudflare/cloudflared:2026.10.3
     # Sends every request for the tunnel's host name to the web service.
     command: tunnel --no-autoupdate run --url http://web:8000
     environment:
