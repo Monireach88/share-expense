@@ -162,6 +162,7 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
   border-radius: 16px; background: var(--accent); color: var(--on-accent); text-decoration: none;
   font-weight: 600; box-shadow: 0 4px 12px rgb(16 24 40 / 0.24);
 }
+button.fab { border: 0; font: inherit; font-weight: 600; cursor: pointer; }
 .fab-solo { bottom: calc(env(safe-area-inset-bottom) + 16px); }
 @media (min-width: 720px) {
   .fab { right: calc((100vw - 640px) / 2 + 16px); }
@@ -268,6 +269,9 @@ a.row:hover { background: var(--bg); }
 .badge .icon { width: 14px; height: 14px; }
 .badge-pos { background: var(--pos-soft); color: var(--pos); }
 .row-end > .badge { display: inline-flex; }
+.settled { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
+.settled-line { display: flex; align-items: center; gap: var(--s2); color: var(--pos); font-weight: 600; }
+.hero .settled-line { margin-bottom: var(--s2); }
 .footnote { font-size: 13px; color: var(--muted); margin-top: var(--s2); }
 .downloads {
   display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap;

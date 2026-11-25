@@ -1,7 +1,7 @@
 """Bridge between the database and the pure settlement engine."""
 
 from apps.expenses.models import Expense
-from apps.settlement.engine import ExpenseInput, PaymentInput, SettlementResult, settle
+from apps.settlement.engine import ExpenseInput, SettlementResult, settle
 
 from .models import Trip
 
@@ -24,21 +24,14 @@ def trip_settlement(trip: Trip) -> SettlementResult:
         base_currency=trip.base_currency,
         rates=trip.rate_map(),
         sponsors={p.id: [s.id for s in p.sponsors.all()] for p in participants if p.sponsors.all()},
-        payments=[
-            PaymentInput(r.sender_id, r.receiver_id, r.amount, r.currency)
-            for r in trip.repayments.all()
-        ],
     )
 
 
-def trip_status(result: SettlementResult | None) -> str:
-    """ "settled" when money was spent and every balance is zero, "active" otherwise.
-
-    "" when nothing is spent yet or the trip cannot be settled (a missing exchange rate).
-    """
-    if result is None or result.total == 0:
-        return ""
-    return "settled" if result.settled else "active"
+def trip_status(trip: Trip, result: SettlementResult | None) -> str:
+    """ "settled" once the owner marks it so, "active" once money is spent, otherwise ""."""
+    if trip.is_settled:
+        return "settled"
+    return "active" if result is not None and result.total else ""
 
 
 def _order(row: dict) -> tuple:
@@ -73,7 +66,7 @@ def named(trip: Trip, result: SettlementResult, user=None) -> dict:
                 "for_others": s.paid - s.paid_for_self,
                 # Taken from the balance, not from responsible_for, so the lines of the
                 # breakdown always add up to exactly the balance shown after rounding.
-                "from_others": s.paid - s.paid_for_self - (s.balance - s.sent + s.received),
+                "from_others": s.paid - s.paid_for_self - s.balance,
             }
         )
     rows.sort(key=_order)
@@ -83,7 +76,6 @@ def named(trip: Trip, result: SettlementResult, user=None) -> dict:
         "currency": result.base_currency,
         "me": me,
         "rows": rows,
-        "settled": result.settled,
         "by_category": [
             {
                 "code": code,

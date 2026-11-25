@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.trips.forms import DATE_INPUT
 from apps.trips.models import Trip
 
-from .models import Expense, Repayment
+from .models import Expense
 
 OTHER_DATE = "other"
 
@@ -83,46 +83,3 @@ class ExpenseForm(forms.ModelForm):
                 _("Add an exchange rate for this currency in the trip settings first.")
             )
         return currency
-
-
-class RepaymentForm(forms.ModelForm):
-    class Meta:
-        model = Repayment
-        fields = ["sender", "receiver", "amount", "currency", "date", "note"]
-        field_classes = {"amount": AmountField}
-        widgets = {
-            "sender": forms.RadioSelect,
-            "receiver": forms.RadioSelect,
-            "amount": forms.TextInput(
-                attrs={"inputmode": "decimal", "autocomplete": "off", "placeholder": "0"}
-            ),
-            "currency": forms.RadioSelect,
-            "date": DATE_INPUT,
-            "note": forms.TextInput(
-                attrs={"autocomplete": "off", "placeholder": _("Optional, e.g. bank transfer")}
-            ),
-        }
-
-    def __init__(self, *args, trip: Trip, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.trip = trip
-        participants = trip.participants.all()
-        for name in ("sender", "receiver"):
-            self.fields[name].queryset = participants
-            self.fields[name].empty_label = None
-        self.fields["currency"].choices = [(c, c) for c in trip.currencies()]
-        amount = self.initial.get("amount")
-        if isinstance(amount, Decimal) and amount == amount.to_integral_value():
-            self.initial["amount"] = amount.quantize(Decimal(1))
-
-    def clean_amount(self):
-        amount = self.cleaned_data["amount"]
-        if amount <= 0:
-            raise forms.ValidationError(_("Enter an amount above zero."))
-        return amount
-
-    def clean(self):
-        data = super().clean()
-        if data.get("sender") and data.get("sender") == data.get("receiver"):
-            self.add_error("receiver", _("Choose a different person."))
-        return data

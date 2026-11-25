@@ -16,7 +16,6 @@ Ideas for after the MVP. Nothing here is planned yet; each line says what it is 
 
 - **Live exchange rates** from a public rate service, with the option to lock the rate for the trip.
 - **Different rate per expense** (the rate on the day it was paid).
-- **Lock a settled trip:** the owner closes the trip at the end, so nobody can add or change expenses and the totals stay fixed. (A trip already shows "Settled" when every balance is zero.)
 - **Choose the settlement currency** (show balances in USD, KHR or VND).
 
 ## People and access
