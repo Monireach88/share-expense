@@ -44,6 +44,8 @@ def money(value, currency):
     """Number plus a muted currency code: 600,000 VND."""
     if value is None:
         return ""
+    if isinstance(value, Decimal):
+        value = abs(value)  # The sign is shown by the words around it ("owes", "is owed").
     return format_html('{} <span class="cur">{}</span>', format_amount(value, currency), currency)
 
 
@@ -60,3 +62,25 @@ def icon(name: str, css: str = "icon"):
 @register.filter
 def type_emoji(category: str) -> str:
     return TYPE_EMOJI.get(category, "📦")
+
+
+@register.filter
+def signed(value, currency=""):
+    """+120.00 when the group owes the person, −45.00 when the person owes the group."""
+    if value is None:
+        return ""
+    sign = "+" if value > 0 else "−" if value < 0 else ""
+    return f"{sign}{format_amount(abs(value), currency)}"
+
+
+@register.filter
+def keep_hyphens(text):
+    """Keep "check-up" on one line: a line may break between words, never inside one.
+
+    The text a person copies stays the same; only the line breaking changes.
+    """
+    from django.utils.html import escape
+    from django.utils.safestring import mark_safe
+
+    words = escape(str(text)).split(" ")
+    return mark_safe(" ".join(f'<span class="nowrap">{w}</span>' if "-" in w else w for w in words))

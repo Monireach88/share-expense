@@ -1,6 +1,6 @@
 # Share Expense
 
-A simple, mobile-first web app for sharing costs on a group trip. One or two people record each expense as it happens; at the end, everyone sees how much they spent and **who must pay whom**.
+A simple, mobile-first web app for sharing costs on a group trip. One or two people record each expense as it happens; at the end, everyone sees how much they spent, who is owed and who owes, and records the repayments until the trip is settled up.
 
 It was built to replace a spreadsheet, and it gives the same numbers as that spreadsheet.
 
@@ -10,8 +10,12 @@ It was built to replace a spreadsheet, and it gives the same numbers as that spr
 - **Participants are just names.** Grandma does not need an account to be part of a trip.
 - **Sponsors:** a participant can be covered by one or more other people (a child by a parent). Their share moves to the sponsors, split equally.
 - **Expenses:** date, payer, beneficiaries (everyone by default), type, description, amount and currency. The amount is split equally among the beneficiaries. Deleted expenses are kept in the database but left out of the totals.
-- **Balances:** one list of each person's balance (paid minus share, with the shares they cover), each payer row showing whom to pay so the trip settles with the fewest payments, and a "Why?" view that splits your own balance into what you paid for others and what others paid for you.
-- **Trip dashboard** (top of the Expenses tab): your balance, what the trip cost you, today's spending, the trip total, and spending by type and by day.
+- **Balances:** each person's balance (is owed / owes / settled up), with the paid, share and payment amounts that make it up, and a breakdown of your own balance.
+- **Settle up:** record a repayment from one person to another. It changes both balances but not the total spent. When every balance is zero, the trip shows as **Settled** in the trip list.
+- **Spending:** a page with filters (person, type, date range), totals by type and by day, a person's share of each expense, and a download of the filtered list as CSV or Excel.
+- **Mobile navigation:** a fixed bottom tab bar (Expenses, Balances, Spending, People) and one floating button for the main action of the tab.
+- **Fast repeat visits:** a service worker shows the last copy of a page at once, then fetches the fresh copy and swaps it in if anything changed. Any save, delete, login or logout clears the stored pages, and pages with a one-time message are never stored. Static files have content-hashed names and are cached for a year.
+- **Long lists** show about 25 rows, then a "Load more" button; a page never splits a day, so day totals match their rows.
 - **Exact money:** amounts are stored as decimals, shares are kept as exact fractions, and balances are rounded once so they always add up to exactly zero.
 - **Accounts:** anyone can request an account; it stays inactive until the admin approves it in the admin page. The admin can also create accounts directly. Login is locked for 1 hour after 5 wrong passwords.
 - **Roles per trip:** the **owner** manages people, members, rates and the trip itself; a **member** adds, edits and deletes expenses. Every expense records who created and who last changed it.
@@ -21,7 +25,7 @@ It was built to replace a spreadsheet, and it gives the same numbers as that spr
 1. Convert each expense to the base currency: `round(amount / rate, 2)`.
 2. Split it equally among its beneficiaries.
 3. Move each covered person's share to their sponsors, split equally.
-4. `balance = paid − shares you are responsible for`. Positive means the group owes you; negative means you owe the group.
+4. `balance = paid − shares you are responsible for + repayments you made − repayments you received`. Positive means the group owes you; negative means you owe the group.
 
 The calculation lives in `apps/settlement/engine.py`. It uses no database, and it is tested against three real trips (names removed) in `tests/test_settlement_engine.py`.
 

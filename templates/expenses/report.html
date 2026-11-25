@@ -1,0 +1,97 @@
+{% extends "trips/_trip_base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Spending" %} · {{ trip.name }}{% endblock %}
+{% block content %}
+<div class="stack-lg">
+{% if error %}
+  <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Ask the trip owner to add the rate." %}{% endif %}</div></div>
+{% endif %}
+
+<form method="get" class="filters card" aria-label="{% translate 'Filters' %}">
+  <div class="two">
+    {% include "_field.html" with field=form.person %}
+    {% include "_field.html" with field=form.category %}
+    {% include "_field.html" with field=form.start %}
+    {% include "_field.html" with field=form.end %}
+  </div>
+  <div class="actions filter-actions">
+    <button type="submit" class="btn btn-secondary">{% icon "sliders-horizontal" %}{% translate "Apply" %}</button>
+    {% if filtered %}<a class="btn btn-text" href="{% url 'report' trip.id %}">{% icon "x" %}{% translate "Clear" %}</a>{% endif %}
+  </div>
+</form>
+
+{% with r=report cur=trip.base_currency %}
+<section class="card hero" aria-label="{% translate 'Totals' %}">
+  {% if r.covered_by %}
+  <p class="label">{{ r.person.name }}</p>
+  <p>{% blocktranslate with name=r.person.name by=r.covered_by|join:", " %}{{ name }} is covered by {{ by }}.{% endblocktranslate %}</p>
+  <div class="stats">
+    <div><span>{% translate "Expenses" %}</span><strong class="num">{{ r.rows|length }}</strong></div>
+  </div>
+  {% elif r.person %}
+  <p class="label">{% blocktranslate with name=r.person.name %}{{ name }}’s share{% endblocktranslate %}{% if r.covers %} {% blocktranslate with names=r.covers|join:", " %}(covers {{ names }}){% endblocktranslate %}{% endif %}</p>
+  <p class="big num">{{ r.share|money:cur }}</p>
+  <div class="stats">
+    <div><span>{% blocktranslate with name=r.person.name %}Paid by {{ name }}{% endblocktranslate %}</span><strong class="num">{{ r.paid|money:cur }}</strong></div>
+    <div><span>{% translate "Expenses" %}</span><strong class="num">{{ r.rows|length }}</strong></div>
+  </div>
+  {% else %}
+  <p class="label">{% translate "Total spent" %}</p>
+  <p class="big num">{{ r.total|money:cur }}</p>
+  <div class="stats">
+    <div><span>{% translate "Expenses" %}</span><strong class="num">{{ r.rows|length }}</strong></div>
+    {% if r.by_day|length > 1 %}<div><span>{% translate "Days" %}</span><strong class="num">{{ r.by_day|length }}</strong></div>{% endif %}
+  </div>
+  {% endif %}
+  {% if r.rows %}
+  <div class="downloads">
+    <span class="tiny muted">{% translate "Download" %}</span>
+    <a class="btn btn-secondary btn-sm" href="{% url 'report_export' trip.id 'csv' %}{% if export_query %}?{{ export_query }}{% endif %}" hx-boost="false" download>{% icon "download" %}CSV</a>
+    <a class="btn btn-secondary btn-sm" href="{% url 'report_export' trip.id 'xlsx' %}{% if export_query %}?{{ export_query }}{% endif %}" hx-boost="false" download>{% icon "download" %}Excel</a>
+  </div>
+  {% endif %}
+</section>
+
+{% if r.by_category %}
+<section>
+  <h2 class="section-title">{% translate "By type" %}</h2>
+  <ul class="bars card">
+    {% for c in r.by_category %}
+    <li><span><span aria-hidden="true">{{ c.code|type_emoji }}</span> {{ c.label }}</span><span class="num">{{ c.amount|money:cur }}</span><span class="bar" aria-hidden="true"><span style="--w: {{ c.percent }}%"></span></span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if r.by_day|length > 1 %}
+<section>
+  <h2 class="section-title">{% translate "By day" %}</h2>
+  <ul class="bars card">
+    {% for d in r.by_day %}
+    <li><span>{% if multi_year %}{{ d.day|date:"D j M Y" }}{% else %}{{ d.day|date:"D j M" }}{% endif %}</span><span class="num">{{ d.amount|money:cur }}</span><span class="bar" aria-hidden="true"><span style="--w: {{ d.percent }}%"></span></span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section>
+  <h2 class="section-title">{% translate "Expenses" %}</h2>
+  {% if page.days %}
+  <div class="paged">
+    {% for day, rows, _total in page.days %}
+    <h3 class="day-head"><span>{% if multi_year %}{{ day|date:"D j M Y" }}{% else %}{{ day|date:"D j M" }}{% endif %}</span></h3>
+    <ul class="list">
+      {% for row in rows %}<li>{% include "expenses/_row.html" with e=row.expense share=row.share show_share=r.show_share %}</li>{% endfor %}
+    </ul>
+    {% endfor %}
+    {% include "_pager.html" %}
+  </div>
+  {% elif filtered %}
+  <p class="muted small">{% translate "No expenses match these filters." %}</p>
+  {% else %}
+  <p class="muted small">{% translate "No expenses yet." %}</p>
+  {% endif %}
+  {% if trip.rates.all %}<p class="footnote num">{% for rate in trip.rates.all %}1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endif %}
+</section>
+{% endwith %}
+</div>
+{% endblock %}

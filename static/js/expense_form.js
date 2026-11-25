@@ -39,7 +39,7 @@
       split.textContent = "Pick at least one person.";
     } else {
       const each = value ? " · " + fmt(Math.round((value / n) * 100) / 100, cur) + " each" : "";
-      split.textContent = "Split between " + n + (n === 1 ? " person" : " people") + each;
+      split.textContent = n + (n === 1 ? " person" : " people") + each;
     }
   }
 
