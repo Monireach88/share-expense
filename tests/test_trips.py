@@ -71,10 +71,11 @@ def test_non_member_gets_404_on_every_trip_page(client, trip, make_user):
         reverse("trip_delete", args=[trip.id]),
         reverse("report", args=[trip.id]),
         reverse("report_export", args=[trip.id, "csv"]),
-        reverse("repayment_create", args=[trip.id]),
     ]
     for url in urls:
         assert client.get(url).status_code == 404, url
+    for name in ("trip_settle", "trip_reopen"):
+        assert client.post(reverse(name, args=[trip.id])).status_code == 404, name
 
 
 def test_member_can_record_expenses_but_not_manage_the_trip(client, trip, make_user):
@@ -191,62 +192,6 @@ def test_expenses_tab_highlights_the_total_spent(owner_client, trip):
     assert "Where the money went" not in html
     # The trip has no dates, so no day is "today".
     assert "today_total" not in response.context
-
-
-def test_recording_a_payment_settles_the_trip(owner_client, trip):
-    owner_p, friend = trip.participants.all()
-    add_expense(trip, owner_p, [owner_p, friend], "30")
-    url = reverse("repayment_create", args=[trip.id])
-    form = owner_client.get(url, {"sender": friend.id}).context["form"]
-    assert form.initial["sender"] == friend
-    assert form.initial["amount"] == Decimal("15")
-    response = owner_client.post(
-        url,
-        {
-            "sender": friend.id,
-            "receiver": owner_p.id,
-            "amount": "15",
-            "currency": "USD",
-            "date": "2026-06-05",
-        },
-    )
-    assert response.status_code == 302
-    result = trip_settlement(trip)
-    assert result.settled
-    assert result.total == Decimal("30.00")  # A payment is not spending.
-    page = owner_client.get(reverse("summary", args=[trip.id])).content.decode()
-    assert "Settled up" in page and "Settle up<" not in page
-    assert "Friend → Owner" in page
-    home = owner_client.get(reverse("home")).content.decode()
-    assert "Settled" in home and "30.00" in home
-
-
-def test_payment_needs_two_different_people_of_this_trip(owner_client, owner, trip, make_trip):
-    owner_p, friend = trip.participants.all()
-    other = make_trip(owner, name="Other").participants.first()
-    url = reverse("repayment_create", args=[trip.id])
-    base = {"amount": "5", "currency": "USD", "date": "2026-06-05"}
-    same = owner_client.post(url, {**base, "sender": owner_p.id, "receiver": owner_p.id})
-    stranger = owner_client.post(url, {**base, "sender": other.id, "receiver": owner_p.id})
-    assert same.status_code == stranger.status_code == 200
-    assert not trip.repayments.exists()
-
-
-def test_person_in_a_payment_cannot_be_removed(owner_client, trip):
-    from apps.expenses.models import Repayment
-
-    owner_p, friend = trip.participants.all()
-    Repayment.objects.create(
-        trip=trip,
-        sender=friend,
-        receiver=owner_p,
-        amount=Decimal(5),
-        currency="USD",
-        date=date(2026, 6, 1),
-    )
-    url = reverse("participant_delete", args=[trip.id, friend.id])
-    owner_client.post(url)
-    assert trip.participants.filter(pk=friend.pk).exists()
 
 
 def test_spending_filters_by_person_and_shows_their_share(owner_client, trip):
@@ -464,18 +409,71 @@ def test_spending_for_a_covered_person_lists_their_expenses(owner_client, trip):
     assert "No expenses" not in html
 
 
-def test_owner_can_delete_a_trip_with_expenses_and_payments(owner_client, trip):
-    from apps.expenses.models import Repayment
-
+def test_owner_can_delete_a_trip_with_expenses(owner_client, trip):
     owner_p, friend = trip.participants.all()
     expense = add_expense(trip, owner_p, [owner_p, friend], "30")
     expense.deleted_at = expense.created_at  # A deleted expense is kept in the database too.
     expense.save()
     add_expense(trip, friend, [owner_p, friend], "10")
-    Repayment.objects.create(
-        trip=trip, sender=friend, receiver=owner_p, amount=5, currency="USD", date=date(2026, 6, 2)
-    )
     response = owner_client.post(reverse("trip_delete", args=[trip.id]))
     assert response.status_code == 302
     assert not Trip.objects.filter(pk=trip.pk).exists()
     assert not Expense.all_objects.filter(trip_id=trip.pk).exists()
+
+
+def test_owner_marks_a_trip_settled_and_reopens_it(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p, friend], "30")
+    page = owner_client.get(reverse("summary", args=[trip.id])).content.decode()
+    assert "Mark as settled" in page and "hx-confirm" in page
+    owner_client.post(reverse("trip_settle", args=[trip.id]))
+    trip.refresh_from_db()
+    assert trip.is_settled
+    page = owner_client.get(reverse("summary", args=[trip.id])).content.decode()
+    assert "Settled on" in page and "Reopen trip" in page and "Mark as settled" not in page
+    assert "You were owed" in page and "was owed" in page and "You are owed" not in page
+    assert " by " not in page.split("Settled on", 1)[1].split("<", 1)[0]
+    # The balances stay as a record; settling records no payment.
+    assert trip_settlement(trip).people[0].balance == Decimal("15.00")
+    home = owner_client.get(reverse("home")).content.decode()
+    assert "Settled" in home
+    owner_client.post(reverse("trip_reopen", args=[trip.id]))
+    trip.refresh_from_db()
+    assert not trip.is_settled
+
+
+def test_settled_trip_locks_everything_that_changes_the_numbers(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    expense = add_expense(trip, owner_p, [owner_p, friend], "30")
+    owner_client.post(reverse("trip_settle", args=[trip.id]))
+    for url in (
+        reverse("expense_create", args=[trip.id]),
+        reverse("expense_edit", args=[trip.id, expense.id]),
+        reverse("expense_delete", args=[trip.id, expense.id]),
+        reverse("participant_create", args=[trip.id]),
+        reverse("participant_edit", args=[trip.id, friend.id]),
+        reverse("participant_delete", args=[trip.id, friend.id]),
+    ):
+        response = owner_client.post(url, {"name": "X", "amount": "1"})
+        assert response.status_code == 302, url
+        assert response["Location"] == reverse("trip", args=[trip.id]), url
+    assert (
+        owner_client.post(
+            reverse("rate_save", args=[trip.id]), {"currency": "VND", "rate": "26000"}
+        ).status_code
+        == 302
+    )
+    assert not trip.rates.exists()
+    expense.refresh_from_db()
+    assert expense.deleted_at is None and trip.participants.count() == 2
+    page = owner_client.get(reverse("trip", args=[trip.id])).content.decode()
+    assert "Add expense" not in page
+    assert reverse("expense_edit", args=[trip.id, expense.id]) not in page
+
+
+def test_only_the_owner_settles_or_reopens(client, trip, make_user):
+    member = make_user("member")
+    TripMember.objects.create(trip=trip, user=member)
+    client.force_login(member)
+    assert client.post(reverse("trip_settle", args=[trip.id])).status_code == 403
+    assert "Mark as settled" not in client.get(reverse("summary", args=[trip.id])).content.decode()

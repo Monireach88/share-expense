@@ -5,17 +5,26 @@
 {% if error %}
   <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Ask the trip owner to add the rate." %}{% endif %}</div></div>
 {% else %}
-  {% with me=summary.me cur=summary.currency %}{% if me and summary.total or me and repayments.object_list %}
+  {% if trip.is_settled %}
+  <section class="card settled" aria-label="{% translate 'Trip status' %}">
+    <p class="settled-line">{% icon "circle-check" %}<span>{% blocktranslate with day=trip.settled_at|date:"j M Y" %}Settled on {{ day }}{% endblocktranslate %}</span></p>
+    {% if membership.is_owner %}
+    <form method="post" action="{% url 'trip_reopen' trip.id %}" hx-confirm="{% translate 'Reopen this trip? Its expenses can be changed again.' %}">{% csrf_token %}
+      <button type="submit" class="btn btn-secondary btn-sm">{% translate "Reopen trip" %}</button>
+    </form>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% with me=summary.me cur=summary.currency %}{% if me and summary.total %}
   <section class="card hero" aria-label="{% translate 'Your balance' %}">
-    <p class="label">{% if me.row.balance > 0 %}{% translate "You are owed" %}{% elif me.row.balance < 0 %}{% translate "You owe" %}{% else %}{% translate "Settled up" %}{% endif %}</p>
+    <p class="label">{% if trip.is_settled and me.row.balance > 0 %}{% translate "You were owed" %}{% elif trip.is_settled and me.row.balance < 0 %}{% translate "You owed" %}{% elif me.row.balance > 0 %}{% translate "You are owed" %}{% elif me.row.balance < 0 %}{% translate "You owe" %}{% else %}{% translate "Nothing owed" %}{% endif %}</p>
     <p class="big num {% if me.row.balance > 0 %}pos{% elif me.row.balance < 0 %}neg{% endif %}">{{ me.row.balance|amount:cur }} <span class="cur">{{ cur }}</span></p>
     <details class="why">
       <summary>{% translate "Breakdown" %}{% icon "chevron-right" "chev" %}</summary>
       <dl class="num">
         <dt>{% translate "You paid" %}</dt><dd>{{ me.row.paid|amount:cur }}</dd>
         <dt>{% translate "Your share" %}</dt><dd>−{{ me.row.responsible_for|amount:cur }}</dd>
-        {% if me.row.sent %}<dt>{% translate "Payments you made" %}</dt><dd>+{{ me.row.sent|amount:cur }}</dd>{% endif %}
-        {% if me.row.received %}<dt>{% translate "Payments you received" %}</dt><dd>−{{ me.row.received|amount:cur }}</dd>{% endif %}
         <dt class="why-total">{% translate "Balance" %}</dt><dd class="why-total">{{ me.row.balance|signed:cur }} <span class="cur">{{ cur }}</span></dd>
       </dl>
     </details>
@@ -26,44 +35,27 @@
     <h2 class="section-title">{% translate "Everyone" %}</h2>
     <ul class="list">
       {% for item in summary.rows %}
-      <li>{% if item.row.balance < 0 %}<a class="row" href="{% url 'repayment_create' trip.id %}?sender={{ item.person.id }}">{% else %}<div class="row">{% endif %}
+      <li><div class="row">
         <span class="avatar" aria-hidden="true">{{ item.person.name|first|upper }}</span>
         <span class="row-main">
           <span class="row-title">{{ item.person.name }}{% if item.is_me %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
-          <span class="row-sub num">{% if item.covered_by %}{% translate "Covered by" %} {{ item.covered_by|join:", " }}{% else %}{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }} · {% translate "Share" %}&nbsp;{{ item.row.responsible_for|amount:summary.currency }}{% if item.row.sent %} · {% translate "Paid&nbsp;back" %}&nbsp;{{ item.row.sent|amount:summary.currency }}{% endif %}{% if item.row.received %} · {% translate "Received" %}&nbsp;{{ item.row.received|amount:summary.currency }}{% endif %}&nbsp;{{ summary.currency }}{% endif %}</span>
+          <span class="row-sub num">{% if item.covered_by %}{% translate "Covered by" %} {{ item.covered_by|join:", " }}{% else %}{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }} · {% translate "Share" %}&nbsp;{{ item.row.responsible_for|amount:summary.currency }}&nbsp;{{ summary.currency }}{% endif %}</span>
         </span>
         <span class="row-end">
           <strong class="num {% if item.row.balance > 0 %}pos{% elif item.row.balance < 0 %}neg{% else %}muted{% endif %}">{{ item.row.balance|money:summary.currency }}</strong>
-          <span class="row-sub">{% if item.row.balance > 0 %}{% translate "is owed" %}{% elif item.row.balance < 0 %}{% translate "owes" %}{% elif not item.covered_by and summary.total %}{% translate "settled up" %}{% endif %}</span>
+          <span class="row-sub">{% if trip.is_settled and item.row.balance > 0 %}{% translate "was owed" %}{% elif trip.is_settled and item.row.balance < 0 %}{% translate "owed" %}{% elif item.row.balance > 0 %}{% translate "is owed" %}{% elif item.row.balance < 0 %}{% translate "owes" %}{% elif not item.covered_by and summary.total %}{% translate "nothing owed" %}{% endif %}</span>
         </span>
-        {% if item.row.balance < 0 %}{% icon "chevron-right" "chev" %}</a>{% else %}</div>{% endif %}
+      </div>
       </li>
       {% endfor %}
     </ul>
     {% if trip.rates.all %}<p class="footnote num">{% for rate in trip.rates.all %}1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endif %}
   </section>
-
-  <section>
-    <h2 class="section-title">{% translate "Payments" %}</h2>
-    {% if repayments.object_list %}
-    <div class="paged"><ul class="list">
-      {% for r in repayments.object_list %}
-      <li><a class="row" href="{% url 'repayment_edit' trip.id r.id %}">
-        <span class="type-icon" aria-hidden="true">{% icon "arrow-left-right" %}</span>
-        <span class="row-main">
-          <span class="row-title">{{ r.sender.name }} → {{ r.receiver.name }}</span>
-          <span class="row-sub">{{ r.date|date:"j M Y" }}{% if r.note %} · {{ r.note }}{% endif %}</span>
-        </span>
-        <span class="row-end"><span class="num">{{ r.amount|money:r.currency }}</span></span>
-      </a></li>
-      {% endfor %}
-    </ul>
-    {% include "_pager.html" with page=repayments %}</div>
-    {% else %}
-    <p class="muted small">{% translate "No payments recorded." %}</p>
-    {% endif %}
-  </section>
 {% endif %}
 </div>
 {% endblock %}
-{% block bar %}{% if not error and not summary.settled and summary.rows|length > 1 %}<a class="fab" href="{% url 'repayment_create' trip.id %}">{% icon "arrow-left-right" %}{% translate "Settle up" %}</a>{% endif %}{% endblock %}
+{% block bar %}{% if membership.is_owner and not error and not trip.is_settled and summary.total %}
+<form method="post" action="{% url 'trip_settle' trip.id %}" hx-confirm="{% translate 'Mark this trip as settled? Its expenses are locked until the trip is reopened.' %}">{% csrf_token %}
+  <button type="submit" class="fab">{% icon "check" %}{% translate "Mark as settled" %}</button>
+</form>
+{% endif %}{% endblock %}

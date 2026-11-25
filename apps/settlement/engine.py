@@ -9,12 +9,8 @@ spreadsheet:
 2. The converted amount is split equally among the expense's beneficiaries.
 3. A participant may be covered by one or more sponsors. Their share then
    moves to the sponsors, split equally. No sponsor means self-covered.
-4. balance = amount paid - shares this participant is responsible for
-   + repayments sent - repayments received.
+4. balance = amount paid - shares this participant is responsible for.
    Positive: the group owes them. Negative: they owe the group.
-
-A repayment (one person paying another back) is not spending: it changes
-the two balances but not the trip total or the totals by type.
 
 Shares are kept as exact fractions until the end, then rounded to whole
 cents so that all balances add up to exactly zero.
@@ -45,16 +41,6 @@ class ExpenseInput:
 
 
 @dataclass(frozen=True)
-class PaymentInput:
-    """A recorded repayment: ``sender`` gave ``amount`` to ``receiver``."""
-
-    sender: ParticipantId
-    receiver: ParticipantId
-    amount: Decimal
-    currency: str
-
-
-@dataclass(frozen=True)
 class Transfer:
     sender: ParticipantId
     receiver: ParticipantId
@@ -71,9 +57,6 @@ class PersonSummary:
     # The part of ``paid`` that covered this person's own ``responsible_for``. The rest of
     # ``paid`` was for others, and the rest of ``responsible_for`` others paid for them.
     paid_for_self: Decimal = Decimal("0.00")
-    # Recorded repayments, in the base currency.
-    sent: Decimal = Decimal("0.00")
-    received: Decimal = Decimal("0.00")
 
 
 @dataclass
@@ -83,11 +66,6 @@ class SettlementResult:
     people: list[PersonSummary]
     by_category: dict[str, Decimal]
     transfers: list[Transfer] = field(default_factory=list)
-
-    @property
-    def settled(self) -> bool:
-        """True when there is spending and every balance is zero."""
-        return self.total > 0 and all(p.balance == 0 for p in self.people)
 
 
 def to_base(
@@ -158,7 +136,6 @@ def settle(
     base_currency: str,
     rates: Mapping[str, Decimal] | None = None,
     sponsors: Mapping[ParticipantId, Sequence[ParticipantId]] | None = None,
-    payments: Iterable[PaymentInput] = (),
 ) -> SettlementResult:
     """Compute every participant's totals, balance, and the transfers that settle the trip.
 
@@ -213,19 +190,7 @@ def settle(
         for sponsor in payers:
             responsible[sponsor] += own[person] / len(payers)
 
-    sent: dict[ParticipantId, Fraction] = defaultdict(Fraction)
-    received: dict[ParticipantId, Fraction] = defaultdict(Fraction)
-    for payment in payments:
-        for person in (payment.sender, payment.receiver):
-            if person not in known:
-                raise SettlementError(f"Unknown person in payment {person!r}")
-        if payment.sender == payment.receiver:
-            raise SettlementError("A payment needs two different people")
-        cents = Fraction(to_base(payment.amount, payment.currency, base_currency, rates) * 100)
-        sent[payment.sender] += cents
-        received[payment.receiver] += cents
-
-    exact_balances = {p: paid[p] - responsible[p] + sent[p] - received[p] for p in participants}
+    exact_balances = {p: paid[p] - responsible[p] for p in participants}
     balances = {p: _cents(c) for p, c in _round_preserving_sum(exact_balances).items()}
 
     people = []
@@ -236,12 +201,10 @@ def settle(
             own_share=_cents(_to_cents(own[p])),
             balance=balances[p],
             paid_for_self=_cents(_to_cents(paid_for_self[p])),
-            sent=_cents(_to_cents(sent[p])),
-            received=_cents(_to_cents(received[p])),
         )
         # Taken from the rounded balance, not rounded on its own, so that on every row
-        # paid - share + sent - received = balance, and all shares add up to the total.
-        person.responsible_for = person.paid + person.sent - person.received - person.balance
+        # paid - share = balance, and all shares add up to the total.
+        person.responsible_for = person.paid - person.balance
         people.append(person)
     return SettlementResult(
         base_currency=base_currency,

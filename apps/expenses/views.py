@@ -12,14 +12,14 @@ from django.utils.text import slugify
 from django.utils.translation import gettext as _
 
 from apps.settlement.engine import SettlementError, to_base
-from apps.trips.access import get_membership
+from apps.trips.access import get_membership, locked
 from apps.trips.offline import cacheable_page
 from apps.trips.pagination import DayPage
 from apps.trips.summary import named, trip_settlement
 from apps.trips.templatetags.ui import format_amount
 
-from .forms import ExpenseForm, RepaymentForm
-from .models import Expense, Repayment
+from .forms import ExpenseForm
+from .models import Expense
 from .report import ReportFilterForm, build_report, export_rows, to_csv, to_xlsx
 
 MAX_DAY_CHIPS = 14
@@ -123,6 +123,8 @@ def _saved_text(expense) -> str:
 
 def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
+    if response := locked(request, membership.trip):
+        return response
     trip = membership.trip
     if not trip.participants.exists():
         return redirect("people", trip_id=trip.id)
@@ -142,6 +144,8 @@ def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
 
 def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
+    if response := locked(request, membership.trip):
+        return response
     expense = get_object_or_404(Expense, pk=expense_id, trip=membership.trip)
     form = ExpenseForm(request.POST or None, instance=expense, trip=membership.trip)
     if request.method == "POST" and form.is_valid():
@@ -158,6 +162,8 @@ def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
 
 def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
+    if response := locked(request, membership.trip):
+        return response
     expense = get_object_or_404(Expense, pk=expense_id, trip=membership.trip)
     if request.method == "POST":
         expense.deleted_at = timezone.now()
@@ -231,89 +237,3 @@ def report_export(request: HttpRequest, trip_id, fmt: str) -> HttpResponse:
         raise Http404
     response["Content-Disposition"] = f'attachment; filename="{name}-expenses.{fmt}"'
     return response
-
-
-def _repayment_initial(request: HttpRequest, trip) -> dict:
-    """Pre-fill from the Balances page: ?sender=<id> and the amount that person owes."""
-    initial = {"date": timezone.localdate(), "currency": trip.base_currency}
-    me = trip.participants.filter(user=request.user).first()
-    sender = (
-        trip.participants.filter(pk=request.GET.get("sender")).first()
-        if request.GET.get("sender")
-        else None
-    )
-    with suppress(SettlementError):
-        balances = {p.participant: p.balance for p in trip_settlement(trip).people}
-        # Pre-select the viewer only when they owe money; someone who is owed does not pay.
-        if not sender and me and balances.get(me.id, 0) < 0:
-            sender = me
-        if sender and balances.get(sender.id, 0) < 0:
-            initial["sender"] = sender
-            initial["amount"] = -balances[sender.id]
-    return initial
-
-
-def _repayment_saved(repayment) -> str:
-    return _("%(sender)s paid %(receiver)s %(amount)s %(currency)s") % {
-        "sender": repayment.sender.name,
-        "receiver": repayment.receiver.name,
-        "amount": format_amount(repayment.amount, repayment.currency),
-        "currency": repayment.currency,
-    }
-
-
-def repayment_create(request: HttpRequest, trip_id) -> HttpResponse:
-    membership = get_membership(request, trip_id)
-    trip = membership.trip
-    if trip.participants.count() < 2:
-        return redirect("people", trip_id=trip.id)
-    form = RepaymentForm(request.POST or None, trip=trip, initial=_repayment_initial(request, trip))
-    if request.method == "POST" and form.is_valid():
-        repayment = form.save(commit=False)
-        repayment.trip = trip
-        repayment.created_by = request.user
-        repayment.save()
-        messages.success(request, _("Recorded: %(what)s") % {"what": _repayment_saved(repayment)})
-        return redirect("summary", trip_id=trip.id)
-    return render(
-        request,
-        "expenses/repayment_form.html",
-        {"trip": trip, "membership": membership, "form": form},
-    )
-
-
-def repayment_edit(request: HttpRequest, trip_id, repayment_id) -> HttpResponse:
-    membership = get_membership(request, trip_id)
-    repayment = get_object_or_404(Repayment, pk=repayment_id, trip=membership.trip)
-    form = RepaymentForm(request.POST or None, instance=repayment, trip=membership.trip)
-    if request.method == "POST" and form.is_valid():
-        repayment = form.save()
-        messages.success(request, _("Saved: %(what)s") % {"what": _repayment_saved(repayment)})
-        return redirect("summary", trip_id=trip_id)
-    return render(
-        request,
-        "expenses/repayment_form.html",
-        {"trip": membership.trip, "membership": membership, "form": form, "repayment": repayment},
-    )
-
-
-def repayment_delete(request: HttpRequest, trip_id, repayment_id) -> HttpResponse:
-    membership = get_membership(request, trip_id)
-    repayment = get_object_or_404(Repayment, pk=repayment_id, trip=membership.trip)
-    if request.method == "POST":
-        text = _repayment_saved(repayment)
-        repayment.delete()
-        messages.success(request, _("Deleted: %(what)s") % {"what": text})
-        return redirect("summary", trip_id=trip_id)
-    return render(
-        request,
-        "trips/confirm_delete.html",
-        {
-            "trip": membership.trip,
-            "membership": membership,
-            "object": _repayment_saved(repayment),
-            "warning": _("The balances of both people change back."),
-            "button": _("Delete payment"),
-            "back": reverse("repayment_edit", args=[trip_id, repayment.id]),
-        },
-    )

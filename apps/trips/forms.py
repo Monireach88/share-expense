@@ -17,6 +17,9 @@ class TripForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         country = self.fields["country"]
         country.choices = [("", _("Choose a country (optional)")), *list(country.choices)[1:]]
+        if self.instance.pk and self.instance.is_settled:
+            # The base currency changes every balance, so it is locked with the expenses.
+            self.fields["base_currency"].disabled = True
 
     def clean(self):
         cleaned = super().clean()

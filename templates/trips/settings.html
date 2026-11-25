@@ -27,13 +27,14 @@
     {% for rate in trip.rates.all %}
     <li class="row">
       <span class="row-main num">1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}</span>
-      <a class="link-danger" href="{% url 'rate_delete' trip.id rate.id %}">{% translate "Remove" %}</a>
+      {% if not trip.is_settled %}<a class="link-danger" href="{% url 'rate_delete' trip.id rate.id %}">{% translate "Remove" %}</a>{% endif %}
     </li>
     {% endfor %}
   </ul>
   {% else %}
   <p class="muted" style="margin-bottom: 16px">{% translate "No other currencies yet." %}</p>
   {% endif %}
+  {% if trip.is_settled %}<p class="muted small">{% translate "Locked while the trip is settled." %}</p>{% else %}
   <form method="post" action="{% url 'rate_save' trip.id %}" class="stack">{% csrf_token %}
     {% include "_form_errors.html" with form=rate_form %}
     <div class="two">
@@ -41,7 +42,7 @@
       {% include "_field.html" with field=rate_form.rate %}
     </div>
     <button type="submit" class="btn btn-secondary btn-block">{% translate "Save rate" %}</button>
-  </form>
+  </form>{% endif %}
 </section>
 
 <section class="card card-danger">

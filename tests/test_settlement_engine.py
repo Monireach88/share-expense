@@ -6,7 +6,6 @@ import pytest
 
 from apps.settlement.engine import (
     ExpenseInput,
-    PaymentInput,
     SettlementError,
     Transfer,
     settle,
@@ -168,9 +167,6 @@ def test_category_totals():
         ({"expenses": [ExpenseInput("a", ["a"], D("1"), "VND")]}, "No exchange rate"),
         ({"expenses": [], "sponsors": {"a": ["x"]}}, "Unknown sponsor"),
         ({"expenses": [], "sponsors": {"a": ["b"], "b": ["c"]}}, "covered by someone else"),
-        ({"expenses": [], "payments": [PaymentInput("a", "x", D("1"), "USD")]}, "Unknown person"),
-        ({"expenses": [], "payments": [PaymentInput("a", "a", D("1"), "USD")]}, "two different"),
-        ({"expenses": [], "payments": [PaymentInput("a", "b", D("1"), "VND")]}, "No exchange rate"),
     ],
 )
 def test_invalid_input_is_rejected(kwargs, message):
@@ -178,43 +174,9 @@ def test_invalid_input_is_rejected(kwargs, message):
         settle(["a", "b", "c"], base_currency="USD", **kwargs)
 
 
-def test_repayments_move_balances_but_not_spending():
-    """A pays 90 for A, B and C; B repays A 30 in USD and C repays 780,000 VND (= 30 USD)."""
-    expenses = [ExpenseInput("a", ["a", "b", "c"], D("90"), "USD", "food")]
-    payments = [
-        PaymentInput("b", "a", D("30"), "USD"),
-        PaymentInput("c", "a", D("780000"), "VND"),
-    ]
-    result = settle(
-        ["a", "b", "c"], expenses, base_currency="USD", rates={"VND": D("26000")}, payments=payments
-    )
-    people = {p.participant: p for p in result.people}
-    assert {k: p.balance for k, p in people.items()} == {"a": 0, "b": 0, "c": 0}
-    assert people["a"].received == D("60.00")
-    assert people["b"].sent == D("30.00")
-    assert result.total == D("90.00")
-    assert result.by_category == {"food": D("90.00")}
-    assert result.transfers == []
-    assert result.settled
-
-
-def test_partial_repayment_leaves_the_rest_to_settle():
-    expenses = [ExpenseInput("a", ["a", "b"], D("100"), "USD")]
-    result = settle(
-        ["a", "b"], expenses, base_currency="USD", payments=[PaymentInput("b", "a", D("20"), "USD")]
-    )
-    assert {p.participant: p.balance for p in result.people} == {"a": D("30.00"), "b": D("-30.00")}
-    assert result.transfers == [Transfer("b", "a", D("30.00"))]
-    assert not result.settled
-
-
-def test_a_trip_with_no_spending_is_not_settled():
-    assert not settle(["a"], [], base_currency="USD").settled
-
-
 @pytest.mark.parametrize("path", SHEETS, ids=[p.stem for p in SHEETS])
 def test_every_row_adds_up_and_shares_add_up_to_the_total(path):
     result = run(load(path))
     for p in result.people:
-        assert p.paid - p.responsible_for + p.sent - p.received == p.balance
+        assert p.paid - p.responsible_for == p.balance
     assert sum(p.responsible_for for p in result.people) == result.total

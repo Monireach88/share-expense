@@ -21,6 +21,9 @@ class Trip(models.Model):
         default=DEFAULT_CURRENCY,
         help_text=_("All totals and balances are shown in this currency."),
     )
+    # Set when the owner marks the trip as settled; the expenses are then locked until the
+    # owner reopens it. How people paid each other is up to them, not recorded here.
+    settled_at = models.DateTimeField(_("settled on"), null=True, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
     )
@@ -32,6 +35,10 @@ class Trip(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def is_settled(self) -> bool:
+        return self.settled_at is not None
 
     def rate_map(self) -> dict:
         return {r.currency: r.rate for r in self.rates.all()}
