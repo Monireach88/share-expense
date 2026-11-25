@@ -8,7 +8,8 @@
 4. [Environment variables](#environment-variables)
 5. [Migrations](#migrations)
 6. [Production](#production)
-7. [Troubleshooting](#troubleshooting)
+7. [Staging](#staging)
+8. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -134,6 +135,21 @@ Backup: `make backup ENV=prod` writes a gzipped `pg_dump` to `~/backups/share-ex
 Keep a copy off the server: make `~/backups/share-expense` a symlink to a folder that a cloud sync tool (for example an `rclone bisync` timer to Google Drive) already syncs. The Makefile writes through the link, and the sync copies new dumps out and removes pruned ones. Check that the sync tool's file size limit is larger than your dumps.
 
 Restore: `gunzip -c <file> | docker compose --env-file .env.prod -f docker-compose.prod.yml exec -T postgres psql -U postgres share_expense` (into an empty database).
+
+## Staging
+
+A stoppable copy of production for testing the `develop` branch before a release. It has its own database, its own Cloudflare Tunnel and address (`https://share-expense-staging.monireach.com`) and one app worker, so it uses about 160 MB of memory while it runs and nothing while it is stopped. `restart: "no"` keeps it stopped after a server reboot.
+
+| Command | What it does |
+|---|---|
+| `make staging-up` | Builds the latest `develop`, starts staging, and copies the production data the first time |
+| `make staging-down` | Stops staging; its database is kept |
+| `make staging-refresh` | Replaces the staging data with a fresh copy of production (production is only read) |
+| `make staging-status` | Shows the staging containers |
+
+`STAGING_REF=<branch> make staging-up` runs another branch, for example a feature branch before its pull request is merged.
+
+How it works: `scripts/staging.sh` checks out the branch in a git worktree next to the repository (`../share-expense-staging`), so the repository itself stays on `main` for production deploys. It reads `.env.staging` (a private file, like `.env.prod`) with its own secret key, database password and `CLOUDFLARE_TUNNEL_TOKEN`; `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` name the staging address, and `GUNICORN_WORKERS=1`.
 
 ## Troubleshooting
 

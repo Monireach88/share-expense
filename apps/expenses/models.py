@@ -25,11 +25,13 @@ class ActiveExpenseManager(models.Manager):
 
 
 class Expense(models.Model):
+    # People are RESTRICT, not PROTECT: a person used in an expense cannot be deleted alone,
+    # but deleting the whole trip deletes its expenses and people together.
     id = models.UUIDField(primary_key=True, default=uuid.uuid7, editable=False)
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="expenses")
     date = models.DateField(_("date"))
     payer = models.ForeignKey(
-        Participant, on_delete=models.PROTECT, related_name="payments", verbose_name=_("paid by")
+        Participant, on_delete=models.RESTRICT, related_name="payments", verbose_name=_("paid by")
     )
     beneficiaries = models.ManyToManyField(
         Participant,

@@ -1,7 +1,5 @@
 """Bridge between the database and the pure settlement engine."""
 
-from decimal import Decimal
-
 from apps.expenses.models import Expense
 from apps.settlement.engine import ExpenseInput, SettlementResult, settle
 
@@ -29,14 +27,15 @@ def trip_settlement(trip: Trip) -> SettlementResult:
     )
 
 
-def my_balance(trip: Trip, result: SettlementResult, user) -> Decimal | None:
-    """The balance of the traveller linked to ``user``, or None if no traveller is linked."""
-    me = trip.participants.filter(user=user).values_list("id", flat=True).first()
-    return next((s.balance for s in result.people if s.participant == me), None)
+def trip_status(trip: Trip, result: SettlementResult | None) -> str:
+    """ "settled" once the owner marks it so, "active" once money is spent, otherwise ""."""
+    if trip.is_settled:
+        return "settled"
+    return "active" if result is not None and result.total else ""
 
 
 def _order(row: dict) -> tuple:
-    """Get back (largest first), then owe (largest first), then even, then covered people."""
+    """Owed (largest first), then owing (largest first), then settled, then covered people."""
     balance = row["row"].balance
     if balance > 0:
         return (0, -balance)
@@ -64,34 +63,19 @@ def named(trip: Trip, result: SettlementResult, user=None) -> dict:
                 "is_me": bool(user) and person.user_id == user.id,
                 "covers": covers[person.id],
                 "covered_by": list(person.sponsors.all()),
-                "pays": [
-                    {"person": people[t.receiver], "amount": t.amount}
-                    for t in result.transfers
-                    if t.sender == s.participant
-                ],
-                "paid_by": [
-                    {"person": people[t.sender], "amount": t.amount}
-                    for t in result.transfers
-                    if t.receiver == s.participant
-                ],
                 "for_others": s.paid - s.paid_for_self,
-                # Taken from the balance, not from responsible_for, so the two lines of
-                # "Why?" always differ by exactly the balance shown after rounding.
+                # Taken from the balance, not from responsible_for, so the lines of the
+                # breakdown always add up to exactly the balance shown after rounding.
                 "from_others": s.paid - s.paid_for_self - s.balance,
             }
         )
     rows.sort(key=_order)
     me = next((r for r in rows if r["is_me"]), None)
-    if me and me["paid_by"]:
-        amounts = {t["amount"] for t in me["paid_by"]}
-        me["same_amount"] = amounts.pop() if len(amounts) == 1 else None
-        me["payer_names"] = ", ".join(t["person"].name for t in me["paid_by"])
     return {
         "total": result.total,
         "currency": result.base_currency,
         "me": me,
         "rows": rows,
-        "payment_count": len(result.transfers),
         "by_category": [
             {
                 "code": code,

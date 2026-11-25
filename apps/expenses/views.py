@@ -4,42 +4,56 @@ from decimal import Decimal
 from itertools import groupby
 
 from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import slugify
 from django.utils.translation import gettext as _
 
 from apps.settlement.engine import SettlementError, to_base
-from apps.trips.access import get_membership
+from apps.trips.access import get_membership, locked
+from apps.trips.offline import cacheable_page
+from apps.trips.pagination import DayPage
 from apps.trips.summary import named, trip_settlement
 from apps.trips.templatetags.ui import format_amount
 
 from .forms import ExpenseForm
 from .models import Expense
+from .report import ReportFilterForm, build_report, export_rows, to_csv, to_xlsx
 
 MAX_DAY_CHIPS = 14
 
 
+@cacheable_page
 def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
     expenses = list(trip.expenses.select_related("payer").prefetch_related("beneficiaries"))
     rates = trip.rate_map()
+    day_totals: dict = {}
     for e in expenses:
         e.base_amount = None
         with suppress(SettlementError):
             e.base_amount = to_base(e.amount, e.currency, trip.base_currency, rates)
-    days = []
-    for day, items in groupby(expenses, key=lambda e: e.date):
-        items = list(items)
-        amounts = [e.base_amount for e in items]
-        days.append((day, items, None if None in amounts else sum(amounts)))
+        # A day with an unconvertible amount has no total (None), rather than a wrong one.
+        if e.base_amount is None or day_totals.get(e.date, 0) is None:
+            day_totals[e.date] = None
+        else:
+            day_totals[e.date] = day_totals.get(e.date, Decimal(0)) + e.base_amount
+    page = DayPage(
+        request,
+        [
+            (day, list(items), day_totals[day])
+            for day, items in groupby(expenses, key=lambda e: e.date)
+        ],
+    )
     context = {
         "trip": trip,
         "membership": membership,
-        "days": days,
-        "multi_year": len({day.year for day, _items, _sum in days}) > 1,
+        "page": page,
+        "days": page.days,
+        "multi_year": len({e.date.year for e in expenses}) > 1,
         "people_count": trip.participants.count(),
         "tab": "expenses",
     }
@@ -49,13 +63,8 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         context["error"] = str(error)
     else:
         today = timezone.localdate()
-        if _in_trip(trip, today):
-            context["today_total"] = next((t for d, _i, t in days if d == today), Decimal(0))
-        largest = max((t for _d, _i, t in days), default=0)
-        context["by_day"] = [
-            {"day": day, "amount": total, "percent": round(total * 100 / largest) if largest else 0}
-            for day, _items, total in reversed(days)
-        ]
+        if trip.start_date and _in_trip(trip, today):
+            context["today_total"] = day_totals.get(today) or Decimal(0)
     return render(request, "expenses/list.html", context)
 
 
@@ -114,6 +123,8 @@ def _saved_text(expense) -> str:
 
 def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
+    if response := locked(request, membership.trip):
+        return response
     trip = membership.trip
     if not trip.participants.exists():
         return redirect("people", trip_id=trip.id)
@@ -133,6 +144,8 @@ def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
 
 def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
+    if response := locked(request, membership.trip):
+        return response
     expense = get_object_or_404(Expense, pk=expense_id, trip=membership.trip)
     form = ExpenseForm(request.POST or None, instance=expense, trip=membership.trip)
     if request.method == "POST" and form.is_valid():
@@ -149,6 +162,8 @@ def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
 
 def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
+    if response := locked(request, membership.trip):
+        return response
     expense = get_object_or_404(Expense, pk=expense_id, trip=membership.trip)
     if request.method == "POST":
         expense.deleted_at = timezone.now()
@@ -169,3 +184,56 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
             "back": reverse("expense_edit", args=[trip_id, expense.id]),
         },
     )
+
+
+@cacheable_page
+def report(request: HttpRequest, trip_id) -> HttpResponse:
+    membership = get_membership(request, trip_id)
+    trip = membership.trip
+    form = ReportFilterForm(request.GET or None, trip=trip)
+    context = {"trip": trip, "membership": membership, "form": form, "tab": "report"}
+    try:
+        trip_settlement(trip)
+    except SettlementError as error:
+        context["error"] = str(error)
+    data = build_report(trip, form.filters() if request.GET else {})
+    page = DayPage(
+        request,
+        [
+            (day, list(rows), None)
+            for day, rows in groupby(data["rows"], key=lambda r: r.expense.date)
+        ],
+    )
+    query = request.GET.copy()
+    query.pop("page", None)
+    context.update(
+        report=data,
+        page=page,
+        filtered=any(form.filters().values()) if request.GET else False,
+        export_query=query.urlencode(),
+        multi_year=len({r.expense.date.year for r in data["rows"]}) > 1,
+        people_count=trip.participants.count(),
+    )
+    return render(request, "expenses/report.html", context)
+
+
+def report_export(request: HttpRequest, trip_id, fmt: str) -> HttpResponse:
+    membership = get_membership(request, trip_id)
+    trip = membership.trip
+    form = ReportFilterForm(request.GET or None, trip=trip)
+    data = build_report(trip, form.filters() if request.GET else {})
+    header, rows = export_rows(trip, data)
+    name = slugify(trip.name) or "trip"
+    if data["person"]:
+        name += f"-{slugify(data['person'].name)}"
+    if fmt == "csv":
+        response = HttpResponse(to_csv(header, rows), content_type="text/csv; charset=utf-8")
+    elif fmt == "xlsx":
+        response = HttpResponse(
+            to_xlsx(trip.name, header, rows),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    else:
+        raise Http404
+    response["Content-Disposition"] = f'attachment; filename="{name}-expenses.{fmt}"'
+    return response

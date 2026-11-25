@@ -10,6 +10,7 @@
   <title>{% block title %}{% translate "Share Expense" %}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'js/app.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
 <body hx-boost="true" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
@@ -18,12 +19,12 @@
       {% block back %}
       <a class="brand" href="{% url 'home' %}"><span class="brand-mark" aria-hidden="true">S</span>{% translate "Share Expense" %}</a>
       {% endblock %}
-      {% if user.is_authenticated %}
+      {% block header_end %}{% if user.is_authenticated %}
       <details class="menu">
         <summary aria-label="{% translate 'Account menu' %}"><span class="avatar" aria-hidden="true">{{ user.display_name|first|upper }}</span></summary>
         <div class="menu-panel">
           <div class="who"><strong>{{ user.display_name }}</strong><div class="tiny muted">{{ user.username }}</div></div>
-          <a class="menu-item" href="{% url 'home' %}">{% translate "My trips" %}</a>
+          <a class="menu-item" href="{% url 'home' %}">{% translate "Trips" %}</a>
           <a class="menu-item" href="{% url 'password_change' %}">{% icon "key-round" %}{% translate "Change password" %}</a>
           {% if user.is_staff %}<a class="menu-item" href="{% url 'admin:index' %}" hx-boost="false">{% icon "shield" %}{% translate "Admin" %}</a>{% endif %}
           <form method="post" action="{% url 'logout' %}">{% csrf_token %}
@@ -31,7 +32,7 @@
           </form>
         </div>
       </details>
-      {% endif %}
+      {% endif %}{% endblock %}
     </div>
   </header>
   <main class="container {% block main_class %}{% endblock %}">
@@ -43,5 +44,6 @@
     {% block content %}{% endblock %}
   </main>
   {% block bar %}{% endblock %}
+  {% block nav %}{% endblock %}
 </body>
 </html>

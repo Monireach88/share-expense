@@ -26,11 +26,11 @@ class ExpenseForm(forms.ModelForm):
         fields = ["amount", "currency", "description", "payer", "beneficiaries", "category", "date"]
         field_classes = {"amount": AmountField}
         labels = {
-            "description": _("What for?"),
-            "payer": _("Who paid?"),
-            "beneficiaries": _("For whom?"),
+            "description": _("Description"),
+            "payer": _("Paid by"),
+            "beneficiaries": _("Split between"),
             "category": _("Type"),
-            "date": _("Day"),
+            "date": _("Date"),
         }
         widgets = {
             "amount": forms.TextInput(

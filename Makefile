@@ -45,6 +45,14 @@ lint:             ## ruff check + format check (dev only)
 	$(DEV) exec web ruff check . && $(DEV) exec web ruff format --check .
 clean:            ## Stop and DELETE the database volume (dev only)
 	$(DEV) down -v
+staging-up:       ## Start staging with the latest develop (copies production data the first time)
+	scripts/staging.sh up
+staging-down:     ## Stop staging (its data is kept)
+	scripts/staging.sh down
+staging-refresh:  ## Replace staging data with a fresh copy of production
+	scripts/staging.sh refresh
+staging-status:   ## Show staging containers
+	scripts/staging.sh status
 help:             ## List targets
 	@grep -E '^[a-z]+:.*##' Makefile | sed -E 's/:[^#]*##/ -/'
 
@@ -54,4 +62,4 @@ help:             ## List targets
 .env.prod:
 	@echo "Missing .env.prod: copy .env.example and fill in the production values (see DOCKER_SETUP.md)." && exit 1
 
-.PHONY: up down restart rebuild ps logs migrate superuser shell backup migrations test lint clean help
+.PHONY: staging-up staging-down staging-refresh staging-status up down restart rebuild ps logs migrate superuser shell backup migrations test lint clean help

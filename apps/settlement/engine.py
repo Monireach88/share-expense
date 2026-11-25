@@ -193,17 +193,19 @@ def settle(
     exact_balances = {p: paid[p] - responsible[p] for p in participants}
     balances = {p: _cents(c) for p, c in _round_preserving_sum(exact_balances).items()}
 
-    people = [
-        PersonSummary(
+    people = []
+    for p in participants:
+        person = PersonSummary(
             participant=p,
             paid=_cents(_to_cents(paid[p])),
             own_share=_cents(_to_cents(own[p])),
-            responsible_for=_cents(_to_cents(responsible[p])),
             balance=balances[p],
             paid_for_self=_cents(_to_cents(paid_for_self[p])),
         )
-        for p in participants
-    ]
+        # Taken from the rounded balance, not rounded on its own, so that on every row
+        # paid - share = balance, and all shares add up to the total.
+        person.responsible_for = person.paid - person.balance
+        people.append(person)
     return SettlementResult(
         base_currency=base_currency,
         total=_cents(_to_cents(total)),

@@ -16,9 +16,7 @@ Ideas for after the MVP. Nothing here is planned yet; each line says what it is 
 
 - **Live exchange rates** from a public rate service, with the option to lock the rate for the trip.
 - **Different rate per expense** (the rate on the day it was paid).
-- **Record a settlement payment** ("Person B paid Person D 322.45 USD") so the balance goes to zero inside the app instead of a remark.
-- **Mark a trip as settled:** the owner closes the trip at the end, so nobody can add or change expenses and the totals stay fixed.
-- **Choose the settlement currency** (show the "who pays whom" list in USD, KHR or VND).
+- **Choose the settlement currency** (show balances in USD, KHR or VND).
 
 ## People and access
 
@@ -29,9 +27,7 @@ Ideas for after the MVP. Nothing here is planned yet; each line says what it is 
 
 ## Reports
 
-- **Export to Excel/CSV** in the same layout as the old spreadsheet.
 - **Import old spreadsheets** (`archive/share_expense_history_2025_2026.xlsx`) so the history lives in the app.
-- **Charts:** spending by type and by day.
 - **History across trips:** how much each person spent per year.
 
 ## Interface

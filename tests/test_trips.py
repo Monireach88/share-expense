@@ -16,9 +16,9 @@ SHEET = Path(__file__).parent / "fixtures" / "sheets" / "vn_20260531.json"
 
 
 def add_expense(trip, payer, beneficiaries, amount, currency="USD", **extra):
+    extra.setdefault("date", date(2026, 6, 1))
     expense = Expense.objects.create(
         trip=trip,
-        date=date(2026, 6, 1),
         payer=payer,
         amount=Decimal(amount),
         currency=currency,
@@ -69,9 +69,13 @@ def test_non_member_gets_404_on_every_trip_page(client, trip, make_user):
         reverse("participant_create", args=[trip.id]),
         reverse("participant_edit", args=[trip.id, person.id]),
         reverse("trip_delete", args=[trip.id]),
+        reverse("report", args=[trip.id]),
+        reverse("report_export", args=[trip.id, "csv"]),
     ]
     for url in urls:
         assert client.get(url).status_code == 404, url
+    for name in ("trip_settle", "trip_reopen"):
+        assert client.post(reverse(name, args=[trip.id])).status_code == 404, name
 
 
 def test_member_can_record_expenses_but_not_manage_the_trip(client, trip, make_user):
@@ -141,19 +145,24 @@ def test_deleted_expense_is_kept_but_left_out_of_totals(owner_client, trip):
     assert all(p.balance == 0 for p in trip_settlement(trip).people)
 
 
-def test_balances_page_puts_each_payment_on_the_payer_row(owner_client, trip):
+def test_balances_page_shows_amounts_not_who_pays_whom(owner_client, trip):
     owner_p, friend = trip.participants.all()
     add_expense(trip, owner_p, [owner_p, friend], "30")
     response = owner_client.get(reverse("summary", args=[trip.id]))
     rows = response.context["summary"]["rows"]
-    assert [r["person"] for r in rows] == [owner_p, friend]
-    assert rows[1]["pays"] == [{"person": owner_p, "amount": Decimal("15.00")}]
+    assert [(r["person"], r["row"].balance) for r in rows] == [
+        (owner_p, Decimal("15.00")),
+        (friend, Decimal("-15.00")),
+    ]
     html = response.content.decode()
-    assert "Pays Owner 15.00" in html
-    assert "Friend pays you 15.00" in html
+    assert "You are owed" in html
+    assert "is owed" in html and "owes" in html
+    assert "is owed" in html and "owes" in html
+    for old in ("Pays Owner", "pays you", "get back"):
+        assert old not in html
 
 
-def test_balances_why_shows_both_directions_for_a_debtor(client, trip, make_user):
+def test_balances_breakdown_adds_up_to_the_balance(client, trip, make_user):
     owner_p, friend = trip.participants.all()
     friend_user = make_user("friend")
     TripMember.objects.create(trip=trip, user=friend_user)
@@ -163,25 +172,85 @@ def test_balances_why_shows_both_directions_for_a_debtor(client, trip, make_user
     add_expense(trip, owner_p, [friend], "50")
     client.force_login(friend_user)
     response = client.get(reverse("summary", args=[trip.id]))
-    me = response.context["summary"]["me"]
-    # Friend paid 10 for Owner; Owner paid 50 for Friend; so Friend owes 40.
-    assert (me["for_others"], me["from_others"], me["row"].balance) == (
-        Decimal("10.00"),
-        Decimal("50.00"),
+    row = response.context["summary"]["me"]["row"]
+    # Friend paid 20 and has a share of 10 + 50 = 60, so Friend owes 40.
+    assert (row.paid, row.responsible_for, row.balance) == (
+        Decimal("20.00"),
+        Decimal("60.00"),
         Decimal("-40.00"),
     )
-    assert "Pay Owner 40.00" in response.content.decode()
+    assert "You owe" in response.content.decode()
 
 
-def test_expenses_tab_shows_the_trip_dashboard(owner_client, trip):
+def test_expenses_tab_highlights_the_total_spent(owner_client, trip):
     owner_p, friend = trip.participants.all()
     add_expense(trip, owner_p, [owner_p, friend], "30")
     response = owner_client.get(reverse("trip", args=[trip.id]))
     html = response.content.decode()
-    for label in ("Your cost", "Trip total", "Where the money went", "By type"):
+    for label in ("Total spent", "Your share", "You are owed", "Add expense"):
         assert label in html
-    # The trip has no dates, so every day is a trip day.
-    assert response.context["today_total"] is not None
+    assert "Where the money went" not in html
+    # The trip has no dates, so no day is "today".
+    assert "today_total" not in response.context
+
+
+def test_spending_filters_by_person_and_shows_their_share(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p, friend], "30", category="food")
+    add_expense(trip, owner_p, [owner_p], "12", category="transport")
+    url = reverse("report", args=[trip.id])
+    everyone = owner_client.get(url).context["report"]
+    assert everyone["total"] == Decimal("42.00")
+    friend_view = owner_client.get(url, {"person": friend.id}).context["report"]
+    assert len(friend_view["rows"]) == 1
+    assert friend_view["share"] == Decimal("15.00")
+    assert friend_view["by_category"][0]["amount"] == Decimal("15.00")
+    food = owner_client.get(url, {"category": "food"}).context["report"]
+    assert food["total"] == Decimal("30.00")
+
+
+def test_spending_share_follows_the_sponsor(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    friend.sponsors.set([owner_p])
+    add_expense(trip, friend, [owner_p, friend], "30")
+    report = owner_client.get(reverse("report", args=[trip.id]), {"person": owner_p.id}).context
+    # Owner covers Friend, so Owner's share is the whole 30, matching the Balances page.
+    assert report["report"]["share"] == Decimal("30.00")
+    assert trip_settlement(trip).people[0].responsible_for == Decimal("30.00")
+
+
+def test_export_keeps_the_filters(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p, friend], "30", description="Taxi", category="transport")
+    add_expense(trip, owner_p, [owner_p], "12", description="Lunch", category="food")
+    url = reverse("report_export", args=[trip.id, "csv"])
+    csv_text = owner_client.get(url, {"category": "transport"}).content.decode("utf-8-sig")
+    assert "Taxi" in csv_text and "Lunch" not in csv_text
+    lines = csv_text.strip().splitlines()
+    assert lines[0].startswith("Date,Description,Type,Paid by")
+    xlsx = owner_client.get(reverse("report_export", args=[trip.id, "xlsx"]))
+    assert xlsx["Content-Type"].startswith("application/vnd.openxmlformats")
+    assert xlsx.content[:2] == b"PK"  # An .xlsx file is a zip archive.
+    assert owner_client.get(reverse("report_export", args=[trip.id, "pdf"])).status_code == 404
+
+
+def test_long_lists_load_more_and_never_split_a_day(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    for i in range(30):
+        add_expense(trip, owner_p, [owner_p, friend], str(i + 1), date=date(2026, 6, 1 + i // 10))
+    url = reverse("trip", args=[trip.id])
+    first = owner_client.get(url)
+    page = first.context["page"]
+    # Days of 10 rows: a page takes whole days until it has 25 rows, so 30 rows on page 1.
+    assert [len(items) for _day, items, _total in page.days] == [10, 10, 10]
+    assert not page.has_next()
+    for _ in range(30):
+        add_expense(trip, owner_p, [owner_p], "1", date=date(2026, 7, 1))
+    page = owner_client.get(url).context["page"]
+    assert page.has_next() and page.end_index == 30
+    assert "Load more" in owner_client.get(url).content.decode()
+    second = owner_client.get(url, {"page": 2}).context["page"]
+    assert second.end_index == 60
 
 
 def test_today_is_hidden_outside_the_trip_dates(owner_client, trip):
@@ -271,3 +340,140 @@ def test_owner_adds_a_traveller_on_its_own_page(owner_client, trip):
     response = owner_client.post(url, {"name": "Grandma", "add_another": ""})
     assert response.status_code == 302 and response.url == url
     assert trip.participants.filter(name="Grandma").exists()
+
+
+def test_read_pages_may_be_stored_by_the_service_worker(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p, friend], "30")
+    for name in ("trip", "summary", "report", "people"):
+        first = owner_client.get(reverse(name, args=[trip.id]))
+        second = owner_client.get(reverse(name, args=[trip.id]))
+        assert first["X-SW-Cache"] == "page", name
+        assert first["Cache-Control"] == "private, no-cache"
+        # The CSRF token differs per response, but it is left out of the hash.
+        assert first["X-Page-Hash"] == second["X-Page-Hash"], name
+    form = owner_client.get(reverse("expense_create", args=[trip.id]))
+    assert "X-SW-Cache" not in form
+
+
+def test_page_with_a_one_time_message_is_not_stored(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    response = owner_client.post(
+        reverse("expense_create", args=[trip.id]),
+        {
+            "amount": "10",
+            "currency": "USD",
+            "category": "food",
+            "payer": owner_p.id,
+            "beneficiaries": [owner_p.id, friend.id],
+            "date": "2026-06-01",
+        },
+        follow=True,
+    )
+    assert "Added:" in response.content.decode()
+    assert "X-SW-Cache" not in response
+    assert response["Cache-Control"] == "private, no-store"
+
+
+def test_service_worker_is_public_and_versioned(client):
+    response = client.get("/sw.js")
+    assert response.status_code == 200
+    assert response["Content-Type"].startswith("text/javascript")
+    assert 'const VERSION = "' in response.content.decode()
+    assert response["Cache-Control"] == "no-cache"
+
+
+def test_spending_share_matches_balances_and_its_rows(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    third = Participant.objects.create(trip=trip, name="Third")
+    people = [owner_p, friend, third]
+    for amount in ("100", "10", "20.01"):
+        add_expense(trip, owner_p, people, amount)
+    balances = {s.participant: s.responsible_for for s in trip_settlement(trip).people}
+    for person in people:
+        report = owner_client.get(reverse("report", args=[trip.id]), {"person": person.id})
+        data = report.context["report"]
+        assert data["share"] == balances[person.id], person
+        assert sum(r.share for r in data["rows"]) == data["share"]
+        assert sum(d["amount"] for d in data["by_day"]) == data["share"]
+
+
+def test_spending_for_a_covered_person_lists_their_expenses(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    friend.sponsors.set([owner_p])
+    add_expense(trip, owner_p, [owner_p, friend], "30")
+    response = owner_client.get(reverse("report", args=[trip.id]), {"person": friend.id})
+    assert len(response.context["report"]["rows"]) == 1
+    html = response.content.decode()
+    assert "Friend is covered by Owner." in html
+    assert "No expenses" not in html
+
+
+def test_owner_can_delete_a_trip_with_expenses(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    expense = add_expense(trip, owner_p, [owner_p, friend], "30")
+    expense.deleted_at = expense.created_at  # A deleted expense is kept in the database too.
+    expense.save()
+    add_expense(trip, friend, [owner_p, friend], "10")
+    response = owner_client.post(reverse("trip_delete", args=[trip.id]))
+    assert response.status_code == 302
+    assert not Trip.objects.filter(pk=trip.pk).exists()
+    assert not Expense.all_objects.filter(trip_id=trip.pk).exists()
+
+
+def test_owner_marks_a_trip_settled_and_reopens_it(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p, friend], "30")
+    page = owner_client.get(reverse("summary", args=[trip.id])).content.decode()
+    assert "Mark as settled" in page and "hx-confirm" in page
+    owner_client.post(reverse("trip_settle", args=[trip.id]))
+    trip.refresh_from_db()
+    assert trip.is_settled
+    page = owner_client.get(reverse("summary", args=[trip.id])).content.decode()
+    assert "Settled on" in page and "Reopen trip" in page and "Mark as settled" not in page
+    assert "You were owed" in page and "was owed" in page and "You are owed" not in page
+    assert " by " not in page.split("Settled on", 1)[1].split("<", 1)[0]
+    # The balances stay as a record; settling records no payment.
+    assert trip_settlement(trip).people[0].balance == Decimal("15.00")
+    home = owner_client.get(reverse("home")).content.decode()
+    assert "Settled" in home
+    owner_client.post(reverse("trip_reopen", args=[trip.id]))
+    trip.refresh_from_db()
+    assert not trip.is_settled
+
+
+def test_settled_trip_locks_everything_that_changes_the_numbers(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    expense = add_expense(trip, owner_p, [owner_p, friend], "30")
+    owner_client.post(reverse("trip_settle", args=[trip.id]))
+    for url in (
+        reverse("expense_create", args=[trip.id]),
+        reverse("expense_edit", args=[trip.id, expense.id]),
+        reverse("expense_delete", args=[trip.id, expense.id]),
+        reverse("participant_create", args=[trip.id]),
+        reverse("participant_edit", args=[trip.id, friend.id]),
+        reverse("participant_delete", args=[trip.id, friend.id]),
+    ):
+        response = owner_client.post(url, {"name": "X", "amount": "1"})
+        assert response.status_code == 302, url
+        assert response["Location"] == reverse("trip", args=[trip.id]), url
+    assert (
+        owner_client.post(
+            reverse("rate_save", args=[trip.id]), {"currency": "VND", "rate": "26000"}
+        ).status_code
+        == 302
+    )
+    assert not trip.rates.exists()
+    expense.refresh_from_db()
+    assert expense.deleted_at is None and trip.participants.count() == 2
+    page = owner_client.get(reverse("trip", args=[trip.id])).content.decode()
+    assert "Add expense" not in page
+    assert reverse("expense_edit", args=[trip.id, expense.id]) not in page
+
+
+def test_only_the_owner_settles_or_reopens(client, trip, make_user):
+    member = make_user("member")
+    TripMember.objects.create(trip=trip, user=member)
+    client.force_login(member)
+    assert client.post(reverse("trip_settle", args=[trip.id])).status_code == 403
+    assert "Mark as settled" not in client.get(reverse("summary", args=[trip.id])).content.decode()

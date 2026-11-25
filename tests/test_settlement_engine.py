@@ -4,7 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from apps.settlement.engine import ExpenseInput, SettlementError, Transfer, settle, to_base
+from apps.settlement.engine import (
+    ExpenseInput,
+    SettlementError,
+    Transfer,
+    settle,
+    to_base,
+)
 
 SHEETS = sorted((Path(__file__).parent / "fixtures" / "sheets").glob("*.json"))
 D = Decimal
@@ -166,3 +172,11 @@ def test_category_totals():
 def test_invalid_input_is_rejected(kwargs, message):
     with pytest.raises(SettlementError, match=message):
         settle(["a", "b", "c"], base_currency="USD", **kwargs)
+
+
+@pytest.mark.parametrize("path", SHEETS, ids=[p.stem for p in SHEETS])
+def test_every_row_adds_up_and_shares_add_up_to_the_total(path):
+    result = run(load(path))
+    for p in result.people:
+        assert p.paid - p.responsible_for == p.balance
+    assert sum(p.responsible_for for p in result.people) == result.total

@@ -1,23 +1,61 @@
-{% extends "base.html" %}{% load i18n ui %}
+{% extends "trips/_trip_base.html" %}{% load i18n ui %}
 {% block title %}{% translate "Balances" %} · {{ trip.name }}{% endblock %}
 {% block content %}
-{% include "trips/_trip_header.html" %}
-<div class="stack-lg" style="margin-top: 16px">
+<div class="stack-lg">
 {% if error %}
   <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Ask the trip owner to add the rate." %}{% endif %}</div></div>
 {% else %}
-  {% if summary.me %}<div class="card">{% include "trips/_my_card.html" with why=True %}</div>{% endif %}
+  {% if trip.is_settled %}
+  <section class="card settled" aria-label="{% translate 'Trip status' %}">
+    <p class="settled-line">{% icon "circle-check" %}<span>{% blocktranslate with day=trip.settled_at|date:"j M Y" %}Settled on {{ day }}{% endblocktranslate %}</span></p>
+    {% if membership.is_owner %}
+    <form method="post" action="{% url 'trip_reopen' trip.id %}" hx-confirm="{% translate 'Reopen this trip? Its expenses can be changed again.' %}">{% csrf_token %}
+      <button type="submit" class="btn btn-secondary btn-sm">{% translate "Reopen trip" %}</button>
+    </form>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% with me=summary.me cur=summary.currency %}{% if me and summary.total %}
+  <section class="card hero" aria-label="{% translate 'Your balance' %}">
+    <p class="label">{% if trip.is_settled and me.row.balance > 0 %}{% translate "You were owed" %}{% elif trip.is_settled and me.row.balance < 0 %}{% translate "You owed" %}{% elif me.row.balance > 0 %}{% translate "You are owed" %}{% elif me.row.balance < 0 %}{% translate "You owe" %}{% else %}{% translate "Nothing owed" %}{% endif %}</p>
+    <p class="big num {% if me.row.balance > 0 %}pos{% elif me.row.balance < 0 %}neg{% endif %}">{{ me.row.balance|amount:cur }} <span class="cur">{{ cur }}</span></p>
+    <details class="why">
+      <summary>{% translate "Breakdown" %}{% icon "chevron-right" "chev" %}</summary>
+      <dl class="num">
+        <dt>{% translate "You paid" %}</dt><dd>{{ me.row.paid|amount:cur }}</dd>
+        <dt>{% translate "Your share" %}</dt><dd>−{{ me.row.responsible_for|amount:cur }}</dd>
+        <dt class="why-total">{% translate "Balance" %}</dt><dd class="why-total">{{ me.row.balance|signed:cur }} <span class="cur">{{ cur }}</span></dd>
+      </dl>
+    </details>
+  </section>
+  {% endif %}{% endwith %}
 
   <section>
-    <h2 class="section-title">{% translate "Balances" %}</h2>
-    <ul class="list">{% for item in summary.rows %}{% include "trips/_person_row.html" with currency=summary.currency %}{% endfor %}</ul>
-    {% if summary.payment_count %}
-    <p class="tiny muted" style="margin-top: 8px">{% translate "The “Pays” lines settle the trip with the fewest payments. You can agree on other payments; the balances stay the same." %}</p>
-    {% else %}
-    <ul class="messages" style="margin-top: 12px"><li class="success" style="animation: none">{% icon "circle-check" %}<span>{% translate "Everyone is even. Nobody needs to pay anyone." %}</span></li></ul>
-    {% endif %}
-    <p class="tiny muted" style="margin-top: 8px">{% blocktranslate with c=summary.currency %}All amounts in {{ c }}.{% endblocktranslate %}{% for rate in trip.rates.all %} 1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}.{% endfor %}</p>
+    <h2 class="section-title">{% translate "Everyone" %}</h2>
+    <ul class="list">
+      {% for item in summary.rows %}
+      <li><div class="row">
+        <span class="avatar" aria-hidden="true">{{ item.person.name|first|upper }}</span>
+        <span class="row-main">
+          <span class="row-title">{{ item.person.name }}{% if item.is_me %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
+          <span class="row-sub num">{% if item.covered_by %}{% translate "Covered by" %} {{ item.covered_by|join:", " }}{% else %}{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }} · {% translate "Share" %}&nbsp;{{ item.row.responsible_for|amount:summary.currency }}&nbsp;{{ summary.currency }}{% endif %}</span>
+        </span>
+        <span class="row-end">
+          <strong class="num {% if item.row.balance > 0 %}pos{% elif item.row.balance < 0 %}neg{% else %}muted{% endif %}">{{ item.row.balance|money:summary.currency }}</strong>
+          <span class="row-sub">{% if trip.is_settled and item.row.balance > 0 %}{% translate "was owed" %}{% elif trip.is_settled and item.row.balance < 0 %}{% translate "owed" %}{% elif item.row.balance > 0 %}{% translate "is owed" %}{% elif item.row.balance < 0 %}{% translate "owes" %}{% elif not item.covered_by and summary.total %}{% translate "nothing owed" %}{% endif %}</span>
+        </span>
+      </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% if trip.rates.all %}<p class="footnote num">{% for rate in trip.rates.all %}1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endif %}
   </section>
 {% endif %}
 </div>
 {% endblock %}
+{% block bar %}{% if membership.is_owner and not error and not trip.is_settled and summary.total %}
+<form method="post" action="{% url 'trip_settle' trip.id %}" hx-confirm="{% translate 'Mark this trip as settled? Its expenses are locked until the trip is reopened.' %}">{% csrf_token %}
+  <button type="submit" class="fab">{% icon "check" %}{% translate "Mark as settled" %}</button>
+</form>
+{% endif %}{% endblock %}
