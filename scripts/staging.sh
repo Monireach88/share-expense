@@ -38,12 +38,24 @@ copy_production_data() {
     | psql_staging -q >/dev/null
 }
 
+wait_for_database() {
+  # On its very first start Postgres restarts once after creating the database, while its
+  # health check already passes, so wait until a real query works.
+  for _ in $(seq 30); do
+    psql_staging -c '"select 1"' >/dev/null 2>&1 && return 0
+    sleep 1
+  done
+  echo "The staging database did not answer within 30 seconds." >&2
+  return 1
+}
+
 tunnel_ready() { ! grep -q '^CLOUDFLARE_TUNNEL_TOKEN=pending' "$TREE/.env.staging"; }
 
 up() {
   checkout
   staging build --quiet web
   staging up -d --wait postgres
+  wait_for_database
   if [ "$(psql_staging -c "\"select to_regclass('public.django_migrations') is not null\"")" != "t" ]; then
     copy_production_data
   fi
@@ -58,6 +70,7 @@ case "${1:-}" in
   refresh)
     checkout
     staging up -d --wait postgres
+    wait_for_database
     copy_production_data
     staging up -d --wait web
     if tunnel_ready; then staging up -d cloudflared; fi
