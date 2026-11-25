@@ -462,3 +462,20 @@ def test_spending_for_a_covered_person_lists_their_expenses(owner_client, trip):
     html = response.content.decode()
     assert "Friend is covered by Owner." in html
     assert "No expenses" not in html
+
+
+def test_owner_can_delete_a_trip_with_expenses_and_payments(owner_client, trip):
+    from apps.expenses.models import Repayment
+
+    owner_p, friend = trip.participants.all()
+    expense = add_expense(trip, owner_p, [owner_p, friend], "30")
+    expense.deleted_at = expense.created_at  # A deleted expense is kept in the database too.
+    expense.save()
+    add_expense(trip, friend, [owner_p, friend], "10")
+    Repayment.objects.create(
+        trip=trip, sender=friend, receiver=owner_p, amount=5, currency="USD", date=date(2026, 6, 2)
+    )
+    response = owner_client.post(reverse("trip_delete", args=[trip.id]))
+    assert response.status_code == 302
+    assert not Trip.objects.filter(pk=trip.pk).exists()
+    assert not Expense.all_objects.filter(trip_id=trip.pk).exists()
