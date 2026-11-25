@@ -78,8 +78,10 @@ class ParticipantForm(forms.ModelForm):
         self.fields["user"].help_text = _(
             "Optional. Link the person's own account so the app can show them their balance."
         )
-        self.fields["sponsors"].label = _("Who pays for this person?")
-        self.fields["sponsors"].help_text = _("Leave empty if they pay for themselves.")
+        self.fields["sponsors"].label = _("Covered by")
+        self.fields["sponsors"].help_text = _(
+            "People who pay this person's share. Empty means they pay their own."
+        )
 
     def clean_name(self):
         name = self.cleaned_data["name"].strip()

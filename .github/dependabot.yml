@@ -7,6 +7,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    target-branch: "development"
+    target-branch: "develop"
     allow:
       - dependency-name: "cloudflare/cloudflared"

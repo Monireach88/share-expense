@@ -72,3 +72,45 @@ class Expense(models.Model):
 
     def __str__(self) -> str:
         return self.description or self.get_category_display()
+
+
+class Repayment(models.Model):
+    """Money one participant gave another to settle up. Changes balances, not spending."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid7, editable=False)
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="repayments")
+    date = models.DateField(_("date"))
+    sender = models.ForeignKey(
+        Participant,
+        on_delete=models.PROTECT,
+        related_name="repayments_sent",
+        verbose_name=_("from"),
+    )
+    receiver = models.ForeignKey(
+        Participant,
+        on_delete=models.PROTECT,
+        related_name="repayments_received",
+        verbose_name=_("to"),
+    )
+    amount = models.DecimalField(_("amount"), max_digits=14, decimal_places=2)
+    currency = models.CharField(_("currency"), max_length=3, choices=CURRENCY_CHOICES)
+    note = models.CharField(_("note"), max_length=200, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date", "-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(amount__gt=0), name="repayment_amount_positive"
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(sender=models.F("receiver")), name="repayment_two_people"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.sender} → {self.receiver}"

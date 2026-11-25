@@ -1,6 +1,6 @@
 {% extends "base.html" %}{% load i18n ui %}
 {% block title %}{% translate "New trip" %}{% endblock %}
-{% block back %}<a class="back" href="{% url 'home' %}">{% icon "chevron-left" %}<span>{% translate "My trips" %}</span></a>{% endblock %}
+{% block back %}<a class="back" href="{% url 'home' %}">{% icon "chevron-left" %}<span>{% translate "Trips" %}</span></a>{% endblock %}
 {% block content %}
 <h1 class="page-title">{% translate "New trip" %}</h1>
 <form method="post" id="trip-form" class="stack" style="margin-top: 16px">{% csrf_token %}

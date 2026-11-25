@@ -15,22 +15,24 @@ from apps.settlement.engine import SettlementError
 from .access import get_membership
 from .forms import ExchangeRateForm, MemberAddForm, ParticipantForm, TripForm
 from .models import ExchangeRate, Participant, Trip, TripMember
-from .summary import my_balance, named, trip_settlement
+from .offline import cacheable_page
+from .pagination import paginate
+from .summary import named, trip_settlement, trip_status
 
 
+@cacheable_page
 def home(request: HttpRequest) -> HttpResponse:
-    trips = list(
-        Trip.objects.filter(memberships__user=request.user).annotate(
-            people_count=Count("participants", distinct=True)
-        )
+    trips = Trip.objects.filter(memberships__user=request.user).annotate(
+        people_count=Count("participants", distinct=True)
     )
-    for trip in trips:
-        trip.total = trip.my_balance = None
+    page = paginate(request, trips)
+    for trip in page.object_list:
+        trip.total = result = None
         with suppress(SettlementError):
             result = trip_settlement(trip)
             trip.total = result.total
-            trip.my_balance = my_balance(trip, result, request.user)
-    return render(request, "trips/home.html", {"trips": trips})
+        trip.status = trip_status(result)
+    return render(request, "trips/home.html", {"trips": page.object_list, "page": page})
 
 
 def trip_create(request: HttpRequest) -> HttpResponse:
@@ -42,7 +44,7 @@ def trip_create(request: HttpRequest) -> HttpResponse:
             trip.save()
             TripMember.objects.create(trip=trip, user=request.user, role=TripMember.Role.OWNER)
             Participant.objects.create(trip=trip, name=request.user.display_name, user=request.user)
-        messages.success(request, _("Trip created. Add the people who travel with you."))
+        messages.success(request, _("Trip created."))
         return redirect("people", trip_id=trip.id)
     return render(request, "trips/trip_form.html", {"form": form})
 
@@ -136,6 +138,7 @@ def trip_delete(request: HttpRequest, trip_id) -> HttpResponse:
     )
 
 
+@cacheable_page
 def people(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
@@ -158,7 +161,9 @@ def people(request: HttpRequest, trip_id) -> HttpResponse:
         {
             "trip": trip,
             "membership": membership,
-            "participants": trip.participants.select_related("user").prefetch_related("sponsors"),
+            "participants": paginate(
+                request, trip.participants.select_related("user").prefetch_related("sponsors")
+            ),
             "members": trip.memberships.select_related("user").order_by("-role", "created_at"),
             "member_form": member_form,
             "tab": "people",
@@ -210,9 +215,14 @@ def participant_edit(request: HttpRequest, trip_id, participant_id) -> HttpRespo
 def participant_delete(request: HttpRequest, trip_id, participant_id) -> HttpResponse:
     membership = get_membership(request, trip_id, owner_only=True)
     participant = get_object_or_404(Participant, pk=participant_id, trip=membership.trip)
-    in_use = membership.trip.expenses.filter(
-        Q(payer=participant) | Q(beneficiaries=participant)
-    ).exists()
+    in_use = (
+        membership.trip.expenses.filter(
+            Q(payer=participant) | Q(beneficiaries=participant)
+        ).exists()
+        or membership.trip.repayments.filter(
+            Q(sender=participant) | Q(receiver=participant)
+        ).exists()
+    )
     if request.method == "POST" and not in_use:
         with transaction.atomic():
             # Deleted expenses are kept for the record but must not block removing a person.
@@ -227,7 +237,7 @@ def participant_delete(request: HttpRequest, trip_id, participant_id) -> HttpRes
             "trip": membership.trip,
             "membership": membership,
             "object": participant.name,
-            "blocked": _("This person appears in expenses. Change those expenses first.")
+            "blocked": _("This person appears in expenses or payments. Change those first.")
             if in_use
             else "",
             "button": _("Remove person"),
@@ -251,10 +261,17 @@ def member_remove(request: HttpRequest, trip_id, member_id) -> HttpResponse:
     return redirect("people", trip_id=trip_id)
 
 
+@cacheable_page
 def summary(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
-    context = {"trip": trip, "membership": membership, "tab": "summary"}
+    repayments = trip.repayments.select_related("sender", "receiver")
+    context = {
+        "trip": trip,
+        "membership": membership,
+        "tab": "summary",
+        "repayments": paginate(request, repayments),
+    }
     try:
         context["summary"] = named(trip, trip_settlement(trip), request.user)
     except SettlementError as error:

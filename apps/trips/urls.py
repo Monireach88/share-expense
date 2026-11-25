@@ -22,6 +22,27 @@ urlpatterns = [
         name="expense_delete",
     ),
     path("trips/<uuid:trip_id>/summary/", views.summary, name="summary"),
+    path("trips/<uuid:trip_id>/report/", expense_views.report, name="report"),
+    path(
+        "trips/<uuid:trip_id>/report/export.<str:fmt>",
+        expense_views.report_export,
+        name="report_export",
+    ),
+    path(
+        "trips/<uuid:trip_id>/payments/new/",
+        expense_views.repayment_create,
+        name="repayment_create",
+    ),
+    path(
+        "trips/<uuid:trip_id>/payments/<uuid:repayment_id>/",
+        expense_views.repayment_edit,
+        name="repayment_edit",
+    ),
+    path(
+        "trips/<uuid:trip_id>/payments/<uuid:repayment_id>/delete/",
+        expense_views.repayment_delete,
+        name="repayment_delete",
+    ),
     path("trips/<uuid:trip_id>/people/", views.people, name="people"),
     path("trips/<uuid:trip_id>/people/new/", views.participant_create, name="participant_create"),
     path(

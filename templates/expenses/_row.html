@@ -1,0 +1,13 @@
+{% load i18n ui %}<a class="row" href="{% url 'expense_edit' trip.id e.id %}">
+  <span class="type-icon" aria-hidden="true">{{ e.category|type_emoji }}</span>
+  <span class="row-main">
+    {% if e.description %}<span class="row-title">{{ e.description|keep_hyphens }}</span>{% else %}<span class="row-title placeholder">{{ e.get_category_display }}</span>{% endif %}
+    <span class="row-sub">{% blocktranslate with payer=e.payer.name %}Paid by {{ payer }}{% endblocktranslate %}</span>
+    <span class="row-sub row-for">{% with n=e.beneficiaries.all|length %}{% if n == people_count %}{% translate "For everyone" %}{% else %}{% blocktranslate with names=e.beneficiaries.all|join:", " %}For {{ names }}{% endblocktranslate %}{% endif %}{% endwith %}</span>
+  </span>
+  <span class="row-end">
+    <span class="num">{{ e.amount|money:e.currency }}</span>
+    {% if show_share %}<span class="row-sub num">{% translate "Share" %} {{ share|money:trip.base_currency }}</span>
+    {% elif e.currency != trip.base_currency and e.base_amount is not None %}<span class="row-sub num">≈ {{ e.base_amount|money:trip.base_currency }}</span>{% endif %}
+  </span>
+</a>
