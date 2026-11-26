@@ -38,9 +38,9 @@
     {% for error in form.beneficiaries.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
   </fieldset>
 
-  <fieldset>
-    <legend>{{ form.category.label }}</legend>
-    <div class="chips">{% for choice in form.category %}<label>{{ choice.tag }}<span aria-hidden="true">{{ choice.data.value|type_emoji }}</span>{{ choice.choice_label }}</label>{% endfor %}</div>
+  <fieldset data-types data-create="{% url 'category_create' trip.id %}" data-edit="{% url 'category_edit' trip.id 0 %}" data-delete="{% url 'category_delete' trip.id 0 %}">
+    <legend class="types-legend">{{ form.category.label }}<button type="button" class="btn-text types-done" data-types-done hidden>{% translate "Done" %}</button></legend>
+    <div class="chips type-chips">{% for choice in form.category %}{% with c=choice.data.value.instance %}<label data-type="{{ c.pk }}" data-name="{{ c.name }}" data-emoji="{{ c.emoji }}">{{ choice.tag }}<span class="type-emoji" aria-hidden="true">{{ c.emoji }}</span><span class="type-name">{{ c.name }}</span><button type="button" class="type-remove" data-remove aria-label="{% blocktranslate with name=c.name %}Remove {{ name }}{% endblocktranslate %}">−</button></label>{% endwith %}{% endfor %}<button type="button" class="chip chip-add" data-add-type>{% icon "plus" %}{% translate "Add type" %}</button></div>
     {% for error in form.category.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
   </fieldset>
 
@@ -67,6 +67,21 @@
   </div>
   {% endif %}
 </form>
+<dialog class="sheet" data-type-dialog aria-labelledby="type-dialog-title">
+  <form method="dialog" class="stack">
+    <h2 class="section-title" id="type-dialog-title" data-title data-add-title="{% translate 'Add type' %}" data-edit-title="{% translate 'Edit type' %}">{% translate "Add type" %}</h2>
+    <div class="type-edit">
+      <button type="button" class="emoji-btn" data-emoji-btn aria-label="{% translate 'Icon' %}" aria-expanded="false">{{ default_emoji }}</button>
+      <input type="text" name="name" maxlength="40" autocomplete="off" aria-label="{% translate 'Name' %}" placeholder="{% translate 'Name' %}" required>
+    </div>
+    <div class="emoji-grid" data-emoji-grid hidden>{% for e in emoji_choices %}<button type="button" data-emoji="{{ e }}" aria-label="{{ e }}">{{ e }}</button>{% endfor %}</div>
+    <p class="field-error" data-error hidden></p>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-secondary" data-cancel>{% translate "Cancel" %}</button>
+      <button type="submit" class="btn" data-save>{% translate "Save" %}</button>
+    </div>
+  </form>
+</dialog>
 {{ rates|json_script:"trip-rates" }}
 <script src="{% static 'js/expense_form.js' %}"></script>
 {% endblock %}

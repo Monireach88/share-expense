@@ -4,13 +4,15 @@ from decimal import Decimal
 from itertools import groupby
 
 from django.contrib import messages
-from django.http import Http404, HttpRequest, HttpResponse
+from django.db.models import Max
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 
 from apps.settlement.engine import SettlementError, to_base
@@ -20,8 +22,8 @@ from apps.trips.pagination import DayPage
 from apps.trips.summary import named, trip_settlement
 from apps.trips.templatetags.ui import format_amount
 
-from .forms import ExpenseForm
-from .models import Category, Expense
+from .forms import CategoryForm, ExpenseForm
+from .models import DEFAULT_EMOJI, EMOJI_CHOICES, Category, Expense
 from .report import ReportFilterForm, build_report, export_rows, to_csv, to_xlsx
 
 MAX_DAY_CHIPS = 14
@@ -31,7 +33,9 @@ MAX_DAY_CHIPS = 14
 def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
-    expenses = list(trip.expenses.select_related("payer").prefetch_related("beneficiaries"))
+    expenses = list(
+        trip.expenses.select_related("payer", "category").prefetch_related("beneficiaries")
+    )
     q = request.GET.get("q", "").strip()[:100]
     if q:
         expenses = [e for e in expenses if _matches(e, q)]
@@ -85,7 +89,7 @@ def _matches(expense: Expense, query: str) -> bool:
             expense.description,
             expense.payer.name,
             *(b.name for b in expense.beneficiaries.all()),
-            str(expense.get_category_display()),
+            expense.category.name if expense.category else "",
             f"{expense.amount:f}".rstrip("0").rstrip("."),
             format_amount(expense.amount, expense.currency),
             expense.currency,
@@ -115,6 +119,66 @@ def expense_reorder(request: HttpRequest, trip_id) -> HttpResponse:
     return HttpResponse(status=204)
 
 
+def _category_json(category: Category, status: int = 200) -> JsonResponse:
+    return JsonResponse(
+        {"id": category.pk, "name": category.name, "emoji": category.emoji}, status=status
+    )
+
+
+def _form_error(form) -> JsonResponse:
+    errors = [e for field in form.errors.values() for e in field]
+    return JsonResponse({"error": errors[0] if errors else _("Check the name.")}, status=400)
+
+
+@require_POST
+def category_create(request: HttpRequest, trip_id) -> HttpResponse:
+    """Add a type from the expense form; answers JSON so the form keeps what was typed."""
+    trip = get_membership(request, trip_id).trip
+    if trip.is_settled:
+        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    form = CategoryForm(request.POST, trip=trip)
+    if not form.is_valid():
+        return _form_error(form)
+    category = form.save(commit=False)
+    category.trip = trip
+    category.position = (trip.categories.aggregate(m=Max("position"))["m"] or 0) + 1
+    category.save()
+    return _category_json(category, status=201)
+
+
+@require_POST
+def category_edit(request: HttpRequest, trip_id, category_id) -> HttpResponse:
+    trip = get_membership(request, trip_id).trip
+    category = get_object_or_404(Category, pk=category_id, trip=trip)
+    if trip.is_settled:
+        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    form = CategoryForm(request.POST, instance=category, trip=trip)
+    if not form.is_valid():
+        return _form_error(form)
+    return _category_json(form.save())
+
+
+@require_POST
+def category_delete(request: HttpRequest, trip_id, category_id) -> HttpResponse:
+    """Remove a type no expense uses. Deleted expenses that had it simply lose their type."""
+    trip = get_membership(request, trip_id).trip
+    category = get_object_or_404(Category, pk=category_id, trip=trip)
+    if trip.is_settled:
+        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    used = trip.expenses.filter(category=category).count()
+    if used:
+        message = ngettext(
+            "“%(name)s” is used by %(n)d expense, so it cannot be removed.",
+            "“%(name)s” is used by %(n)d expenses, so it cannot be removed.",
+            used,
+        ) % {"name": category.name, "n": used}
+        return JsonResponse({"error": message}, status=409)
+    if trip.categories.count() == 1:
+        return JsonResponse({"error": _("A trip needs at least one type.")}, status=409)
+    category.delete()
+    return HttpResponse(status=204)
+
+
 def _in_trip(trip, day) -> bool:
     return (not trip.start_date or trip.start_date <= day) and (
         not trip.end_date or day <= trip.end_date
@@ -131,6 +195,9 @@ def _initial(request: HttpRequest, trip) -> dict:
         "payer": me or (last.payer if last else None),
         "beneficiaries": list(trip.participants.all()),
         "currency": last.currency if last else trip.base_currency,
+        # Food is the most common type on a trip; a trip without it starts on its first type.
+        "category": trip.categories.filter(name__iexact="Food & drink").first()
+        or trip.categories.first(),
     }
 
 
@@ -156,6 +223,8 @@ def _form_context(trip, membership, form, expense=None) -> dict:
         "trip_day_isos": [d.isoformat() for d in days],
         "rates": {code: str(rate) for code, rate in trip.rate_map().items()},
         "sponsored": [(p, list(p.sponsors.all())) for p in participants if p.sponsors.all()],
+        "emoji_choices": EMOJI_CHOICES,
+        "default_emoji": DEFAULT_EMOJI,
     }
 
 
@@ -239,7 +308,7 @@ def _filter_summary(filters: dict) -> list[str]:
     if filters.get("person"):
         parts.append(filters["person"].name)
     if filters.get("category"):
-        parts.append(dict(Category.choices).get(filters["category"], filters["category"]))
+        parts.append(filters["category"].name)
     start, end = filters.get("start"), filters.get("end")
     if start and end:
         parts.append(f"{date_format(start, 'j M')}–{date_format(end, 'j M')}")

@@ -476,3 +476,36 @@ textarea[rows="1"] { resize: none; overflow: hidden; field-sizing: content; padd
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* ---------- Expense types in the expense form ---------- */
+.types-legend { display: flex; align-items: center; justify-content: space-between; }
+.types-done { font-size: 15px; font-weight: 600; min-height: 32px; }
+.type-chips label { position: relative; }
+.type-remove {
+  display: none; position: absolute; top: -8px; left: -6px; width: 24px; height: 24px; padding: 0;
+  border: 2px solid var(--surface); border-radius: 999px; background: var(--neg); color: var(--on-neg, #fff);
+  font: 700 18px/1 var(--font); cursor: pointer; place-items: center;
+}
+.editing .type-remove { display: grid; }
+.editing .type-chips label { animation: wiggle 0.3s ease-in-out infinite alternate; }
+.editing .type-chips label::before { content: none !important; }
+@keyframes wiggle { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
+@media (prefers-reduced-motion: reduce) { .editing .type-chips label { animation: none; } }
+.chip-add { border-style: dashed; color: var(--accent); background: transparent; font: inherit; font-weight: 600; }
+.chip-add .icon { width: 18px; height: 18px; }
+
+dialog.sheet {
+  width: min(100vw - 32px, 420px); max-height: calc(100vh - 32px); padding: var(--s5); border: 0;
+  border-radius: 20px; background: var(--surface); color: var(--fg); box-shadow: 0 16px 48px rgb(16 24 40 / 0.3);
+}
+dialog.sheet::backdrop { background: rgb(16 24 40 / 0.45); }
+.type-edit { display: flex; gap: var(--s2); }
+.emoji-btn {
+  flex: none; width: 56px; min-height: 48px; font-size: 26px; border-radius: var(--r-field);
+  border: 1px solid var(--field); background: var(--bg); cursor: pointer;
+}
+.emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: var(--s1); }
+.emoji-grid button { min-height: 44px; font-size: 22px; border: 0; border-radius: 10px; background: var(--bg); cursor: pointer; }
+.emoji-grid button:hover, .emoji-grid button:focus-visible { background: var(--accent-soft); }
+.dialog-actions { display: flex; gap: var(--s2); }
+.dialog-actions .btn { flex: 1; }

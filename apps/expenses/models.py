@@ -7,16 +7,55 @@ from django.utils.translation import gettext_lazy as _
 from apps.trips.currencies import CURRENCY_CHOICES
 from apps.trips.models import Participant, Trip
 
+# The types every new trip starts with: (name, emoji). Travelers can add, rename and remove types.
+DEFAULT_CATEGORIES = [
+    ("Transport", "🚕"),
+    ("Accommodation", "🏨"),
+    ("Food & drink", "🍜"),
+    ("Hospital & medicine", "💊"),
+    ("Translation", "💬"),
+    ("Shopping", "🛍️"),
+    ("Activities", "🎟️"),
+    ("Other", "📦"),
+]
+DEFAULT_EMOJI = "🏷️"
 
-class Category(models.TextChoices):
-    TRANSPORT = "transport", _("Transport")
-    ACCOMMODATION = "accommodation", _("Accommodation")
-    FOOD = "food", _("Food & drink")
-    MEDICAL = "medical", _("Hospital & medicine")
-    TRANSLATION = "translation", _("Translation")
-    SHOPPING = "shopping", _("Shopping")
-    ACTIVITIES = "activities", _("Activities")
-    OTHER = "other", _("Other")
+# The icons a type can have, shown as a grid when a traveler picks one.
+EMOJI_CHOICES = [
+    "🏷️", "🍜", "🍔", "🍕", "🥗", "☕", "🍺", "🍷", "🥤", "🛒",
+    "🚕", "🚌", "🚆", "✈️", "⛴️", "🚗", "🛵", "⛽", "🅿️", "🧳",
+    "🏨", "🏠", "⛺", "🎟️", "🎭", "🏛️", "🏖️", "🧗", "💆", "🎁",
+    "💊", "🏥", "💬", "📱", "💻", "🔌", "🛍️", "👕", "💐", "📚",
+    "🧺", "🧴", "💈", "🐶", "👶", "💵", "🏧", "🧾", "📦", "🔧",
+]  # fmt: skip
+
+
+class Category(models.Model):
+    """A type of expense (Food & drink, Transport, ...). Each trip has its own list."""
+
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="categories")
+    name = models.CharField(_("name"), max_length=40)
+    emoji = models.CharField(_("icon"), max_length=16, default=DEFAULT_EMOJI)
+    position = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["position", "id"]
+        verbose_name = _("type")
+        constraints = [
+            models.UniqueConstraint(
+                models.functions.Lower("name"), "trip", name="category_name_unique_in_trip"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+def add_default_categories(trip: Trip) -> None:
+    Category.objects.bulk_create(
+        Category(trip=trip, name=name, emoji=emoji, position=i)
+        for i, (name, emoji) in enumerate(DEFAULT_CATEGORIES)
+    )
 
 
 class ActiveExpenseManager(models.Manager):
@@ -39,8 +78,13 @@ class Expense(models.Model):
         verbose_name=_("for whom"),
         help_text=_("The amount is split equally among these people."),
     )
-    category = models.CharField(
-        _("type"), max_length=20, choices=Category.choices, default=Category.FOOD
+    # Empty only for deleted expenses whose type was removed later; a type in use cannot be removed.
+    category = models.ForeignKey(
+        Category,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="expenses",
+        verbose_name=_("type"),
     )
     description = models.CharField(_("description"), max_length=200, blank=True)
     amount = models.DecimalField(_("amount"), max_digits=14, decimal_places=2)
@@ -76,4 +120,4 @@ class Expense(models.Model):
         ]
 
     def __str__(self) -> str:
-        return self.description or self.get_category_display()
+        return self.description or (self.category.name if self.category else "")

@@ -5,7 +5,7 @@
 <h1 class="page-title">{{ button }}?</h1>
 <div class="card" style="margin-top: 16px">
   {% if expense %}
-  <p class="row-title">{% if expense.description %}{{ expense.description }}{% else %}{{ expense.get_category_display }}{% endif %}</p>
+  <p class="row-title">{% if expense.description %}{{ expense.description }}{% else %}{{ expense.category.name }}{% endif %}</p>
   <p class="num" style="margin-top: 4px; font-size: 24px; font-weight: 700">{{ expense.amount|money:expense.currency }}</p>
   <p class="row-sub">{% blocktranslate with payer=expense.payer.name %}{{ payer }} paid{% endblocktranslate %} · {{ expense.date|date:"D j M Y" }}</p>
   {% else %}

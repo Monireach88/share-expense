@@ -59,7 +59,7 @@
   <h2 class="section-title">{% translate "By type" %}</h2>
   <ul class="bars card">
     {% for c in r.by_category %}
-    <li><span><span aria-hidden="true">{{ c.code|type_emoji }}</span> {{ c.label }}</span><span class="num">{{ c.amount|money:cur }}</span><span class="bar" aria-hidden="true"><span style="--w: {{ c.percent }}%"></span></span></li>
+    <li><span><span aria-hidden="true">{{ c.category.emoji|default:"📦" }}</span> {{ c.category.name|default:"—" }}</span><span class="num">{{ c.amount|money:cur }}</span><span class="bar" aria-hidden="true"><span style="--w: {{ c.percent }}%"></span></span></li>
     {% endfor %}
   </ul>
 </section>

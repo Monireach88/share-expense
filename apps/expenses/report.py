@@ -35,7 +35,12 @@ class ReportFilterForm(forms.Form):
         required=False,
         empty_label=gettext_lazy("Everyone"),
     )
-    category = forms.ChoiceField(label=gettext_lazy("Type"), required=False)
+    category = forms.ModelChoiceField(
+        label=gettext_lazy("Type"),
+        queryset=Category.objects.none(),
+        required=False,
+        empty_label=gettext_lazy("All types"),
+    )
     start = forms.DateField(label=gettext_lazy("From"), required=False, widget=DATE_INPUT)
     end = forms.DateField(label=gettext_lazy("To"), required=False, widget=DATE_INPUT)
 
@@ -43,7 +48,7 @@ class ReportFilterForm(forms.Form):
         super().__init__(data)
         # Only this trip's people, so an ID from another trip is rejected as invalid.
         self.fields["person"].queryset = trip.participants.all()
-        self.fields["category"].choices = [("", _("All types")), *Category.choices]
+        self.fields["category"].queryset = trip.categories.all()
 
     def filters(self) -> dict:
         """The valid filters; an invalid value is ignored rather than failing the page."""
@@ -116,7 +121,7 @@ def _local_share(expense: Expense, base: Decimal, exact: Fraction) -> Decimal:
 def build_report(trip: Trip, filters: dict) -> dict:
     """Filtered rows (newest first) and their totals by type and by day, in the base currency."""
     person: Participant | None = filters.get("person")
-    expenses = trip.expenses.select_related("payer").prefetch_related("beneficiaries")
+    expenses = trip.expenses.select_related("payer", "category").prefetch_related("beneficiaries")
     if filters.get("category"):
         expenses = expenses.filter(category=filters["category"])
     if filters.get("start"):
@@ -163,7 +168,7 @@ def build_report(trip: Trip, filters: dict) -> dict:
             row.share = share
             row.share_local = _local_share(row.expense, row.base_amount, exact)
 
-    by_category: dict[str, Decimal] = defaultdict(Decimal)
+    by_category: dict[Category | None, Decimal] = defaultdict(Decimal)
     by_day: dict[date, Decimal] = defaultdict(Decimal)
     for row in rows:
         counted = row.share if person else row.base_amount
@@ -171,7 +176,6 @@ def build_report(trip: Trip, filters: dict) -> dict:
             by_category[row.expense.category] += counted
             by_day[row.expense.date] += counted
 
-    labels = dict(Category.choices)
     type_bars, day_bars = _bars(by_category), _bars(by_day)
     return {
         "person": person,
@@ -183,8 +187,8 @@ def build_report(trip: Trip, filters: dict) -> dict:
         # A covered person's share is paid by others, so their rows show no share line.
         "show_share": bool(person) and not covered,
         "by_category": [
-            {"code": code, "label": labels.get(code, code), **type_bars[code]}
-            for code, _amount in sorted(by_category.items(), key=lambda kv: -kv[1])
+            {"category": category, **type_bars[category]}
+            for category, _amount in sorted(by_category.items(), key=lambda kv: -kv[1])
         ],
         "by_day": [{"day": day, **day_bars[day]} for day in sorted(by_day)],
         "covers": list(person.sponsored.all()) if person else [],
@@ -213,7 +217,7 @@ def export_rows(trip: Trip, report: dict) -> tuple[list[str], list[list]]:
         line = [
             e.date,
             e.description,
-            e.get_category_display(),
+            e.category.name if e.category else "",
             e.payer.name,
             ", ".join(b.name for b in e.beneficiaries.all()),
             e.amount,
