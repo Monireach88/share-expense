@@ -6,6 +6,7 @@ import pytest
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from django.contrib.auth import get_user_model
+from django.test import Client
 from django.urls import reverse
 
 GOOGLE = {
@@ -114,3 +115,15 @@ def test_allauth_adds_no_second_password_login_or_reset(client):
     for path in ("/accounts/password/reset/", "/accounts/email/", "/accounts/3rdparty/"):
         assert client.get(path).status_code in (302, 404)
     assert client.get("/accounts/password/reset/").status_code != 200
+
+
+@pytest.mark.django_db
+def test_google_buttons_are_plain_form_posts(owner_client, settings):
+    """htmx cannot follow a redirect to another site, so these forms must not be boosted."""
+    settings.GOOGLE_CLIENT_ID = "test-client"
+    settings.SOCIALACCOUNT_PROVIDERS = GOOGLE
+    login = Client().get(reverse("login"), {"next": "/trips/"}).content.decode()
+    form = login[login.index('action="/accounts/google/login/') :].split(">", 1)[0]
+    assert 'hx-boost="false"' in form and form.count("next=") == 1
+    page = owner_client.get(reverse("socialaccount_connections")).content.decode()
+    assert 'process=connect" hx-boost="false"' in page

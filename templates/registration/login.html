@@ -16,7 +16,8 @@
 </form>
 {% if google_signin %}
 <div class="or" role="separator"><span>{% translate "or" %}</span></div>
-<form method="post" action="{% provider_login_url 'google' %}{% if next %}?next={{ next|urlencode }}{% endif %}">{% csrf_token %}
+{# A normal form post (no hx-boost): the browser must follow the redirect to Google's own page. #}
+<form method="post" action="{% provider_login_url 'google' %}" hx-boost="false">{% csrf_token %}
   <button type="submit" class="btn btn-secondary btn-block btn-google">{% include "_google_logo.html" %}{% translate "Continue with Google" %}</button>
 </form>
 {% endif %}

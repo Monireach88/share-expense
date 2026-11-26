@@ -22,7 +22,7 @@
 {% else %}
 <section class="card stack">
   <p>{% translate "Connect a Google account to sign in without your password." %}</p>
-  <form method="post" action="{% provider_login_url 'google' process='connect' %}">{% csrf_token %}
+  <form method="post" action="{% provider_login_url 'google' process='connect' %}" hx-boost="false">{% csrf_token %}
     <button type="submit" class="btn btn-secondary btn-block btn-google">{% include "_google_logo.html" %}{% translate "Connect Google account" %}</button>
   </form>
 </section>
