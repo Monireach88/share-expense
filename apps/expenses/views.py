@@ -22,6 +22,7 @@ from apps.trips.pagination import DayPage
 from apps.trips.summary import named, trip_settlement
 from apps.trips.templatetags.ui import format_amount
 
+from . import suggest
 from .forms import CategoryForm, ExpenseForm
 from .models import DEFAULT_EMOJI, EMOJI_CHOICES, Category, Expense
 from .report import ReportFilterForm, build_report, export_rows, to_csv, to_xlsx
@@ -179,6 +180,17 @@ def category_delete(request: HttpRequest, trip_id, category_id) -> HttpResponse:
     return HttpResponse(status=204)
 
 
+@require_POST
+def description_suggestion(request: HttpRequest, trip_id) -> HttpResponse:
+    """A better wording of the description being typed, as JSON {"suggestion": "..."}."""
+    trip = get_membership(request, trip_id).trip
+    if not suggest.enabled():
+        return JsonResponse({"suggestion": ""})
+    if not suggest.allowed(request.user.pk):
+        return JsonResponse({"suggestion": ""}, status=429)
+    return JsonResponse({"suggestion": suggest.suggest(trip, request.POST.get("text", ""))})
+
+
 def _in_trip(trip, day) -> bool:
     return (not trip.start_date or trip.start_date <= day) and (
         not trip.end_date or day <= trip.end_date
@@ -223,6 +235,7 @@ def _form_context(trip, membership, form, expense=None) -> dict:
         "trip_day_isos": [d.isoformat() for d in days],
         "rates": {code: str(rate) for code, rate in trip.rate_map().items()},
         "sponsored": [(p, list(p.sponsors.all())) for p in participants if p.sponsors.all()],
+        "suggestions": suggest.enabled(),
         "emoji_choices": EMOJI_CHOICES,
         "default_emoji": DEFAULT_EMOJI,
     }

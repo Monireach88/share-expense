@@ -238,3 +238,56 @@
     }
   });
 })();
+
+// Writing suggestion: one second after typing stops, ask the server for a better wording of the
+// description and show it under the field; "Accept" puts it in the field.
+(function () {
+  const wrap = document.querySelector("[data-suggest]");
+  if (!wrap || wrap.dataset.ready) return;
+  wrap.dataset.ready = "1";
+  const field = wrap.querySelector("[name=description]");
+  const box = wrap.querySelector("[data-suggestion]");
+  const text = box.querySelector("[data-suggestion-text]");
+  const headers = () => JSON.parse(document.body.getAttribute("hx-headers") || "{}");
+  let timer = null;
+  let request = null;
+  let asked = field.value.trim(); // An expense opened for editing gets no suggestion until changed.
+
+  function hide() {
+    box.hidden = true;
+  }
+  async function ask() {
+    const value = field.value.trim();
+    if (value.length < 3 || value === asked) return;
+    asked = value;
+    if (request) request.abort();
+    request = new AbortController();
+    try {
+      const response = await fetch(wrap.dataset.suggest, {
+        method: "POST", headers: headers(), credentials: "same-origin", signal: request.signal,
+        body: new URLSearchParams({ text: value }),
+      });
+      const { suggestion } = response.ok ? await response.json() : {};
+      // Show it only if the field still holds the text it was made for.
+      if (suggestion && field.value.trim() === value) {
+        text.textContent = suggestion;
+        box.hidden = false;
+      }
+    } catch (error) {
+      // No suggestion when offline or the request was replaced by a newer one.
+    }
+  }
+  field.addEventListener("input", () => {
+    hide();
+    clearTimeout(timer);
+    timer = setTimeout(ask, 1000);
+  });
+  box.querySelector("[data-accept]").addEventListener("click", () => {
+    field.value = text.textContent;
+    asked = field.value.trim();
+    hide();
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    clearTimeout(timer); // The input event above must not ask again for the accepted text.
+    field.focus();
+  });
+})();

@@ -108,6 +108,10 @@ LANGUAGE_CODE = "en"
 LANGUAGES = [("en", "English")]
 LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = os.environ.get("TIME_ZONE", "Asia/Phnom_Penh")
+
+# Writing suggestions for expense descriptions (apps/expenses/suggest.py); empty turns them off.
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
 USE_I18N = True
 USE_TZ = True
 
