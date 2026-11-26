@@ -24,7 +24,7 @@
 {% if days or q %}
 <form method="get" role="search" class="search" action="{% url 'trip' trip.id %}">
   {% icon "search" %}<input type="search" name="q" value="{{ q }}" placeholder="{% translate 'Search expenses' %}" aria-label="{% translate 'Search expenses' %}" autocomplete="off" enterkeyhint="search"
-    hx-get="{% url 'trip' trip.id %}" hx-trigger="input changed delay:300ms, search" hx-select=".paged" hx-target=".paged" hx-swap="outerHTML" hx-replace-url="true">
+    hx-get="{% url 'trip' trip.id %}" hx-trigger="input changed delay:300ms, search" hx-select=".paged" hx-target=".paged" hx-swap="outerHTML" hx-replace-url="true"><span class="spinner" aria-hidden="true"></span>
 </form>
 {% endif %}
 <div class="paged">
