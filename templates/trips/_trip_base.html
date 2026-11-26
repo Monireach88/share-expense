@@ -7,7 +7,7 @@
 <nav class="tabbar" aria-label="{% translate 'Trip sections' %}">
   <a href="{% url 'trip' trip.id %}" {% if tab == "expenses" %}aria-current="page"{% endif %}><span class="tab-icon">{% icon "receipt" %}</span>{% translate "Expenses" %}</a>
   <a href="{% url 'summary' trip.id %}" {% if tab == "summary" %}aria-current="page"{% endif %}><span class="tab-icon">{% icon "scale" %}</span>{% translate "Balances" %}</a>
-  <a href="{% url 'report' trip.id %}" {% if tab == "report" %}aria-current="page"{% endif %}><span class="tab-icon">{% icon "chart-column" %}</span>{% translate "Spending" %}</a>
-  <a href="{% url 'people' trip.id %}" {% if tab == "people" %}aria-current="page"{% endif %}><span class="tab-icon">{% icon "users" %}</span>{% translate "People" %}</a>
+  <a href="{% url 'report' trip.id %}" {% if tab == "report" %}aria-current="page"{% endif %}><span class="tab-icon">{% icon "chart-column" %}</span>{% translate "Stats" %}</a>
+  <a href="{% url 'people' trip.id %}" {% if tab == "people" %}aria-current="page"{% endif %}><span class="tab-icon">{% icon "users" %}</span>{% translate "Travelers" %}</a>
 </nav>
 {% endblock %}

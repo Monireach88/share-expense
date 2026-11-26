@@ -45,9 +45,6 @@ class ExchangeRateForm(forms.ModelForm):
         self.trip = trip
         currency = self.fields["currency"]
         currency.choices = [("", _("Choose")), *list(currency.choices)[1:]]
-        self.fields["rate"].help_text = _("How many units of this currency make 1 %(base)s.") % {
-            "base": trip.base_currency
-        }
 
     def clean_currency(self):
         currency = self.cleaned_data["currency"]

@@ -75,6 +75,8 @@ def named(trip: Trip, result: SettlementResult, user=None) -> dict:
         "total": result.total,
         "currency": result.base_currency,
         "me": me,
+        # The Balances page shows the viewer's own balance in its top card, so the list skips them.
+        "others": [r for r in rows if not r["is_me"]] if me and result.total else rows,
         "rows": rows,
         "by_category": [
             {

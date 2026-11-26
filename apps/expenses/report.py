@@ -23,13 +23,14 @@ from apps.settlement.engine import SettlementError, _to_cents, to_base
 from apps.trips.forms import DATE_INPUT
 from apps.trips.models import Participant, Trip
 from apps.trips.summary import trip_settlement
+from apps.trips.templatetags.ui import WHOLE_UNIT_CURRENCIES
 
 from .models import Category, Expense
 
 
 class ReportFilterForm(forms.Form):
     person = forms.ModelChoiceField(
-        label=gettext_lazy("Person"),
+        label=gettext_lazy("Traveler"),
         queryset=Participant.objects.none(),
         required=False,
         empty_label=gettext_lazy("Everyone"),
@@ -56,7 +57,11 @@ class ReportFilterForm(forms.Form):
 class ReportRow:
     expense: Expense
     base_amount: Decimal
-    share: Decimal | None  # The filtered person's share; None when no person is chosen.
+    share: (
+        Decimal | None
+    )  # The filtered person's share in the base currency; None without a person.
+    # The same share in the expense's own currency, for the row's card (no conversion needed).
+    share_local: Decimal | None = None
 
 
 def _shares(trip: Trip) -> dict:
@@ -96,6 +101,16 @@ def _round_to(exact: list[Fraction], target_cents: int) -> list[Decimal]:
     for i in order[: max(0, target_cents - sum(floors))]:
         floors[i] += 1
     return [Decimal(f) / 100 for f in floors]
+
+
+def _local_share(expense: Expense, base: Decimal, exact: Fraction) -> Decimal:
+    """The person's part of the expense in its own currency: amount × (share ÷ amount in base)."""
+    if not base:
+        return Decimal(0)
+    value = Fraction(expense.amount) * exact / Fraction(base)
+    places = 0 if expense.currency in WHOLE_UNIT_CURRENCIES else 2
+    cents = _to_cents(value * 10**places)
+    return Decimal(cents).scaleb(-places)
 
 
 def build_report(trip: Trip, filters: dict) -> dict:
@@ -142,8 +157,11 @@ def build_report(trip: Trip, filters: dict) -> dict:
                 result = trip_settlement(trip)
                 share = next(p for p in result.people if p.participant == person.id)
                 target = int(share.responsible_for * 100)
-        for row, share in zip(rows, _round_to(exact_shares, target), strict=True):
+        for row, share, exact in zip(
+            rows, _round_to(exact_shares, target), exact_shares, strict=True
+        ):
             row.share = share
+            row.share_local = _local_share(row.expense, row.base_amount, exact)
 
     by_category: dict[str, Decimal] = defaultdict(Decimal)
     by_day: dict[date, Decimal] = defaultdict(Decimal)

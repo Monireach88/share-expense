@@ -26,7 +26,7 @@
   <ul class="list" style="margin-bottom: 16px">
     {% for rate in trip.rates.all %}
     <li class="row">
-      <span class="row-main num">1 {{ trip.base_currency }} = {{ rate.rate|money:rate.currency }}</span>
+      <span class="row-main num">1 {{ trip.base_currency }} = {{ rate.rate|amount:rate.currency }} {{ rate.currency }}</span>
       {% if not trip.is_settled %}<a class="link-danger" href="{% url 'rate_delete' trip.id rate.id %}">{% translate "Remove" %}</a>{% endif %}
     </li>
     {% endfor %}
@@ -37,10 +37,12 @@
   {% if trip.is_settled %}<p class="muted small">{% translate "Locked while the trip is settled." %}</p>{% else %}
   <form method="post" action="{% url 'rate_save' trip.id %}" class="stack">{% csrf_token %}
     {% include "_form_errors.html" with form=rate_form %}
-    <div class="two">
-      {% include "_field.html" with field=rate_form.currency %}
-      {% include "_field.html" with field=rate_form.rate %}
-    </div>
+    {% include "_field.html" with field=rate_form.currency %}
+      <div class="field">
+        <label for="{{ rate_form.rate.id_for_label }}">{{ rate_form.rate.label }}</label>
+        <div class="prefixed"><span class="num">1 {{ trip.base_currency }} =</span>{{ rate_form.rate }}</div>
+        {% for error in rate_form.rate.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+      </div>
     <button type="submit" class="btn btn-secondary btn-block">{% translate "Save rate" %}</button>
   </form>{% endif %}
 </section>
@@ -48,7 +50,7 @@
 <section class="card card-danger">
   <h2 class="section-title" style="margin-bottom: 4px">{% translate "Delete this trip" %}</h2>
   <p class="lead" style="margin: 0 0 12px">{% translate "This deletes all its expenses too." %}</p>
-  <a class="btn btn-danger" href="{% url 'trip_delete' trip.id %}">{% translate "Delete trip" %}</a>
+  <a class="btn btn-danger btn-block" href="{% url 'trip_delete' trip.id %}">{% translate "Delete trip" %}</a>
 </section>
 </div>
 {% endblock %}

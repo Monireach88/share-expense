@@ -36,10 +36,10 @@
     const n = people.filter((p) => p.checked).length;
     if (everyone) everyone.checked = n === people.length;
     if (!n) {
-      split.textContent = "Pick at least one person.";
+      split.textContent = "Pick at least one traveler.";
     } else {
       const each = value ? " · " + fmt(Math.round((value / n) * 100) / 100, cur) + " each" : "";
-      split.textContent = n + (n === 1 ? " person" : " people") + each;
+      split.textContent = n + (n === 1 ? " traveler" : " travelers") + each;
     }
   }
 
@@ -51,6 +51,26 @@
       people.forEach((p) => (p.checked = everyone.checked));
     });
   }
+  // The description box grows with its text (browsers without CSS field-sizing need this),
+  // and Enter saves the form, as it did when the box was a one-line field.
+  const description = form.querySelector("textarea[name=description]");
+  if (description) {
+    const grow = () => {
+      description.style.height = "auto";
+      description.style.height = description.scrollHeight + 2 + "px";
+    };
+    if (!CSS.supports("field-sizing", "content")) {
+      description.addEventListener("input", grow);
+      grow();
+    }
+    description.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+  }
+
   form.addEventListener("input", update);
   form.addEventListener("change", update);
   update();

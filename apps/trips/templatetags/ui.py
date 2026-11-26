@@ -60,6 +60,14 @@ def icon(name: str, css: str = "icon"):
 
 
 @register.filter
+def left_out(expense, travelers) -> str:
+    """The travelers an expense is not for ("For everyone except ..."), from the page's list."""
+    ids = {b.id for b in expense.beneficiaries.all()}
+    names = [p.name for p in travelers if p.id not in ids]
+    return ", ".join(names)
+
+
+@register.filter
 def type_emoji(category: str) -> str:
     return TYPE_EMOJI.get(category, "📦")
 

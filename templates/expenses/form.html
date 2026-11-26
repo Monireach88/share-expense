@@ -10,7 +10,7 @@
 
   <div class="field">
     <label for="{{ form.amount.id_for_label }}">{{ form.amount.label }}</label>
-    <div class="amount-row">
+    <div class="amount-row{% if form.currency.field.choices|length > 2 %} amount-row-wrap{% endif %}">
       {{ form.amount }}
       {% if form.currency.field.choices|length > 1 %}
         <div class="chips" role="radiogroup" aria-label="{{ form.currency.label }}">{% for choice in form.currency %}<label>{{ choice.tag }}{{ choice.choice_label }}</label>{% endfor %}</div>
@@ -77,7 +77,7 @@
     <button type="submit" form="expense-form" class="btn">{% translate "Save changes" %}</button>
   {% else %}
     <button type="submit" form="expense-form" name="add_another" class="btn btn-secondary">{% translate "Save and add another" %}</button>
-    <button type="submit" form="expense-form" class="btn">{% translate "Save expense" %}</button>
+    <button type="submit" form="expense-form" class="btn">{% translate "Save" %}</button>
   {% endif %}
 </div></div>
 {% endblock %}

@@ -17,8 +17,14 @@
     if (msg.type !== "update" || msg.url.split("#")[0] !== location.href.split("#")[0] || busy()) return;
     const doc = new DOMParser().parseFromString(msg.html, "text/html");
     const y = window.scrollY;
+    // Sections the reader opened (filters, days) stay open in the new copy.
+    const open = [...document.querySelectorAll("details[data-keep-open][open]")].map((d) => d.dataset.keepOpen);
     document.title = doc.title;
     document.body.innerHTML = doc.body.innerHTML;
+    for (const key of open) {
+      const el = document.querySelector(`details[data-keep-open="${CSS.escape(key)}"]`);
+      if (el) el.open = true;
+    }
     if (window.htmx) htmx.process(document.body);
     window.scrollTo(0, y);
   });
@@ -34,4 +40,22 @@
   const later = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn) : setTimeout(fn, 500));
   document.addEventListener("DOMContentLoaded", () => later(warm));
   document.addEventListener("htmx:afterSettle", () => later(warm));
+})();
+
+// Small page behaviours that must survive the body swap above, so they listen on the document.
+(function () {
+  if (window.__seUi) return;
+  window.__seUi = true;
+  // The "+" menu: a long press opens it like a tap; a tap anywhere else closes it.
+  document.addEventListener("contextmenu", (event) => {
+    const summary = event.target.closest(".fab-menu > summary");
+    if (!summary) return;
+    event.preventDefault();
+    summary.parentElement.open = true;
+  });
+  document.addEventListener("click", (event) => {
+    for (const menu of document.querySelectorAll(".fab-menu[open]")) {
+      if (!menu.contains(event.target)) menu.open = false;
+    }
+  });
 })();
