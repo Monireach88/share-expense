@@ -16,8 +16,17 @@ pytestmark = pytest.mark.django_db
 SHEET = Path(__file__).parent / "fixtures" / "sheets" / "vn_20260531.json"
 
 
+OLD_TYPE_NAMES = {"food": "Food & drink", "transport": "Transport", "other": "Other"}
+
+
+def cat(trip, code="food"):
+    """The trip's type that replaced an old fixed type code."""
+    return trip.categories.get(name=OLD_TYPE_NAMES[code])
+
+
 def add_expense(trip, payer, beneficiaries, amount, currency="USD", **extra):
     extra.setdefault("date", date(2026, 6, 1))
+    extra["category"] = cat(trip, extra.get("category", "food"))
     expense = Expense.objects.create(
         trip=trip,
         payer=payer,
@@ -89,7 +98,7 @@ def test_member_can_record_expenses_but_not_manage_the_trip(client, trip, make_u
         {
             "amount": "12.50",
             "currency": "USD",
-            "category": "food",
+            "category": cat(trip, "food").id,
             "payer": payer.id,
             "beneficiaries": [p.id for p in trip.participants.all()],
             "date": "2026-06-01",
@@ -114,7 +123,7 @@ def test_expense_cannot_use_a_person_from_another_trip(owner_client, owner, trip
         {
             "amount": "5",
             "currency": "USD",
-            "category": "food",
+            "category": cat(trip, "food").id,
             "payer": outsider.id,
             "beneficiaries": [outsider.id],
             "date": "2026-06-01",
@@ -128,7 +137,7 @@ def test_currency_needs_an_exchange_rate(owner_client, trip):
     payload = {
         "amount": "74000",
         "currency": "VND",
-        "category": "transport",
+        "category": cat(trip, "transport").id,
         "payer": trip.participants.first().id,
         "beneficiaries": [p.id for p in trip.participants.all()],
         "date": "2026-06-01",
@@ -206,7 +215,7 @@ def test_spending_filters_by_person_and_shows_their_share(owner_client, trip):
     assert len(friend_view["rows"]) == 1
     assert friend_view["share"] == Decimal("15.00")
     assert friend_view["by_category"][0]["amount"] == Decimal("15.00")
-    food = owner_client.get(url, {"category": "food"}).context["report"]
+    food = owner_client.get(url, {"category": cat(trip).id}).context["report"]
     assert food["total"] == Decimal("30.00")
 
 
@@ -225,7 +234,9 @@ def test_export_keeps_the_filters(owner_client, trip):
     add_expense(trip, owner_p, [owner_p, friend], "30", description="Taxi", category="transport")
     add_expense(trip, owner_p, [owner_p], "12", description="Lunch", category="food")
     url = reverse("report_export", args=[trip.id, "csv"])
-    csv_text = owner_client.get(url, {"category": "transport"}).content.decode("utf-8-sig")
+    csv_text = owner_client.get(url, {"category": cat(trip, "transport").id}).content.decode(
+        "utf-8-sig"
+    )
     assert "Taxi" in csv_text and "Lunch" not in csv_text
     lines = csv_text.strip().splitlines()
     assert lines[0].startswith("Date,Description,Type,Paid by")
@@ -306,7 +317,7 @@ def expense_payload(trip, **extra):
     return {
         "amount": "10",
         "currency": "USD",
-        "category": "food",
+        "category": cat(trip, "food").id,
         "payer": trip.participants.first().id,
         "beneficiaries": [p.id for p in trip.participants.all()],
         "date": "2026-06-01",
@@ -355,7 +366,7 @@ def test_page_with_a_one_time_message_is_not_stored(owner_client, trip):
         {
             "amount": "10",
             "currency": "USD",
-            "category": "food",
+            "category": cat(trip, "food").id,
             "payer": owner_p.id,
             "beneficiaries": [owner_p.id, friend.id],
             "date": "2026-06-01",
@@ -501,7 +512,7 @@ def test_description_line_breaks_become_spaces(owner_client, trip):
             "description": "Taxi\nfrom  the airport",
             "payer": owner_p.id,
             "beneficiaries": [owner_p.id, friend.id],
-            "category": "transport",
+            "category": cat(trip, "transport").id,
             "date": "2026-01-02",
         },
     )
@@ -579,3 +590,71 @@ def test_expense_list_loads_ten_days_at_a_time(owner_client, trip):
     assert len(first.days) == 10 and first.count == 12 and first.has_next()
     assert len(owner_client.get(url, {"page": 2}).context["page"].days) == 2
     assert "10 of 12 days shown" in owner_client.get(url).content.decode()
+
+
+def test_a_new_trip_starts_with_the_default_types(trip):
+    assert [c.name for c in trip.categories.all()][:3] == [
+        "Transport",
+        "Accommodation",
+        "Food & drink",
+    ]
+    assert trip.categories.count() == 8
+
+
+def test_travelers_add_rename_and_remove_their_own_types(owner_client, trip):
+    url = reverse("category_create", args=[trip.id])
+    response = owner_client.post(url, {"name": "  Visa   fees ", "emoji": "🧾"})
+    assert response.status_code == 201
+    created = response.json()
+    assert created["name"] == "Visa fees" and created["emoji"] == "🧾"
+    # Names are unique in a trip, whatever the letter case.
+    duplicate = owner_client.post(url, {"name": "visa FEES", "emoji": "🧾"})
+    assert duplicate.status_code == 400 and "already" in duplicate.json()["error"]
+    assert owner_client.post(url, {"name": "Tips", "emoji": "X"}).status_code == 400
+    edit = reverse("category_edit", args=[trip.id, created["id"]])
+    assert owner_client.post(edit, {"name": "Visas", "emoji": "💵"}).json()["name"] == "Visas"
+    delete = reverse("category_delete", args=[trip.id, created["id"]])
+    assert owner_client.post(delete).status_code == 204
+    assert not trip.categories.filter(name="Visas").exists()
+
+
+def test_a_type_in_use_cannot_be_removed(owner_client, trip):
+    owner_p, _friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p], "5", category="food")
+    response = owner_client.post(reverse("category_delete", args=[trip.id, cat(trip).id]))
+    assert response.status_code == 409
+    assert "used by 1 expense" in response.json()["error"]
+    assert trip.categories.filter(pk=cat(trip).pk).exists()
+
+
+def test_removing_a_type_used_only_by_deleted_expenses_keeps_them_typeless(owner_client, trip):
+    owner_p, _friend = trip.participants.all()
+    expense = add_expense(trip, owner_p, [owner_p], "5", category="other")
+    owner_client.post(reverse("expense_delete", args=[trip.id, expense.id]))
+    assert (
+        owner_client.post(
+            reverse("category_delete", args=[trip.id, cat(trip, "other").id])
+        ).status_code
+        == 204
+    )
+    assert Expense.all_objects.get(pk=expense.pk).category is None
+
+
+def test_types_of_another_trip_cannot_be_used_or_changed(owner_client, trip, make_trip, make_user):
+    other = make_trip(make_user("someone"))
+    foreign = other.categories.first()
+    edit = reverse("category_edit", args=[trip.id, foreign.id])
+    assert owner_client.post(edit, {"name": "Mine", "emoji": "🧾"}).status_code == 404
+    owner_p, friend = trip.participants.all()
+    response = owner_client.post(
+        reverse("expense_create", args=[trip.id]),
+        {
+            "amount": "10",
+            "currency": "USD",
+            "payer": owner_p.id,
+            "beneficiaries": [owner_p.id],
+            "category": foreign.id,
+            "date": "2026-06-01",
+        },
+    )
+    assert response.status_code == 200 and not trip.expenses.exists()

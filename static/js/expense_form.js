@@ -75,3 +75,166 @@
   form.addEventListener("change", update);
   update();
 })();
+
+// Expense types: "Add type" opens a small dialog (name and icon). A long press on a type shows a
+// minus badge on every type; tapping a type then edits it, and the minus removes it after a
+// confirmation. Every change is saved at once with fetch, so the expense being typed is kept.
+(function () {
+  const box = document.querySelector("[data-types]");
+  const dialog = document.querySelector("[data-type-dialog]");
+  if (!box || !dialog || box.dataset.ready) return;
+  box.dataset.ready = "1";
+
+  const chips = box.querySelector(".type-chips");
+  const addButton = box.querySelector("[data-add-type]");
+  const doneButton = box.querySelector("[data-types-done]");
+  const form = dialog.querySelector("form");
+  const nameInput = form.querySelector("[name=name]");
+  const emojiButton = form.querySelector("[data-emoji-btn]");
+  const grid = form.querySelector("[data-emoji-grid]");
+  const error = form.querySelector("[data-error]");
+  const title = form.querySelector("[data-title]");
+  let editing = null; // The chip being edited, or null when adding.
+  let longPressed = false;
+  let ignoreClicksUntil = 0; // The tap that ends a long press must not choose the type.
+
+  const headers = () => JSON.parse(document.body.getAttribute("hx-headers") || "{}");
+  const urlFor = (template, id) => template.replace(/\/0\/(delete\/)?$/, `/${id}/$1`);
+  async function post(url, data) {
+    const response = await fetch(url, { method: "POST", headers: headers(), body: data, credentials: "same-origin" });
+    const json = response.status === 204 ? {} : await response.json().catch(() => ({}));
+    return { ok: response.ok, json };
+  }
+
+  function setEditMode(on) {
+    box.classList.toggle("editing", on);
+    doneButton.hidden = !on;
+  }
+
+  function makeChip(type) {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "category";
+    input.value = type.id;
+    const emoji = document.createElement("span");
+    emoji.className = "type-emoji";
+    emoji.setAttribute("aria-hidden", "true");
+    const name = document.createElement("span");
+    name.className = "type-name";
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "type-remove";
+    remove.dataset.remove = "";
+    remove.textContent = "−";
+    label.append(input, emoji, name, remove);
+    fillChip(label, type);
+    return label;
+  }
+  function fillChip(label, type) {
+    label.dataset.type = type.id;
+    label.dataset.name = type.name;
+    label.dataset.emoji = type.emoji;
+    label.querySelector(".type-emoji").textContent = type.emoji;
+    label.querySelector(".type-name").textContent = type.name;
+    label.querySelector("[data-remove]").setAttribute("aria-label", "Remove " + type.name);
+  }
+
+  function open(label) {
+    editing = label;
+    title.textContent = label ? title.dataset.editTitle : title.dataset.addTitle;
+    nameInput.value = label ? label.dataset.name : "";
+    emojiButton.textContent = label ? label.dataset.emoji : emojiButton.dataset.default;
+    grid.hidden = true;
+    emojiButton.setAttribute("aria-expanded", "false");
+    error.hidden = true;
+    dialog.showModal();
+    nameInput.focus();
+  }
+  emojiButton.dataset.default = emojiButton.textContent;
+
+  addButton.addEventListener("click", () => open(null));
+  doneButton.addEventListener("click", () => setEditMode(false));
+  form.querySelector("[data-cancel]").addEventListener("click", () => dialog.close());
+  emojiButton.addEventListener("click", () => {
+    grid.hidden = !grid.hidden;
+    emojiButton.setAttribute("aria-expanded", String(!grid.hidden));
+  });
+  grid.addEventListener("click", (event) => {
+    const choice = event.target.closest("[data-emoji]");
+    if (!choice) return;
+    emojiButton.textContent = choice.dataset.emoji;
+    grid.hidden = true;
+    emojiButton.setAttribute("aria-expanded", "false");
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const data = new URLSearchParams({ name: nameInput.value, emoji: emojiButton.textContent.trim() });
+    const url = editing ? urlFor(box.dataset.edit, editing.dataset.type) : box.dataset.create;
+    const { ok, json } = await post(url, data).catch(() => ({ ok: false, json: {} }));
+    if (!ok) {
+      error.textContent = json.error || "The type could not be saved.";
+      error.hidden = false;
+      return;
+    }
+    if (editing) {
+      fillChip(editing, json);
+    } else {
+      const chip = makeChip(json);
+      chips.insertBefore(chip, addButton);
+      chip.querySelector("input").checked = true;
+    }
+    dialog.close();
+  });
+
+  // A long press (500 ms) on a type turns on edit mode instead of choosing the type.
+  let timer = null;
+  chips.addEventListener("pointerdown", (event) => {
+    const label = event.target.closest("label[data-type]");
+    if (!label || box.classList.contains("editing")) return;
+    timer = setTimeout(() => {
+      timer = null;
+      longPressed = true;
+      setEditMode(true);
+      if (navigator.vibrate) navigator.vibrate(20);
+    }, 500);
+  });
+  const cancel = () => {
+    if (timer) clearTimeout(timer);
+    timer = null;
+    if (longPressed) ignoreClicksUntil = Date.now() + 400;
+    longPressed = false;
+  };
+  ["pointerup", "pointerleave", "pointercancel", "pointermove"].forEach((name) =>
+    chips.addEventListener(name, (event) => {
+      if (name !== "pointermove" || Math.abs(event.movementX) + Math.abs(event.movementY) > 6) cancel();
+    }),
+  );
+  chips.addEventListener("contextmenu", (event) => {
+    if (event.target.closest("label[data-type]")) event.preventDefault();
+  });
+
+  chips.addEventListener("click", async (event) => {
+    const label = event.target.closest("label[data-type]");
+    if (!label) return;
+    if (Date.now() < ignoreClicksUntil) {
+      event.preventDefault();
+      return;
+    }
+    if (!box.classList.contains("editing")) return; // A normal tap chooses the type.
+    event.preventDefault();
+    if (!event.target.closest("[data-remove]")) return open(label);
+    const name = label.dataset.name;
+    if (!confirm(`Remove the type “${name}”? This cannot be undone.`)) return;
+    const { ok, json } = await post(urlFor(box.dataset.delete, label.dataset.type), new URLSearchParams())
+      .catch(() => ({ ok: false, json: {} }));
+    if (!ok) return alert(json.error || "The type could not be removed.");
+    const wasChecked = label.querySelector("input").checked;
+    label.remove();
+    if (wasChecked) {
+      const first = chips.querySelector("input[name=category]");
+      if (first) first.checked = true;
+    }
+  });
+})();

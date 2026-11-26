@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.trips.forms import DATE_INPUT
 from apps.trips.models import Trip
 
-from .models import Expense
+from .models import EMOJI_CHOICES, Category, Expense
 
 OTHER_DATE = "other"
 
@@ -66,7 +66,9 @@ class ExpenseForm(forms.ModelForm):
         self.fields["payer"].empty_label = None
         self.fields["beneficiaries"].queryset = participants
         self.fields["currency"].choices = [(c, c) for c in trip.currencies()]
-        self.fields["category"].choices = [c for c in self.fields["category"].choices if c[0]]
+        self.fields["category"].queryset = trip.categories.all()
+        self.fields["category"].empty_label = None
+        self.fields["category"].required = True
         amount = self.initial.get("amount")
         if isinstance(amount, Decimal) and amount == amount.to_integral_value():
             self.initial["amount"] = amount.quantize(Decimal(1))
@@ -93,3 +95,30 @@ class ExpenseForm(forms.ModelForm):
                 _("Add an exchange rate for this currency in the trip settings first.")
             )
         return currency
+
+
+class CategoryForm(forms.ModelForm):
+    """Add or rename a trip's expense type from the expense form."""
+
+    class Meta:
+        model = Category
+        fields = ["name", "emoji"]
+
+    def __init__(self, *args, trip: Trip, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.trip = trip
+
+    def clean_name(self):
+        name = " ".join(self.cleaned_data["name"].split())
+        if not name:
+            raise forms.ValidationError(_("Enter a name."))
+        taken = self.trip.categories.filter(name__iexact=name).exclude(pk=self.instance.pk)
+        if taken.exists():
+            raise forms.ValidationError(_("This trip already has a type with this name."))
+        return name
+
+    def clean_emoji(self):
+        emoji = self.cleaned_data["emoji"]
+        if emoji not in EMOJI_CHOICES:
+            raise forms.ValidationError(_("Choose an icon from the list."))
+        return emoji

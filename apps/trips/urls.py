@@ -26,6 +26,17 @@ urlpatterns = [
         expense_views.expense_delete,
         name="expense_delete",
     ),
+    path("trips/<uuid:trip_id>/types/", expense_views.category_create, name="category_create"),
+    path(
+        "trips/<uuid:trip_id>/types/<int:category_id>/",
+        expense_views.category_edit,
+        name="category_edit",
+    ),
+    path(
+        "trips/<uuid:trip_id>/types/<int:category_id>/delete/",
+        expense_views.category_delete,
+        name="category_delete",
+    ),
     path("trips/<uuid:trip_id>/summary/", views.summary, name="summary"),
     path("trips/<uuid:trip_id>/settle/", views.trip_settle, name="trip_settle"),
     path("trips/<uuid:trip_id>/reopen/", views.trip_reopen, name="trip_reopen"),
