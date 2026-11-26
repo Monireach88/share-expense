@@ -7,13 +7,13 @@ It was built to replace a spreadsheet, and it gives the same numbers as that spr
 ## Features
 
 - **Trips** with a base currency (for example USD) and one fixed exchange rate for each other currency (for example 1 USD = 26,200 VND).
-- **Participants are just names.** Grandma does not need an account to be part of a trip.
-- **Sponsors:** a participant can be covered by one or more other people (a child by a parent). Their share moves to the sponsors, split equally.
+- **Travelers are just names.** Grandma does not need an account to be part of a trip.
+- **Sponsors:** a traveler can be covered by one or more other people (a child by a parent). Their share moves to the sponsors, split equally.
 - **Expenses:** date, payer, beneficiaries (everyone by default), type, description, amount and currency. The amount is split equally among the beneficiaries. Deleted expenses are kept in the database but left out of the totals.
 - **Balances:** each person's balance (is owed / owes / nothing owed), with the paid and share amounts that make it up, and a breakdown of your own balance.
 - **Mark as settled:** once the travellers have paid each other back (in whatever way they choose), the owner marks the trip as settled after a confirmation. The trip then shows **Settled** with the date, and its expenses, people and rates are locked. The owner can reopen it.
-- **Spending:** a page with filters (person, type, date range), totals by type and by day, a person's share of each expense, and a download of the filtered list as CSV or Excel.
-- **Mobile navigation:** a fixed bottom tab bar (Expenses, Balances, Spending, People) and one floating button for the main action of the tab.
+- **Stats:** a page with filters (traveler, type, date range), totals by type and by day, a traveler's share of each expense in its own currency, and a download of the filtered list as CSV or Excel.
+- **Mobile navigation:** a fixed bottom tab bar (Expenses, Balances, Stats, Travelers) and one floating button for the main action of the tab.
 - **Fast repeat visits:** a service worker shows the last copy of a page at once, then fetches the fresh copy and swaps it in if anything changed. Any save, delete, login or logout clears the stored pages, and pages with a one-time message are never stored. Static files have content-hashed names and are cached for a year.
 - **Long lists** show about 25 rows, then a "Load more" button; a page never splits a day, so day totals match their rows.
 - **Exact money:** amounts are stored as decimals, shares are kept as exact fractions, and balances are rounded once so they always add up to exactly zero.
@@ -60,7 +60,7 @@ Open http://share-expense.local and log in.
 
 1. A new user opens **Request an account**, then waits.
 2. The admin opens `/admin/` → Users, ticks the request, and chooses **Approve selected sign-up requests**.
-3. The user can now log in. The trip owner adds them to a trip on the trip's **People** page.
+3. The user can now log in. The trip owner adds them to a trip on the trip's **Travelers** page, with the **+** button → **Add account**.
 
 ## Self-hosting
 

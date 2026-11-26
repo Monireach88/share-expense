@@ -154,10 +154,10 @@ def test_balances_page_shows_amounts_not_who_pays_whom(owner_client, trip):
         (owner_p, Decimal("15.00")),
         (friend, Decimal("-15.00")),
     ]
+    # The viewer's own balance is in the top card, so the list below shows only the others.
+    assert response.context["summary"]["others"] == [rows[1]]
     html = response.content.decode()
-    assert "You are owed" in html
-    assert "is owed" in html and "owes" in html
-    assert "is owed" in html and "owes" in html
+    assert "You are owed" in html and "Others" in html and "owes" in html
     for old in ("Pays Owner", "pays you", "get back"):
         assert old not in html
 
@@ -431,7 +431,8 @@ def test_owner_marks_a_trip_settled_and_reopens_it(owner_client, trip):
     assert trip.is_settled
     page = owner_client.get(reverse("summary", args=[trip.id])).content.decode()
     assert "Settled on" in page and "Reopen trip" in page and "Mark as settled" not in page
-    assert "You were owed" in page and "was owed" in page and "You are owed" not in page
+    assert "You were owed" in page and "You are owed" not in page
+    assert ">owed<" in page and ">owes<" not in page
     assert " by " not in page.split("Settled on", 1)[1].split("<", 1)[0]
     # The balances stay as a record; settling records no payment.
     assert trip_settlement(trip).people[0].balance == Decimal("15.00")
@@ -477,3 +478,54 @@ def test_only_the_owner_settles_or_reopens(client, trip, make_user):
     client.force_login(member)
     assert client.post(reverse("trip_settle", args=[trip.id])).status_code == 403
     assert "Mark as settled" not in client.get(reverse("summary", args=[trip.id])).content.decode()
+
+
+def test_owner_adds_an_account_on_its_own_page(owner_client, trip, make_user):
+    make_user("friend")
+    url = reverse("member_add", args=[trip.id])
+    assert owner_client.get(url).status_code == 200
+    response = owner_client.post(url, {"username": "friend"})
+    assert response.status_code == 302
+    assert trip.memberships.filter(user__username="friend").exists()
+
+
+def test_only_the_owner_can_add_an_account(client, trip, make_user):
+    friend = make_user("friend")
+    TripMember.objects.create(trip=trip, user=friend)
+    make_user("other")
+    client.force_login(friend)
+    url = reverse("member_add", args=[trip.id])
+    assert client.post(url, {"username": "other"}).status_code == 403
+    assert not trip.memberships.filter(user__username="other").exists()
+
+
+def test_description_line_breaks_become_spaces(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    owner_client.post(
+        reverse("expense_create", args=[trip.id]),
+        {
+            "amount": "10",
+            "currency": trip.base_currency,
+            "description": "Taxi\nfrom  the airport",
+            "payer": owner_p.id,
+            "beneficiaries": [owner_p.id, friend.id],
+            "category": "transport",
+            "date": "2026-01-02",
+        },
+    )
+    assert trip.expenses.get().description == "Taxi from the airport"
+
+
+def test_stats_rows_show_the_share_in_the_expense_currency(owner_client, trip):
+    ExchangeRate.objects.create(trip=trip, currency="KHR", rate=Decimal("4000"))
+    owner_p, friend = trip.participants.all()
+    third = Participant.objects.create(trip=trip, name="Person C")
+    add_expense(trip, owner_p, [owner_p, friend, third], "10000", currency="KHR")
+    url = reverse("report", args=[trip.id])
+    response = owner_client.get(url, {"person": friend.id})
+    (row,) = response.context["report"]["rows"]
+    assert row.share_local == Decimal("3333")  # KHR has no cents.
+    assert row.share == Decimal("0.83")  # The base-currency share still feeds the totals.
+    html = response.content.decode()
+    assert "3,333" in html and "of 10,000" in html
+    assert response.context["filter_summary"] == [friend.name]

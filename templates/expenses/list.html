@@ -1,9 +1,9 @@
 {% extends "trips/_trip_base.html" %}{% load i18n ui %}
 {% block title %}{{ trip.name }}{% endblock %}
 {% block content %}
-{% if days or trip.country or trip.start_date %}<p class="hero-meta">{% if trip.country %}{{ trip.country.name }} · {% endif %}{% include "trips/_dates.html" %}{% blocktranslate count n=people_count %}{{ n }} person{% plural %}{{ n }} people{% endblocktranslate %}</p>{% endif %}
+{% if days or trip.country or trip.start_date %}<p class="hero-meta">{% if trip.country %}{{ trip.country.name }} · {% endif %}{% include "trips/_dates.html" %}{% blocktranslate count n=people_count %}{{ n }} traveler{% plural %}{{ n }} travelers{% endblocktranslate %}</p>{% endif %}
 {% if error %}
-  <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Ask the trip owner to add the rate." %}{% endif %}</div></div>
+  <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Only the trip owner can add exchange rates." %}{% endif %}</div></div>
 {% elif days %}
   <section class="card hero" aria-label="{% translate 'Trip summary' %}">
     {% if trip.is_settled %}<p class="settled-line small">{% icon "circle-check" %}<span>{% blocktranslate with day=trip.settled_at|date:"j M Y" %}Settled on {{ day }}{% endblocktranslate %}</span></p>{% endif %}

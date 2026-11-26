@@ -10,7 +10,7 @@
       <span class="row-main">
         <span class="row-title">{{ trip.name }}</span>
         <span class="row-sub">{% include "trips/_dates.html" %}{{ trip.country.name }}</span>
-        <span class="row-sub">{% blocktranslate count n=trip.people_count %}{{ n }} person{% plural %}{{ n }} people{% endblocktranslate %}</span>
+        <span class="row-sub">{% blocktranslate count n=trip.people_count %}{{ n }} traveler{% plural %}{{ n }} travelers{% endblocktranslate %}</span>
       </span>
       <span class="row-end">
         {% if trip.total is not None %}<span class="num">{{ trip.total|money:trip.base_currency }}</span>{% endif %}

@@ -147,19 +147,6 @@ def trip_delete(request: HttpRequest, trip_id) -> HttpResponse:
 def people(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
-    member_form = MemberAddForm(trip=trip, prefix="m")
-    if request.method == "POST":
-        if not membership.is_owner:
-            return HttpResponse(status=403)
-        if "add_member" in request.POST:
-            member_form = MemberAddForm(request.POST, trip=trip, prefix="m")
-            if member_form.is_valid():
-                TripMember.objects.create(trip=trip, user=member_form.user)
-                messages.success(
-                    request,
-                    _("%(name)s can now open this trip.") % {"name": member_form.user.display_name},
-                )
-                return redirect("people", trip_id=trip.id)
     return render(
         request,
         "trips/people.html",
@@ -170,7 +157,6 @@ def people(request: HttpRequest, trip_id) -> HttpResponse:
                 request, trip.participants.select_related("user").prefetch_related("sponsors")
             ),
             "members": trip.memberships.select_related("user").order_by("-role", "created_at"),
-            "member_form": member_form,
             "tab": "people",
         },
     )
@@ -243,13 +229,26 @@ def participant_delete(request: HttpRequest, trip_id, participant_id) -> HttpRes
             "trip": membership.trip,
             "membership": membership,
             "object": participant.name,
-            "blocked": _("This person appears in expenses. Change those expenses first.")
+            "blocked": _("This traveler appears in expenses. Change those expenses first.")
             if in_use
             else "",
-            "button": _("Remove person"),
+            "button": _("Remove traveler"),
             "back": reverse("participant_edit", args=[trip_id, participant.id]),
         },
     )
+
+
+def member_add(request: HttpRequest, trip_id) -> HttpResponse:
+    membership = get_membership(request, trip_id, owner_only=True)
+    trip = membership.trip
+    form = MemberAddForm(request.POST or None, trip=trip)
+    if request.method == "POST" and form.is_valid():
+        TripMember.objects.create(trip=trip, user=form.user)
+        messages.success(
+            request, _("%(name)s can now open this trip.") % {"name": form.user.display_name}
+        )
+        return redirect("people", trip_id=trip.id)
+    return render(request, "trips/member_form.html", {"trip": trip, "form": form})
 
 
 @require_POST

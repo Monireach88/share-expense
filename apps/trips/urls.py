@@ -42,6 +42,7 @@ urlpatterns = [
         views.participant_delete,
         name="participant_delete",
     ),
+    path("trips/<uuid:trip_id>/members/new/", views.member_add, name="member_add"),
     path(
         "trips/<uuid:trip_id>/members/<int:member_id>/remove/",
         views.member_remove,

@@ -8,6 +8,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 
@@ -19,7 +20,7 @@ from apps.trips.summary import named, trip_settlement
 from apps.trips.templatetags.ui import format_amount
 
 from .forms import ExpenseForm
-from .models import Expense
+from .models import Category, Expense
 from .report import ReportFilterForm, build_report, export_rows, to_csv, to_xlsx
 
 MAX_DAY_CHIPS = 14
@@ -55,6 +56,7 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         "days": page.days,
         "multi_year": len({e.date.year for e in expenses}) > 1,
         "people_count": trip.participants.count(),
+        "travelers": list(trip.participants.all()),
         "tab": "expenses",
     }
     try:
@@ -186,6 +188,23 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     )
 
 
+def _filter_summary(filters: dict) -> list[str]:
+    """The active filters in a few words, for the collapsed filter card: "Person A · Food"."""
+    parts = []
+    if filters.get("person"):
+        parts.append(filters["person"].name)
+    if filters.get("category"):
+        parts.append(dict(Category.choices).get(filters["category"], filters["category"]))
+    start, end = filters.get("start"), filters.get("end")
+    if start and end:
+        parts.append(f"{date_format(start, 'j M')}–{date_format(end, 'j M')}")
+    elif start:
+        parts.append(_("from %(day)s") % {"day": date_format(start, "j M")})
+    elif end:
+        parts.append(_("until %(day)s") % {"day": date_format(end, "j M")})
+    return parts
+
+
 @cacheable_page
 def report(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
@@ -210,9 +229,11 @@ def report(request: HttpRequest, trip_id) -> HttpResponse:
         report=data,
         page=page,
         filtered=any(form.filters().values()) if request.GET else False,
+        filter_summary=_filter_summary(form.filters()) if request.GET else [],
         export_query=query.urlencode(),
         multi_year=len({r.expense.date.year for r in data["rows"]}) > 1,
         people_count=trip.participants.count(),
+        travelers=list(trip.participants.all()),
     )
     return render(request, "expenses/report.html", context)
 
