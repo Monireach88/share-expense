@@ -67,9 +67,10 @@
     const body = new URLSearchParams({ day: list.dataset.day });
     for (const li of list.children) body.append("ids", li.dataset.id);
     const headers = JSON.parse(document.body.getAttribute("hx-headers") || "{}");
-    fetch(list.dataset.reorder, { method: "POST", headers, body, credentials: "same-origin" })
+    const saving = fetch(list.dataset.reorder, { method: "POST", headers, body, credentials: "same-origin" })
       .then((response) => { if (!response.ok) location.reload(); })
       .catch(() => location.reload());
+    if (window.seBusy) window.seBusy(saving);
   }
   function initReorder() {
     if (!window.Sortable) return;
@@ -94,4 +95,80 @@
   window.__seInitReorder = initReorder;
   document.addEventListener("DOMContentLoaded", initReorder);
   document.addEventListener("htmx:afterSettle", initReorder);
+})();
+
+// Loading indicators: a thin bar at the top while the app waits for the server (after 150 ms, so
+// instant answers do not flash), and a spinner in the pressed button, which also stops a second
+// press. window.seBusy(promise) shows the bar for work done with fetch().
+(function () {
+  if (window.seBusy) return;
+  let active = 0;
+  let timer = null;
+  function bar() {
+    let el = document.querySelector("body > .progress");
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "progress";
+      el.setAttribute("aria-hidden", "true");
+      document.body.prepend(el);
+    }
+    return el;
+  }
+  function start() {
+    active += 1;
+    if (active === 1) timer = setTimeout(() => bar().classList.add("on"), 150);
+  }
+  function stop() {
+    active = Math.max(0, active - 1);
+    if (active) return;
+    clearTimeout(timer);
+    bar().classList.remove("on");
+  }
+  window.seBusy = (promise) => {
+    start();
+    return Promise.resolve(promise).finally(stop);
+  };
+
+  const PRESSABLE = "button, .btn, .fab, .chip-add";
+  function loading(el, on) {
+    if (!el) return;
+    el.classList.toggle("is-loading", on);
+    if (on) el.setAttribute("aria-busy", "true");
+    else el.removeAttribute("aria-busy");
+  }
+  // What the user pressed for this htmx request: the form's submit button, or the link itself.
+  function pressed(detail) {
+    const submitter = detail.requestConfig && detail.requestConfig.triggeringEvent
+      && detail.requestConfig.triggeringEvent.submitter;
+    const el = submitter || detail.elt;
+    return el && el.matches && el.matches(PRESSABLE) ? el : null;
+  }
+
+  document.addEventListener("htmx:beforeRequest", (event) => {
+    start();
+    loading(pressed(event.detail), true);
+    const search = event.detail.elt.closest && event.detail.elt.closest(".search");
+    if (search) search.classList.add("is-busy");
+  });
+  document.addEventListener("htmx:afterRequest", (event) => {
+    stop();
+    loading(pressed(event.detail), false);
+    const search = event.detail.elt.closest && event.detail.elt.closest(".search");
+    if (search) search.classList.remove("is-busy");
+  });
+
+  // Forms htmx does not send (hx-boost="false", e.g. Google sign-in) load a whole new page.
+  document.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (event.defaultPrevented || form.method === "dialog" || !form.closest('[hx-boost="false"]')) return;
+    start();
+    loading(event.submitter, true);
+  });
+  // Coming back with the browser's Back button shows the old page from memory: clear its spinners.
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) return;
+    document.querySelectorAll(".is-loading").forEach((el) => loading(el, false));
+    active = 0;
+    stop();
+  });
 })();

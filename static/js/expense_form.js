@@ -99,6 +99,7 @@
   let ignoreClicksUntil = 0; // The tap that ends a long press must not choose the type.
 
   const headers = () => JSON.parse(document.body.getAttribute("hx-headers") || "{}");
+  const busy = (promise) => (window.seBusy ? window.seBusy(promise) : promise);
   const urlFor = (template, id) => template.replace(/\/0\/(delete\/)?$/, `/${id}/$1`);
   async function post(url, data) {
     const response = await fetch(url, { method: "POST", headers: headers(), body: data, credentials: "same-origin" });
@@ -172,7 +173,10 @@
     event.preventDefault();
     const data = new URLSearchParams({ name: nameInput.value, emoji: emojiButton.textContent.trim() });
     const url = editing ? urlFor(box.dataset.edit, editing.dataset.type) : box.dataset.create;
-    const { ok, json } = await post(url, data).catch(() => ({ ok: false, json: {} }));
+    const save = form.querySelector("[data-save]");
+    save.classList.add("is-loading");
+    const { ok, json } = await busy(post(url, data)).catch(() => ({ ok: false, json: {} }));
+    save.classList.remove("is-loading");
     if (!ok) {
       error.textContent = json.error || "The type could not be saved.";
       error.hidden = false;
@@ -227,8 +231,10 @@
     if (!event.target.closest("[data-remove]")) return open(label);
     const name = label.dataset.name;
     if (!confirm(`Remove the type “${name}”? This cannot be undone.`)) return;
-    const { ok, json } = await post(urlFor(box.dataset.delete, label.dataset.type), new URLSearchParams())
+    label.classList.add("is-removing");
+    const { ok, json } = await busy(post(urlFor(box.dataset.delete, label.dataset.type), new URLSearchParams()))
       .catch(() => ({ ok: false, json: {} }));
+    label.classList.remove("is-removing");
     if (!ok) return alert(json.error || "The type could not be removed.");
     const wasChecked = label.querySelector("input").checked;
     label.remove();
@@ -262,6 +268,8 @@
     asked = value;
     if (request) request.abort();
     request = new AbortController();
+    const mine = request;
+    wrap.classList.add("is-busy");
     try {
       const response = await fetch(wrap.dataset.suggest, {
         method: "POST", headers: headers(), credentials: "same-origin", signal: request.signal,
@@ -275,6 +283,8 @@
       }
     } catch (error) {
       // No suggestion when offline or the request was replaced by a newer one.
+    } finally {
+      if (request === mine) wrap.classList.remove("is-busy");
     }
   }
   field.addEventListener("input", () => {
