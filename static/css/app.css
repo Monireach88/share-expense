@@ -561,3 +561,5 @@ dialog.sheet::backdrop { background: rgb(16 24 40 / 0.45); }
 .busy-field .spinner { top: auto; bottom: 15px; margin-top: 0; }
 /* A type being removed fades until the server answers. */
 .type-chips label.is-removing { opacity: 0.45; pointer-events: none; }
+
+.hero-note { margin-top: var(--s1); color: var(--muted); font-size: 15px; }

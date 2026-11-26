@@ -31,15 +31,10 @@
 
 {% with r=report cur=trip.base_currency %}
 <section class="card hero" aria-label="{% translate 'Totals' %}">
-  {% if r.covered_by %}
-  <p class="label">{{ r.person.name }}</p>
-  <p>{% blocktranslate with name=r.person.name by=r.covered_by|join:", " %}{{ name }} is covered by {{ by }}.{% endblocktranslate %}</p>
-  <div class="stats">
-    <div><span>{% translate "Expenses" %}</span><strong class="num">{{ r.rows|length }}</strong></div>
-  </div>
-  {% elif r.person %}
+  {% if r.person %}
   <p class="label">{% blocktranslate with name=r.person.name %}{{ name }}’s share{% endblocktranslate %}{% if r.covers %}, {% blocktranslate with names=r.covers|join:", " %}including {{ names }}{% endblocktranslate %}{% endif %}</p>
   <p class="big num">{{ r.share|money:cur }}</p>
+  {% if r.covered_by %}<p class="hero-note">{% blocktranslate with name=r.person.name by=r.covered_by|join:", " %}{{ name }} is covered by {{ by }}.{% endblocktranslate %}</p>{% endif %}
   <div class="stats">
     <div><span>{% translate "Expenses" %}</span><strong class="num">{{ r.rows|length }}</strong></div>
     <div><span>{% blocktranslate with name=r.person.name %}Paid by {{ name }}{% endblocktranslate %}</span><strong class="num">{{ r.paid|money:cur }}</strong></div>

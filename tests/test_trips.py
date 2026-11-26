@@ -658,3 +658,33 @@ def test_types_of_another_trip_cannot_be_used_or_changed(owner_client, trip, mak
         },
     )
     assert response.status_code == 200 and not trip.expenses.exists()
+
+
+def test_a_covered_traveler_who_paid_is_owed_and_both_pages_say_so(owner_client, trip):
+    """A cover moves only the share; what a covered traveler paid is still owed back to them."""
+    owner_p, friend = trip.participants.all()
+    child = Participant.objects.create(trip=trip, name="Person C")
+    child.sponsors.set([friend])
+    add_expense(trip, child, [owner_p, friend, child], "4")
+
+    summary = owner_client.get(reverse("summary", args=[trip.id]))
+    row = next(r for r in summary.context["summary"]["rows"] if r["person"] == child)
+    assert row["row"].paid == Decimal("4.00") and row["row"].balance == Decimal("4.00")
+    html = summary.content.decode()
+    child_row = html[html.index("Person C") :].split("</li>", 1)[0]
+    assert "Paid&nbsp;4.00" in child_row and "Covered by" in child_row
+    assert "4.00" in child_row.split("row-end", 1)[1] and "is owed" in child_row
+
+    report = owner_client.get(reverse("report", args=[trip.id]), {"person": child.id})
+    data = report.context["report"]
+    assert data["paid"] == Decimal("4.00") and data["share"] == Decimal("0")
+    assert data["show_share"] and data["covered_by"] == [friend]
+    page = report.content.decode()
+    assert "Person C’s share" in page and "Paid by Person C" in page
+    assert "Person C is covered by" in page
+    # "Paid" only on the card the chosen traveler paid; the others say "of <amount>".
+    add_expense(trip, friend, [owner_p, child], "9")
+    page = owner_client.get(
+        reverse("report", args=[trip.id]), {"person": child.id}
+    ).content.decode()
+    assert "Paid 4.00" in page and "of 9.00" in page and "Paid 9.00" not in page
