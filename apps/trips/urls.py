@@ -12,6 +12,11 @@ urlpatterns = [
     path("trips/<uuid:trip_id>/", expense_views.expense_list, name="trip"),
     path("trips/<uuid:trip_id>/expenses/new/", expense_views.expense_create, name="expense_create"),
     path(
+        "trips/<uuid:trip_id>/expenses/reorder/",
+        expense_views.expense_reorder,
+        name="expense_reorder",
+    ),
+    path(
         "trips/<uuid:trip_id>/expenses/<uuid:expense_id>/",
         expense_views.expense_edit,
         name="expense_edit",

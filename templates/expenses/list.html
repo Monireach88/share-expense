@@ -21,18 +21,23 @@
   </section>
 {% endif %}
 
+{% if days or q %}
+<form method="get" role="search" class="search" action="{% url 'trip' trip.id %}">
+  {% icon "search" %}<input type="search" name="q" value="{{ q }}" placeholder="{% translate 'Search expenses' %}" aria-label="{% translate 'Search expenses' %}" autocomplete="off" enterkeyhint="search"
+    hx-get="{% url 'trip' trip.id %}" hx-trigger="input changed delay:300ms, search" hx-select=".paged" hx-target=".paged" hx-swap="outerHTML" hx-replace-url="true">
+</form>
+{% endif %}
 <div class="paged">
-{% for day, items, subtotal in days %}
-  <h2 class="day-head"><span>{% if multi_year %}{{ day|date:"D j M Y" }}{% else %}{{ day|date:"D j M" }}{% endif %}</span>{% if subtotal is not None %}<span class="num">{{ subtotal|money:trip.base_currency }}</span>{% endif %}</h2>
-  <ul class="list">
-    {% for e in items %}<li>{% include "expenses/_row.html" %}</li>{% endfor %}
-  </ul>
-{% empty %}
+{% if days %}
+{% include "expenses/_days.html" with open_all=q reorder=can_reorder %}
+{% elif q %}
+  <p class="muted small search-empty">{% blocktranslate %}No expenses match “{{ q }}”.{% endblocktranslate %}</p>
+{% else %}
   <div class="card empty">
     <div class="empty-icon" aria-hidden="true">🧾</div>
     <p>{% translate "No expenses yet." %}</p>
   </div>
-{% endfor %}
+{% endif %}
 {% include "_pager.html" %}
 </div>
 {% endblock %}

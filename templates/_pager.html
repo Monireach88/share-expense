@@ -3,6 +3,6 @@
   <a class="btn btn-secondary btn-block" href="?{{ page.base_query }}{{ page.param }}={{ page.next_page_number }}"
      hx-get="?{{ page.base_query }}{{ page.param }}={{ page.next_page_number }}" hx-select=".paged > *"
      hx-target="closest .pager" hx-swap="outerHTML" hx-push-url="false">{% translate "Load more" %}</a>
-  <p class="tiny muted">{% blocktranslate with shown=page.end_index n=page.paginator.count %}{{ shown }} of {{ n }} shown{% endblocktranslate %}</p>
+  <p class="tiny muted">{% if page.unit == "days" %}{% blocktranslate with shown=page.end_index n=page.paginator.count %}{{ shown }} of {{ n }} days shown{% endblocktranslate %}{% else %}{% blocktranslate with shown=page.end_index n=page.paginator.count %}{{ shown }} of {{ n }} shown{% endblocktranslate %}{% endif %}</p>
 </div>
 {% endif %}

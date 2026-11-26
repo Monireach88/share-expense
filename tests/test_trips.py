@@ -4,6 +4,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from django.test import Client
 from django.urls import reverse
 
 from apps.expenses.models import Expense
@@ -234,23 +235,14 @@ def test_export_keeps_the_filters(owner_client, trip):
     assert owner_client.get(reverse("report_export", args=[trip.id, "pdf"])).status_code == 404
 
 
-def test_long_lists_load_more_and_never_split_a_day(owner_client, trip):
+def test_long_days_are_never_split_across_pages(owner_client, trip):
     owner_p, friend = trip.participants.all()
     for i in range(30):
         add_expense(trip, owner_p, [owner_p, friend], str(i + 1), date=date(2026, 6, 1 + i // 10))
-    url = reverse("trip", args=[trip.id])
-    first = owner_client.get(url)
-    page = first.context["page"]
-    # Days of 10 rows: a page takes whole days until it has 25 rows, so 30 rows on page 1.
+    page = owner_client.get(reverse("trip", args=[trip.id])).context["page"]
+    # Pages hold whole days, however many expenses a day has.
     assert [len(items) for _day, items, _total in page.days] == [10, 10, 10]
     assert not page.has_next()
-    for _ in range(30):
-        add_expense(trip, owner_p, [owner_p], "1", date=date(2026, 7, 1))
-    page = owner_client.get(url).context["page"]
-    assert page.has_next() and page.end_index == 30
-    assert "Load more" in owner_client.get(url).content.decode()
-    second = owner_client.get(url, {"page": 2}).context["page"]
-    assert second.end_index == 60
 
 
 def test_today_is_hidden_outside_the_trip_dates(owner_client, trip):
@@ -529,3 +521,61 @@ def test_stats_rows_show_the_share_in_the_expense_currency(owner_client, trip):
     html = response.content.decode()
     assert "3,333" in html and "of 10,000" in html
     assert response.context["filter_summary"] == [friend.name]
+
+
+def test_dragging_saves_the_order_within_a_day(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    first = add_expense(trip, owner_p, [owner_p], "1", description="First")
+    second = add_expense(trip, owner_p, [owner_p], "2", description="Second")
+    url = reverse("expense_reorder", args=[trip.id])
+    # Newest comes first until the day is reordered.
+    assert list(trip.expenses.values_list("description", flat=True)) == ["Second", "First"]
+    response = owner_client.post(url, {"day": "2026-06-01", "ids": [first.id, second.id]})
+    assert response.status_code == 204
+    assert list(trip.expenses.values_list("description", flat=True)) == ["First", "Second"]
+    # A list that is not the whole day is refused, so a stale page cannot scramble the order.
+    assert owner_client.post(url, {"day": "2026-06-01", "ids": [first.id]}).status_code == 409
+    assert owner_client.post(url, {"day": "junk", "ids": [first.id]}).status_code == 400
+
+
+def test_reorder_is_locked_on_a_settled_trip_and_hidden_from_outsiders(
+    owner_client, trip, make_user
+):
+    owner_p, _friend = trip.participants.all()
+    only = add_expense(trip, owner_p, [owner_p], "1")
+    url = reverse("expense_reorder", args=[trip.id])
+    stranger = Client()
+    stranger.force_login(make_user("stranger"))
+    assert stranger.post(url, {"day": "2026-06-01", "ids": [only.id]}).status_code == 404
+    owner_client.post(reverse("trip_settle", args=[trip.id]))
+    assert owner_client.post(url, {"day": "2026-06-01", "ids": [only.id]}).status_code == 409
+
+
+def test_search_finds_description_payer_type_and_amount(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p], "12000", description="Tuk-tuk", category="transport")
+    add_expense(trip, friend, [friend], "5", description="Coffee", category="food")
+    url = reverse("trip", args=[trip.id])
+
+    def found(q):
+        days = owner_client.get(url, {"q": q}).context["days"]
+        return sorted(e.description for _day, items, _t in days for e in items)
+
+    assert found("tuk") == ["Tuk-tuk"]
+    assert found(friend.name.lower()) == ["Coffee"]
+    assert found("food") == ["Coffee"]
+    assert found("12,000") == ["Tuk-tuk"] and found("12000") == ["Tuk-tuk"]
+    assert found("nothing-like-this") == []
+    page = owner_client.get(url, {"q": "tuk"}).content.decode()
+    assert "data-reorder" not in page  # A search shows part of a day, so no dragging.
+
+
+def test_expense_list_loads_ten_days_at_a_time(owner_client, trip):
+    owner_p, _friend = trip.participants.all()
+    for day in range(1, 13):
+        add_expense(trip, owner_p, [owner_p], "1", date=date(2026, 6, day))
+    url = reverse("trip", args=[trip.id])
+    first = owner_client.get(url).context["page"]
+    assert len(first.days) == 10 and first.count == 12 and first.has_next()
+    assert len(owner_client.get(url, {"page": 2}).context["page"].days) == 2
+    assert "10 of 12 days shown" in owner_client.get(url).content.decode()

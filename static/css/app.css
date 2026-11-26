@@ -266,6 +266,31 @@ a.row:hover { background: var(--bg); }
   margin: var(--s5) 0 var(--s2); padding-inline: var(--s1);
   font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
 }
+/* Expense lists: one tappable line per day (date, count, total) that opens to show its cards. */
+.paged > .day:first-child, .search + .paged > .day:first-child { margin-top: var(--s4); }
+.day + .day { margin-top: var(--s2); }
+.day > summary.day-head {
+  list-style: none; cursor: pointer; align-items: center; justify-content: flex-start; gap: var(--s2);
+  min-height: 48px; margin: 0; padding: 0 var(--s3); border-radius: var(--r-card);
+  background: var(--surface); border: 1px solid var(--line); -webkit-tap-highlight-color: transparent;
+}
+.day > summary::-webkit-details-marker { display: none; }
+.day-date { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.day-count, .day-total { white-space: nowrap; }
+.day-count { font-weight: 400; letter-spacing: 0; text-transform: none; }
+.day-total { margin-left: auto; color: var(--fg); letter-spacing: 0; text-transform: none; }
+.day > summary .chev { margin-left: auto; transition: transform 0.15s; }
+.day-total + .chev { margin-left: 0; }
+.day[open] > summary .chev { transform: rotate(180deg); }
+.day[open] > summary { margin-bottom: var(--s2); }
+/* Cards that can be dragged: a long press starts the drag instead of the phone's link menu. */
+ul[data-reorder] .row { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+ul[data-reorder] li.chosen { box-shadow: 0 8px 24px rgb(16 24 40 / 0.18); position: relative; z-index: 1; }
+ul[data-reorder] li.ghost { opacity: 0.35; }
+.search { position: relative; margin-top: var(--s4); }
+.search .icon { position: absolute; left: var(--s3); top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search input[type="search"] { padding-left: 40px; }
+.search-empty { margin-top: var(--s4); text-align: center; }
 .tag {
   display: inline-block; font-size: 13px; line-height: 1.6; padding: 0 var(--s2);
   border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted);
@@ -352,7 +377,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 legend { padding: 0; margin-bottom: 6px; float: left; width: 100%; }
 legend + * { clear: both; }
 .help { font-size: 13px; color: var(--muted); }
-input[type="text"], input[type="password"], input[type="email"], input[type="number"],
+input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="search"],
 input[type="date"], input:not([type]), select, textarea {
   width: 100%; min-width: 0; min-height: 48px; padding: 0 var(--s3);
   border: 1px solid var(--field); border-radius: var(--r-field);

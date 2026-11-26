@@ -1,5 +1,5 @@
 from contextlib import suppress
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 from itertools import groupby
 
@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
 from apps.settlement.engine import SettlementError, to_base
 from apps.trips.access import get_membership, locked
@@ -31,6 +32,9 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
     expenses = list(trip.expenses.select_related("payer").prefetch_related("beneficiaries"))
+    q = request.GET.get("q", "").strip()[:100]
+    if q:
+        expenses = [e for e in expenses if _matches(e, q)]
     rates = trip.rate_map()
     day_totals: dict = {}
     for e in expenses:
@@ -58,6 +62,9 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         "people_count": trip.participants.count(),
         "travelers": list(trip.participants.all()),
         "tab": "expenses",
+        "q": q,
+        # A search shows only part of a day, so cards can be reordered only in the full list.
+        "can_reorder": not q and not trip.is_settled,
     }
     try:
         context["summary"] = named(trip, trip_settlement(trip), request.user)
@@ -68,6 +75,44 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         if trip.start_date and _in_trip(trip, today):
             context["today_total"] = day_totals.get(today) or Decimal(0)
     return render(request, "expenses/list.html", context)
+
+
+def _matches(expense: Expense, query: str) -> bool:
+    """True when every word of the search appears in the expense's description, payer,
+    travelers, type or amount ("12000", "12,000" and "12000 KHR" all find 12,000 KHR)."""
+    text = " ".join(
+        [
+            expense.description,
+            expense.payer.name,
+            *(b.name for b in expense.beneficiaries.all()),
+            str(expense.get_category_display()),
+            f"{expense.amount:f}".rstrip("0").rstrip("."),
+            format_amount(expense.amount, expense.currency),
+            expense.currency,
+        ]
+    ).casefold()
+    return all(word in text for word in query.casefold().split())
+
+
+@require_POST
+def expense_reorder(request: HttpRequest, trip_id) -> HttpResponse:
+    """Save the order of one day's cards after a drag: ``ids`` lists the whole day, in order."""
+    membership = get_membership(request, trip_id)
+    trip = membership.trip
+    if trip.is_settled:
+        return HttpResponse(status=409)
+    ids = request.POST.getlist("ids")
+    try:
+        day = date.fromisoformat(request.POST.get("day", ""))
+        expenses = {str(e.id): e for e in trip.expenses.filter(date=day)}
+    except ValueError:
+        return HttpResponse(status=400)
+    if sorted(ids) != sorted(expenses):
+        return HttpResponse(status=409)  # The day changed in the meantime; the page reloads.
+    for position, expense_id in enumerate(ids):
+        expenses[expense_id].position = position
+    Expense.objects.bulk_update(expenses.values(), ["position"])
+    return HttpResponse(status=204)
 
 
 def _in_trip(trip, day) -> bool:
@@ -216,6 +261,7 @@ def report(request: HttpRequest, trip_id) -> HttpResponse:
     except SettlementError as error:
         context["error"] = str(error)
     data = build_report(trip, form.filters() if request.GET else {})
+    # Day lines carry no total here: the "By day" chart above already shows each day's amount.
     page = DayPage(
         request,
         [

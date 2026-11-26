@@ -58,7 +58,14 @@ class PageCacheMiddleware:
 def service_worker(request: HttpRequest) -> HttpResponse:
     # The version changes with every change to the static files, so a deploy installs a new
     # worker, which deletes the pages stored by the old one.
-    files = [static(name) for name in ("css/app.css", "js/app.js", "img/icons.svg")]
+    names = (
+        "css/app.css",
+        "js/app.js",
+        "img/icons.svg",
+        "vendor/htmx.min.js",
+        "vendor/sortable.min.js",
+    )
+    files = [static(name) for name in names]
     version = hashlib.sha1("|".join(files).encode(), usedforsecurity=False).hexdigest()[:12]
     body = render_to_string("sw.js", {"version": version, "static_files": files})
     response = HttpResponse(body, content_type="text/javascript; charset=utf-8")
