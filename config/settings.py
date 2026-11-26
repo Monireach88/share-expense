@@ -33,6 +33,10 @@ INSTALLED_APPS = [
     "django_htmx",
     "axes",
     "django_countries",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     "apps.accounts",
     "apps.trips",
     "apps.expenses",
@@ -50,6 +54,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "apps.trips.offline.PageCacheMiddleware",
     "axes.middleware.AxesMiddleware",
 ]
@@ -67,6 +72,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.accounts.context_processors.google_signin",
             ],
         },
     },
@@ -84,6 +90,8 @@ AUTH_USER_MODEL = "accounts.User"
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
+    # Signs people in after Google confirms who they are (django-allauth).
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -94,6 +102,29 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "login"
+
+# Sign in with Google (django-allauth, used only for Google; the password login is our own).
+# Empty GOOGLE_CLIENT_ID hides the button. Redirect URI to register at Google:
+# https://<domain>/accounts/google/login/callback/
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APPS": [{"client_id": GOOGLE_CLIENT_ID, "secret": GOOGLE_CLIENT_SECRET, "key": ""}]
+        if GOOGLE_CLIENT_ID
+        else [],
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"prompt": "select_account"},
+    }
+}
+SOCIALACCOUNT_ADAPTER = "apps.accounts.adapters.SocialAccountAdapter"
+ACCOUNT_ADAPTER = "apps.accounts.adapters.AccountAdapter"
+# A Google account whose verified email belongs to an account signs in to that account.
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_STORE_TOKENS = False
+ACCOUNT_EMAIL_VERIFICATION = "none"  # The app sends no email; Google has verified the address.
 
 # Login rate limit (django-axes): lock a username + IP pair after 5 failures for 1 hour.
 AXES_FAILURE_LIMIT = int(os.environ.get("AXES_FAILURE_LIMIT", "5"))

@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% load i18n ui socialaccount %}
+{% comment %}Replaces django-allauth's page: connect or remove the Google account used to sign in.{% endcomment %}
+{% block title %}{% translate "Google sign-in" %}{% endblock %}
+{% block back %}<a class="back" href="{% url 'home' %}">{% icon "chevron-left" %}<span>{% translate "All trips" %}</span></a>{% endblock %}
+{% block content %}
+<h1 class="page-title">{% translate "Google sign-in" %}</h1>
+<div class="stack-lg" style="margin-top: 16px">
+{% if form.accounts %}
+<section class="card stack">
+  <p>{% translate "This account can sign in with:" %}</p>
+  <form method="post" action="{% url 'socialaccount_connections' %}" class="stack" hx-confirm="{% translate 'Remove this Google account? You will sign in with your password instead.' %}">{% csrf_token %}
+    {% for account in form.accounts %}
+    <div class="row">
+      {% include "_google_logo.html" %}
+      <span class="row-main"><span class="row-title">{{ account.extra_data.email|default:account }}</span></span>
+      <button type="submit" name="account" value="{{ account.pk }}" class="link-danger">{% translate "Remove" %}</button>
+    </div>
+    {% endfor %}
+    {% for error in form.non_field_errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+  </form>
+</section>
+{% else %}
+<section class="card stack">
+  <p>{% translate "Connect a Google account to sign in without your password." %}</p>
+  <form method="post" action="{% provider_login_url 'google' process='connect' %}">{% csrf_token %}
+    <button type="submit" class="btn btn-secondary btn-block btn-google">{% include "_google_logo.html" %}{% translate "Connect Google account" %}</button>
+  </form>
+</section>
+{% endif %}
+</div>
+{% endblock %}

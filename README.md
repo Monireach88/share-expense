@@ -65,6 +65,8 @@ Open http://share-expense.local and log in.
 2. The admin opens `/admin/` → Users, ticks the request, and chooses **Approve selected sign-up requests**.
 3. The user can now log in. The trip owner adds them to a trip on the trip's **Travelers** page, with the **+** button → **Add account**.
 
+**Sign in with Google.** With `GOOGLE_CLIENT_ID` set, the login page shows **Continue with Google**. An approved account whose email matches the Google email signs in; anyone else's first Google sign-in creates an account that waits for the admin's approval, like a request from the sign-up page. A signed-in user can connect Google from the account menu (**Google sign-in**) and from then on sign in without the password.
+
 ## Self-hosting
 
 Production runs the app, Postgres and a [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) from one compose file, so the server opens no ports and Cloudflare provides HTTPS: `make up ENV=prod`. Steps and `.env.prod` values are in [`DOCKER_SETUP.md`](DOCKER_SETUP.md).
