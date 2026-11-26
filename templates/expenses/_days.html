@@ -1,0 +1,17 @@
+{% load i18n ui %}{% comment %}
+The day groups of an expense list, shared by the Expenses and Stats pages so both look and sort the same.
+Each day is one line (date, count, total) that opens to show its cards. The newest day starts open;
+open_all opens every day (search results). Items are expenses, or report rows that carry .expense.
+{% endcomment %}{% for day, items, subtotal in days %}{% with iso=day|date:"Y-m-d" %}
+<details class="day" data-keep-open="day-{{ iso }}"{% if open_all or forloop.first and page.number == 1 %} open{% endif %}>
+  <summary class="day-head">
+    <span class="day-date">{% if multi_year %}{{ day|date:"D j M Y" }}{% else %}{{ day|date:"D j M" }}{% endif %}</span>
+    <span class="day-count">{% blocktranslate count n=items|length %}{{ n }} expense{% plural %}{{ n }} expenses{% endblocktranslate %}</span>
+    {% if subtotal is not None %}<span class="num day-total">{{ subtotal|money:trip.base_currency }}</span>{% endif %}
+    {% icon "chevron-down" "chev" %}
+  </summary>
+  <ul class="list"{% if reorder %} data-reorder="{% url 'expense_reorder' trip.id %}" data-day="{{ iso }}"{% endif %}>
+    {% for item in items %}{% if item.expense %}<li>{% include "expenses/_row.html" with e=item.expense share=item.share_local %}</li>{% else %}<li data-id="{{ item.id }}">{% include "expenses/_row.html" with e=item %}</li>{% endif %}{% endfor %}
+  </ul>
+</details>
+{% endwith %}{% endfor %}

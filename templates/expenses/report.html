@@ -80,12 +80,7 @@
   <h2 class="section-title">{% translate "Expenses" %}</h2>
   {% if page.days %}
   <div class="paged">
-    {% for day, rows, _total in page.days %}
-    <h3 class="day-head"><span>{% if multi_year %}{{ day|date:"D j M Y" }}{% else %}{{ day|date:"D j M" }}{% endif %}</span></h3>
-    <ul class="list">
-      {% for row in rows %}<li>{% include "expenses/_row.html" with e=row.expense share=row.share_local show_share=r.show_share %}</li>{% endfor %}
-    </ul>
-    {% endfor %}
+    {% include "expenses/_days.html" with days=page.days show_share=r.show_share %}
     {% include "_pager.html" %}
   </div>
   {% elif filtered %}

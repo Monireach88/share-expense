@@ -26,6 +26,7 @@
       if (el) el.open = true;
     }
     if (window.htmx) htmx.process(document.body);
+    if (window.__seInitReorder) window.__seInitReorder();
     window.scrollTo(0, y);
   });
 
@@ -58,4 +59,39 @@
       if (!menu.contains(event.target)) menu.open = false;
     }
   });
+
+  // Drag to reorder the cards of one day (Expenses page). A long press (350 ms) starts the drag,
+  // so a normal tap still opens the expense and a swipe still scrolls.
+  let droppedAt = 0;
+  function save(list) {
+    const body = new URLSearchParams({ day: list.dataset.day });
+    for (const li of list.children) body.append("ids", li.dataset.id);
+    const headers = JSON.parse(document.body.getAttribute("hx-headers") || "{}");
+    fetch(list.dataset.reorder, { method: "POST", headers, body, credentials: "same-origin" })
+      .then((response) => { if (!response.ok) location.reload(); })
+      .catch(() => location.reload());
+  }
+  function initReorder() {
+    if (!window.Sortable) return;
+    for (const list of document.querySelectorAll("ul[data-reorder]:not([data-ready])")) {
+      list.dataset.ready = "1";
+      Sortable.create(list, {
+        delay: 350, animation: 150, chosenClass: "chosen", ghostClass: "ghost",
+        onEnd(event) {
+          droppedAt = Date.now();
+          if (event.oldIndex !== event.newIndex) save(list);
+        },
+      });
+    }
+  }
+  // The tap that ends a drag must not also open the expense, and a long press shows no link menu.
+  document.addEventListener("click", (event) => {
+    if (Date.now() - droppedAt < 400 && event.target.closest("ul[data-reorder]")) event.preventDefault();
+  }, true);
+  document.addEventListener("contextmenu", (event) => {
+    if (event.target.closest("ul[data-reorder]")) event.preventDefault();
+  });
+  window.__seInitReorder = initReorder;
+  document.addEventListener("DOMContentLoaded", initReorder);
+  document.addEventListener("htmx:afterSettle", initReorder);
 })();

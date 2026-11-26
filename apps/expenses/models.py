@@ -51,6 +51,9 @@ class Expense(models.Model):
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
     )
+    # The order within a day, set by dragging a card. New expenses get 0, so they come first
+    # until the day is reordered (ties fall back to newest first).
+    position = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -59,7 +62,7 @@ class Expense(models.Model):
     all_objects = models.Manager()  # noqa: DJ012 - ruff reads models.Manager() as a field
 
     class Meta:
-        ordering = ["-date", "-created_at"]
+        ordering = ["-date", "position", "-created_at"]
         base_manager_name = "all_objects"
         indexes = [
             models.Index(
