@@ -126,7 +126,7 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
 .menu-item {
   display: flex; align-items: center; gap: var(--s3); width: 100%; min-height: 44px;
   padding: 0 var(--s3); border: 0; border-radius: var(--r-field); background: none;
-  color: var(--fg); font: inherit; text-decoration: none; cursor: pointer; text-align: left;
+  color: var(--fg); font: inherit; text-decoration: none; cursor: pointer; text-align: left; white-space: nowrap;
 }
 .menu-item:hover { background: var(--bg); }
 
@@ -517,3 +517,8 @@ dialog.sheet::backdrop { background: rgb(16 24 40 / 0.45); }
 }
 .suggestion-label { font-size: 13px; font-weight: 600; color: var(--accent); flex-basis: 100%; }
 .suggestion-text { flex: 1; min-width: 0; }
+
+/* Google sign-in */
+.or { display: flex; align-items: center; gap: var(--s3); margin: var(--s4) 0; color: var(--muted); font-size: 14px; }
+.or::before, .or::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+.btn-google .icon { width: 20px; height: 20px; }

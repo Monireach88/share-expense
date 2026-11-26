@@ -74,6 +74,7 @@ Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compos
 | `CLIENT_IP_HEADER` | `HTTP_X_FORWARDED_FOR` | `HTTP_CF_CONNECTING_IP` | Header with the real visitor IP, so a login lock hits the attacker and not everyone behind the proxy |
 | `DEEPSEEK_API_KEY` | empty | your key | Writing suggestions under the expense description; empty turns them off |
 | `DEEPSEEK_MODEL` | `deepseek-flash` | `deepseek-flash` | DeepSeek model for the suggestions |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | empty | from Google Cloud | Sign in with Google; empty hides the button. Redirect URI: `https://<domain>/accounts/google/login/callback/` |
 | `CLOUDFLARE_TUNNEL_TOKEN` | — | **required** | `cloudflared tunnel token <tunnel-name>` |
 | `GUNICORN_WORKERS` | — | `2` | |
 
