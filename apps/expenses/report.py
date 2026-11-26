@@ -183,9 +183,10 @@ def build_report(trip: Trip, filters: dict) -> dict:
         "total": total,
         "paid": paid,
         "share": sum((r.share for r in rows), Decimal(0)) if person else None,
-        "covered_by": (covered := list(person.sponsors.all()) if person else []),
-        # A covered person's share is paid by others, so their rows show no share line.
-        "show_share": bool(person) and not covered,
+        "covered_by": list(person.sponsors.all()) if person else [],
+        # With a traveler chosen, every card shows their share, also when someone covers them
+        # (it is then 0, and the cards they paid show "Paid <amount>").
+        "show_share": bool(person),
         "by_category": [
             {"category": category, **type_bars[category]}
             for category, _amount in sorted(by_category.items(), key=lambda kv: -kv[1])

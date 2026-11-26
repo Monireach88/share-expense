@@ -39,13 +39,14 @@
         <span class="avatar" aria-hidden="true">{{ item.person.name|first|upper }}</span>
         <span class="row-main">
           <span class="row-title">{{ item.person.name }}{% if item.is_me %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
-          <span class="row-sub num">{% if item.covered_by %}{% translate "Covered by" %} {{ item.covered_by|join:", " }}{% else %}{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
-          <span class="row-sub num">{% translate "Share" %}&nbsp;{{ item.row.responsible_for|amount:summary.currency }}&nbsp;{{ summary.currency }}{% endif %}</span>
+          <span class="row-sub num">{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
+          <span class="row-sub num">{% translate "Share" %}&nbsp;{{ item.row.responsible_for|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
+          {% if item.covered_by %}<span class="row-sub">{% blocktranslate with by=item.covered_by|join:", " %}Covered by {{ by }}{% endblocktranslate %}</span>{% endif %}
         </span>
-        {% if not item.covered_by %}<span class="row-end">
+        <span class="row-end">
           <strong class="num {% if item.row.balance > 0 %}pos{% elif item.row.balance < 0 %}neg{% else %}muted{% endif %}">{{ item.row.balance|money:summary.currency }}</strong>
           <span class="row-sub">{% if trip.is_settled and item.row.balance > 0 %}{% translate "was owed" %}{% elif trip.is_settled and item.row.balance < 0 %}{% translate "owed" %}{% elif item.row.balance > 0 %}{% translate "is owed" %}{% elif item.row.balance < 0 %}{% translate "owes" %}{% elif summary.total %}{% translate "nothing owed" %}{% endif %}</span>
-        </span>{% endif %}
+        </span>
       </div>
       </li>
       {% endfor %}
