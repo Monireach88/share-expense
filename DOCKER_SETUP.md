@@ -72,6 +72,8 @@ Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compos
 | `DATABASE_URL` | `postgres://postgres:postgres@share-expense-postgres:5432/share_expense` | same, with the real password | Used by Django |
 | `AXES_FAILURE_LIMIT` | `5` | | Failed logins before a 1-hour lock |
 | `CLIENT_IP_HEADER` | `HTTP_X_FORWARDED_FOR` | `HTTP_CF_CONNECTING_IP` | Header with the real visitor IP, so a login lock hits the attacker and not everyone behind the proxy |
+| `DEEPSEEK_API_KEY` | empty | your key | Writing suggestions under the expense description; empty turns them off |
+| `DEEPSEEK_MODEL` | `deepseek-flash` | `deepseek-flash` | DeepSeek model for the suggestions |
 | `CLOUDFLARE_TUNNEL_TOKEN` | — | **required** | `cloudflared tunnel token <tunnel-name>` |
 | `GUNICORN_WORKERS` | — | `2` | |
 

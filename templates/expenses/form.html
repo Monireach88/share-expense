@@ -23,7 +23,14 @@
     {% for error in form.currency.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
   </div>
 
-  {% include "_field.html" with field=form.description %}
+  <div{% if suggestions %} data-suggest="{% url 'description_suggestion' trip.id %}"{% endif %}>
+    {% include "_field.html" with field=form.description %}
+    {% if suggestions %}<div class="suggestion" data-suggestion hidden aria-live="polite">
+      <span class="suggestion-label">{% translate "Suggestion" %}</span>
+      <span class="suggestion-text" data-suggestion-text></span>
+      <button type="button" class="btn btn-secondary btn-sm" data-accept>{% translate "Accept" %}</button>
+    </div>{% endif %}
+  </div>
 
   {% include "_checks.html" with field=form.payer %}
 

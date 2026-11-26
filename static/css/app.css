@@ -509,3 +509,11 @@ dialog.sheet::backdrop { background: rgb(16 24 40 / 0.45); }
 .emoji-grid button:hover, .emoji-grid button:focus-visible { background: var(--accent-soft); }
 .dialog-actions { display: flex; gap: var(--s2); }
 .dialog-actions .btn { flex: 1; }
+
+/* Writing suggestion under the expense description. */
+.suggestion {
+  display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; margin-top: var(--s2);
+  padding: var(--s2) var(--s3); border-radius: var(--r-field); background: var(--accent-soft);
+}
+.suggestion-label { font-size: 13px; font-weight: 600; color: var(--accent); flex-basis: 100%; }
+.suggestion-text { flex: 1; min-width: 0; }
