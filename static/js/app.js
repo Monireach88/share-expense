@@ -54,10 +54,15 @@
     event.preventDefault();
     summary.parentElement.open = true;
   });
+  // A tap outside an open menu (account menu, "+" menu), or the Escape key, closes it.
   document.addEventListener("click", (event) => {
-    for (const menu of document.querySelectorAll(".fab-menu[open]")) {
+    for (const menu of document.querySelectorAll(".fab-menu[open], details.menu[open]")) {
       if (!menu.contains(event.target)) menu.open = false;
     }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    document.querySelectorAll(".fab-menu[open], details.menu[open]").forEach((m) => (m.open = false));
   });
 
   // Drag to reorder the cards of one day (Expenses page). A long press (350 ms) starts the drag,

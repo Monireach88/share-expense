@@ -9,7 +9,7 @@
     {% for p in participants.object_list %}
     <li>
       {% if membership.is_owner and not trip.is_settled %}<a class="row" href="{% url 'participant_edit' trip.id p.id %}">{% else %}<div class="row">{% endif %}
-        <span class="avatar" aria-hidden="true">{{ p.name|first|upper }}</span>
+        <span class="avatar" aria-hidden="true">{{ p.name|initial }}</span>
         <span class="row-main">
           <span class="row-title">{{ p.name }}{% if p.user_id == user.id %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
           {% if p.sponsors.all or p.user %}<span class="tags">{% if p.sponsors.all %}<span class="tag">{% translate "Covered by" %} {{ p.sponsors.all|join:", " }}</span>{% endif %}{% if p.user %}<span class="tag">{% translate "Account" %}: {{ p.user.display_name }}</span>{% endif %}</span>{% endif %}

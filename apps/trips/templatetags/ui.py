@@ -49,6 +49,14 @@ def icon(name: str, css: str = "icon"):
 
 
 @register.filter
+def initial(name: str) -> str:
+    """The avatar letter: the first letter of the given name, which is the last word in names
+    written family name first ("HENG MALY" -> "M") and in "Person A" -> "A"."""
+    words = str(name).split()
+    return words[-1][0].upper() if words else ""
+
+
+@register.filter
 def left_out(expense, travelers) -> str:
     """The travelers an expense is not for ("For everyone except ..."), from the page's list."""
     ids = {b.id for b in expense.beneficiaries.all()}

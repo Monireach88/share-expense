@@ -11,10 +11,10 @@
   <form method="get" class="filters-form" aria-label="{% translate 'Filters' %}">
     <div class="two">
       {% include "_field.html" with field=form.person %}
-      {% include "_field.html" with field=form.payer %}
       {% include "_field.html" with field=form.category %}
       {% include "_field.html" with field=form.start %}
       {% include "_field.html" with field=form.end %}
+      {% include "_field.html" with field=form.payer %}
     </div>
     <div class="actions filter-actions">
       <button type="submit" class="btn btn-secondary">{% translate "Apply" %}</button>
