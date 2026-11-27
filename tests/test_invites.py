@@ -135,7 +135,7 @@ def test_inviting_the_google_address_of_an_approved_account_adds_it(crew):
 def test_inviting_a_new_person_by_email(crew, email_on):
     ask = post_invite(crew, " gina@example.com ", "new", confirm=False, new_name="Gina")
     assert "Invite gina@example.com?" in ask.content.decode()
-    assert "As Gina" in ask.content.decode()
+    assert "As new traveler Gina" in ask.content.decode()
     assert not Invite.objects.exists()
     page = post_invite(crew, "gina@example.com", "new", new_name="Gina").content.decode()
     invite = the_invite(crew)

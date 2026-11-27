@@ -435,8 +435,12 @@ def _question(form: InviteForm) -> dict:
         }
     else:
         title = _("Invite %(email)s?") % {"email": form.email}
-    traveler = form.traveler_text
-    detail = _("As %(name)s") % {"name": traveler} if traveler else _("As Viewer")
+    if form.participant is not None:
+        detail = _("As %(name)s") % {"name": form.participant.name}
+    elif form.new_traveler_name:
+        detail = _("As new traveler %(name)s") % {"name": form.new_traveler_name}
+    else:
+        detail = _("As Viewer")
     return {"title": title, "detail": detail}
 
 
