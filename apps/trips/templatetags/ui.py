@@ -84,3 +84,14 @@ def keep_hyphens(text):
 
     words = escape(str(text)).split(" ")
     return mark_safe(" ".join(f'<span class="nowrap">{w}</span>' if "-" in w else w for w in words))
+
+
+@register.simple_tag(takes_context=True)
+def unread_notifications(context) -> int:
+    """The bell's red count: unread items of trips the account is still on (spec section 4)."""
+    from apps.disputes.models import Notification  # Imported here: models import this module.
+
+    user = getattr(context.get("request"), "user", None)
+    if user is None or not user.is_authenticated:
+        return 0
+    return Notification.objects.visible_to(user).filter(read_at__isnull=True).count()

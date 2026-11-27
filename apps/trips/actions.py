@@ -9,6 +9,8 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from apps.disputes import rules as disputes
+from apps.disputes.models import Dispute, Notification
 from apps.settlement.engine import SettlementError
 
 from . import history
@@ -26,6 +28,12 @@ def settle(trip: Trip, *, by: TripMember) -> None:
         trip = lock_trip(trip)
         if trip.is_settled:
             return
+        open_disputes = Dispute.objects.filter(trip=trip, state=Dispute.State.OPEN).count()
+        if open_disputes:
+            raise ActionRefused(
+                _("The trip cannot be settled: %(reason)s.")
+                % {"reason": disputes.open_count_text(open_disputes)}
+            )
         try:
             trip_settlement(trip)
         except SettlementError as error:
@@ -34,7 +42,8 @@ def settle(trip: Trip, *, by: TripMember) -> None:
             ) from error
         trip.settled_at = timezone.now()
         trip.save(update_fields=["settled_at", "updated_at"])
-        history.record(trip, by, "settled", "trip", object_id=trip.pk, label=trip.name)
+        entry = history.record(trip, by, "settled", "trip", object_id=trip.pk, label=trip.name)
+        disputes.notify_everyone(trip, Notification.Kind.SETTLED, by=by, entry=entry)
 
 
 def reopen(trip: Trip, *, by: TripMember) -> None:
@@ -44,7 +53,8 @@ def reopen(trip: Trip, *, by: TripMember) -> None:
             return
         trip.settled_at = None
         trip.save(update_fields=["settled_at", "updated_at"])
-        history.record(trip, by, "reopened", "trip", object_id=trip.pk, label=trip.name)
+        entry = history.record(trip, by, "reopened", "trip", object_id=trip.pk, label=trip.name)
+        disputes.notify_everyone(trip, Notification.Kind.REOPENED, by=by, entry=entry)
 
 
 def change_role(member: TripMember, role: str, *, by: TripMember) -> None:

@@ -7,4 +7,5 @@
 {% include "expenses/_facts.html" with amount=expense.amount currency=expense.currency payer=expense.payer.name type_name=expense.category.name day=expense.date %}
 <div class="note" style="margin-top: 16px">{% icon "lock" %}<div>{{ reason }}</div></div>
 <p class="tiny muted" style="margin-top: 16px">{% include "expenses/_added.html" %}</p>
+{% include "expenses/_disputes.html" %}
 {% endblock %}

@@ -32,6 +32,10 @@ ACTION_WORDS = {
     "became_owner": "became owner",
     "settled": "settled",
     "reopened": "reopened",
+    "opened": "opened dispute",
+    "message": "wrote dispute message",
+    "resolved": "resolved dispute",
+    "closed": "closed dispute",
 }
 
 
@@ -357,6 +361,8 @@ def describe(entry: HistoryEntry) -> str:
     }
     if (kind, action) in texts:
         return texts[(kind, action)] % data
+    if kind == "dispute":
+        return _describe_dispute(entry, data)
     if kind == "trip" and action == "changed":
         return _("%(who)s changed the trip settings: %(changes)s") % {
             **data,
@@ -366,6 +372,19 @@ def describe(entry: HistoryEntry) -> str:
             ),
         }
     return f"{who} {ACTION_WORDS.get(action, action)} {kind} {label}".strip()
+
+
+def _describe_dispute(entry: HistoryEntry, data: dict) -> str:
+    """ "Cara opened a dispute on “Dinner”: I did not eat dinner" (spec section 5)."""
+    data = {**data, "opener": entry.values.get("opener") or _("someone")}
+    texts = {
+        "opened": _("%(who)s opened a dispute on %(label)s: %(new)s"),
+        "message": _("%(who)s wrote in the dispute on %(label)s: %(new)s"),
+        "resolved": _("%(who)s resolved the dispute on %(label)s"),
+        "closed": _("%(who)s, the Owner, closed %(opener)s's dispute on %(label)s: %(new)s"),
+    }
+    data["label"] = f"“{entry.object_label}”"
+    return texts.get(entry.action, "%(who)s %(label)s") % data
 
 
 # --- Travelers, rates and trip: the old and new values of one change ----------------------------

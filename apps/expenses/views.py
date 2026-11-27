@@ -19,6 +19,9 @@ from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 
+from apps.disputes import rules as dispute_rules
+from apps.disputes import views as dispute_views
+from apps.disputes.models import Dispute
 from apps.settlement.engine import SettlementError, to_base
 from apps.trips import history
 from apps.trips.access import get_membership, lock_trip, locked
@@ -45,6 +48,11 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
     q = request.GET.get("q", "").strip()[:100]
     if q:
         expenses = [e for e in expenses if _matches(e, q)]
+    disputed = dispute_views.open_ids(trip)
+    # Balances links here when open disputes block settling: only the disputed expenses.
+    only_disputed = request.GET.get("disputed") == "1"
+    if only_disputed:
+        expenses = [e for e in expenses if e.id in disputed]
     rates = trip.rate_map()
     day_totals: dict = {}
     for e in expenses:
@@ -74,8 +82,19 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         "tab": "expenses",
         "ai_enabled": suggest.enabled(),
         "q": q,
+        "disputed": disputed,
+        "only_disputed": only_disputed,
+        # A dispute on a deleted expense also blocks settling, but its card is gone: link it.
+        "deleted_disputed": list(
+            Expense.all_objects.filter(id__in=disputed, trip=trip, deleted_at__isnull=False)
+        )
+        if only_disputed
+        else [],
         # A search shows only part of a day, so cards can be reordered only in the full list.
-        "can_reorder": membership.can_manage_expenses and not q and not trip.is_settled,
+        "can_reorder": membership.can_manage_expenses
+        and not q
+        and not only_disputed
+        and not trip.is_settled,
     }
     try:
         context["summary"] = named(trip, trip_settlement(trip), request.user)
@@ -213,6 +232,11 @@ def category_delete(request: HttpRequest, trip_id, category_id) -> HttpResponse:
                 used,
             ) % {"name": category.name, "n": used}
             return JsonResponse({"error": message}, status=409)
+        # A deleted expense with a dispute still needs its type, so it can be restored.
+        if Dispute.objects.filter(trip=trip, expense__category=category).exists():
+            return JsonResponse(
+                {"error": dispute_rules.disputes_in_use_message("type")}, status=409
+            )
         if trip.categories.count() == 1:
             return JsonResponse({"error": _("A trip needs at least one type.")}, status=409)
         history.record(
@@ -404,9 +428,17 @@ def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
                 trip, membership, "changed", history.fresh_expense(expense.pk), before=before
             )
         messages.success(request, _("Saved: %(expense)s") % {"expense": _saved_text(expense)})
+        if expense.disputes.filter(state=Dispute.State.OPEN).exists():
+            # The fixer stays on the expense page, sees the dispute and can write "Fixed".
+            back = request.POST.get("next")
+            url = reverse("expense_edit", args=[trip_id, expense.id])
+            if back:
+                url += f"?next={quote(_back_url(request, trip_id))}"
+            return redirect(url + "#disputes")
         return redirect(_back_url(request, trip_id))
     context = _form_context(membership.trip, membership, form, expense)
     context["back_url"] = _back_url(request, trip_id)
+    context.update(dispute_views.section(membership, expense))
     return render(request, "expenses/form.html", context)
 
 
@@ -498,6 +530,7 @@ def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
             **facts,
             "reason": reason,
             "back_url": _back_url(request, trip.id),
+            **dispute_views.section(membership, expense),
         },
     )
 
@@ -550,6 +583,7 @@ def _deleted_expense_view(request: HttpRequest, membership, expense_id, row) -> 
             "reason": reason,
             "can_restore": can_restore and not trip.is_settled,
             "back_url": _back_url(request, trip.id),
+            **dispute_views.section(membership, row),
         },
     )
 
@@ -647,6 +681,7 @@ def report(request: HttpRequest, trip_id) -> HttpResponse:
         # Expenses opened from this page come back here, with the same filters.
         return_to=request.path + (f"?{query.urlencode()}" if query else ""),
         multi_year=len({r.expense.date.year for r in data["rows"]}) > 1,
+        disputed=dispute_views.open_ids(trip),
         people_count=trip.participants.count(),
         travelers=list(trip.participants.all()),
     )
