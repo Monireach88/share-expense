@@ -359,6 +359,10 @@ details.filters { padding-block: 0; }
 .why dd { margin: 0; text-align: right; }
 .why .why-total { font-weight: 700; color: var(--fg); padding-top: var(--s1); border-top: 1px solid var(--line); }
 .why p { margin: var(--s2) 0 0; }
+/* The read-only expense page: label on the left, value on the right, like the breakdown above. */
+.facts { margin: var(--s4) 0 0; padding-top: var(--s3); border-top: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr; gap: var(--s2) var(--s4); font-size: 15px; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; text-align: right; }
 .you {
   display: inline-block; vertical-align: 2px; margin-left: 4px; padding: 1px 6px; border-radius: 999px;
   font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft);

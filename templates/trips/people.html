@@ -8,13 +8,13 @@
   <div class="paged"><ul class="list">
     {% for p in participants.object_list %}
     <li>
-      {% if membership.is_owner and not trip.is_settled %}<a class="row" href="{% url 'participant_edit' trip.id p.id %}">{% else %}<div class="row">{% endif %}
+      {% if membership.is_owner %}<a class="row" href="{% url 'participant_edit' trip.id p.id %}">{% else %}<div class="row">{% endif %}
         <span class="avatar" aria-hidden="true">{{ p.name|initial }}</span>
         <span class="row-main">
           <span class="row-title">{{ p.name }}{% if p.user_id == user.id %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
           {% if p.sponsors.all or p.user %}<span class="tags">{% if p.sponsors.all %}<span class="tag">{% translate "Covered by" %} {{ p.sponsors.all|join:", " }}</span>{% endif %}{% if p.user %}<span class="tag">{% translate "Account" %}: {{ p.user.display_name }}</span>{% endif %}</span>{% endif %}
         </span>
-        {% if membership.is_owner and not trip.is_settled %}{% icon "chevron-right" "chev" %}</a>{% else %}</div>{% endif %}
+        {% if membership.is_owner %}{% icon "chevron-right" "chev" %}</a>{% else %}</div>{% endif %}
     </li>
     {% endfor %}
   </ul>{% include "_pager.html" with page=participants %}</div>
@@ -27,16 +27,13 @@
   <h2 class="section-title">{% translate "Accounts" %}</h2>
   <ul class="list">
     {% for m in members %}
-    <li class="row">
+    <li>
+      {% if membership.is_owner and not m.is_owner %}<a class="row" href="{% url 'member_edit' trip.id m.id %}">{% else %}<div class="row">{% endif %}
       <span class="row-main">
-        <span class="row-title">{{ m.user.display_name }}</span>
-        <span class="row-sub">{% if m.user.username|lower != m.user.display_name|lower %}{{ m.user.username }} · {% endif %}{{ m.get_role_display }}</span>
+        <span class="row-title">{{ m.user.display_name }}{% if m.user_id == user.id %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
+        <span class="row-sub">{% if m.user.username|lower != m.user.display_name|lower %}{{ m.user.username }} · {% endif %}{{ m.role_label }}{% if m.linked_traveler %} · {% blocktranslate with name=m.linked_traveler.name %}traveler {{ name }}{% endblocktranslate %}{% endif %}</span>
       </span>
-      {% if membership.is_owner and not m.is_owner %}
-      <form method="post" action="{% url 'member_remove' trip.id m.id %}" hx-confirm="{% translate 'Remove this account from the trip?' %}">{% csrf_token %}
-        <button type="submit" class="link-danger">{% translate "Remove" %}</button>
-      </form>
-      {% endif %}
+      {% if membership.is_owner and not m.is_owner %}{% icon "chevron-right" "chev" %}</a>{% else %}</div>{% endif %}
     </li>
     {% endfor %}
   </ul>

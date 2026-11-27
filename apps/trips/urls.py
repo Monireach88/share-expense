@@ -69,6 +69,12 @@ urlpatterns = [
         name="participant_delete",
     ),
     path("trips/<uuid:trip_id>/members/new/", views.member_add, name="member_add"),
+    path("trips/<uuid:trip_id>/members/<int:member_id>/", views.member_edit, name="member_edit"),
+    path(
+        "trips/<uuid:trip_id>/members/<int:member_id>/owner/",
+        views.member_transfer,
+        name="member_transfer",
+    ),
     path(
         "trips/<uuid:trip_id>/members/<int:member_id>/remove/",
         views.member_remove,

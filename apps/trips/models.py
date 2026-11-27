@@ -2,6 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
@@ -48,10 +49,17 @@ class Trip(models.Model):
 
 
 class TripMember(models.Model):
-    """A user account that can open the trip. The owner manages it; members record expenses."""
+    """A user account that can open the trip, with one role.
+
+    Owner: everything, including travelers, accounts, rates and settings. Exactly one per trip.
+    Editor: every expense and type, settling and reopening.
+    Member: only expenses their linked traveler paid. A Member with no linked traveler is shown
+    as "Viewer" and can only look. The checks below are the one place these rules live.
+    """
 
     class Role(models.TextChoices):
         OWNER = "owner", _("Owner")
+        EDITOR = "editor", _("Editor")
         MEMBER = "member", _("Member")
 
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="memberships")
@@ -62,7 +70,12 @@ class TripMember(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["trip", "user"], name="unique_trip_member")]
+        constraints = [
+            models.UniqueConstraint(fields=["trip", "user"], name="unique_trip_member"),
+            models.UniqueConstraint(
+                fields=["trip"], condition=models.Q(role="owner"), name="one_owner_per_trip"
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.user} ({self.role}) in {self.trip}"
@@ -70,6 +83,52 @@ class TripMember(models.Model):
     @property
     def is_owner(self) -> bool:
         return self.role == self.Role.OWNER
+
+    @property
+    def is_editor(self) -> bool:
+        return self.role == self.Role.EDITOR
+
+    @cached_property
+    def linked_traveler(self) -> Participant | None:
+        """The one traveler of this trip linked to this account, or None."""
+        return self.trip.participants.filter(user_id=self.user_id).first()
+
+    @property
+    def is_viewer(self) -> bool:
+        """A Member with no linked traveler: may look at everything but change nothing."""
+        return self.role == self.Role.MEMBER and self.linked_traveler is None
+
+    @property
+    def role_label(self) -> str:
+        return _("Viewer") if self.is_viewer else self.get_role_display()
+
+    @property
+    def can_manage_expenses(self) -> bool:
+        """Any payer, any expense, rename or remove types, reorder, settle and reopen."""
+        return self.role in (self.Role.OWNER, self.Role.EDITOR)
+
+    @property
+    def can_add_expense(self) -> bool:
+        """Also covers adding a type, Add with AI and the description suggestion."""
+        return self.can_manage_expenses or self.linked_traveler is not None
+
+    @property
+    def can_settle(self) -> bool:
+        return self.can_manage_expenses
+
+    def can_edit_expense(self, expense) -> bool:
+        """Edit, delete or restore: Owner and Editors any expense, a Member only their own."""
+        if self.can_manage_expenses:
+            return True
+        traveler = self.linked_traveler
+        return traveler is not None and expense.payer_id == traveler.pk
+
+    def allowed_payer(self, payer_id) -> bool:
+        """A Member may record only their own traveler as payer; Owner and Editors anyone."""
+        if self.can_manage_expenses:
+            return True
+        traveler = self.linked_traveler
+        return traveler is not None and str(payer_id) == str(traveler.pk)
 
 
 class Participant(models.Model):
@@ -99,7 +158,12 @@ class Participant(models.Model):
     class Meta:
         ordering = ["created_at"]
         constraints = [
-            models.UniqueConstraint(fields=["trip", "name"], name="unique_participant_name")
+            models.UniqueConstraint(fields=["trip", "name"], name="unique_participant_name"),
+            models.UniqueConstraint(
+                fields=["trip", "user"],
+                condition=models.Q(user__isnull=False),
+                name="one_traveler_per_account",
+            ),
         ]
 
     def __str__(self) -> str:

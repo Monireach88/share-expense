@@ -6,15 +6,15 @@ from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.expenses.models import Expense
 from apps.settlement.engine import SettlementError
 
+from . import actions
 from .access import get_membership, locked
-from .forms import ExchangeRateForm, MemberAddForm, ParticipantForm, TripForm
+from .forms import ExchangeRateForm, MemberAddForm, MemberRoleForm, ParticipantForm, TripForm
 from .models import ExchangeRate, Participant, Trip, TripMember
 from .offline import cacheable_page
 from .pagination import paginate
@@ -156,10 +156,26 @@ def people(request: HttpRequest, trip_id) -> HttpResponse:
             "participants": paginate(
                 request, trip.participants.select_related("user").prefetch_related("sponsors")
             ),
-            "members": trip.memberships.select_related("user").order_by("-role", "created_at"),
+            "members": _members(trip),
             "tab": "people",
         },
     )
+
+
+ROLE_ORDER = [TripMember.Role.OWNER, TripMember.Role.EDITOR, TripMember.Role.MEMBER]
+
+
+def _members(trip) -> list[TripMember]:
+    """The trip's accounts, Owner first, then Editors, then Members; each with its traveler."""
+    linked = {p.user_id: p for p in trip.participants.filter(user__isnull=False)}
+    members = sorted(
+        trip.memberships.select_related("user").order_by("created_at"),
+        key=lambda m: ROLE_ORDER.index(m.role),
+    )
+    for m in members:
+        m.trip = trip
+        m.linked_traveler = linked.get(m.user_id)  # Fills the cached property: no extra query.
+    return members
 
 
 def participant_create(request: HttpRequest, trip_id) -> HttpResponse:
@@ -185,9 +201,8 @@ def participant_create(request: HttpRequest, trip_id) -> HttpResponse:
 
 
 def participant_edit(request: HttpRequest, trip_id, participant_id) -> HttpResponse:
+    """On a settled trip only the linked account can change; ParticipantForm locks the rest."""
     membership = get_membership(request, trip_id, owner_only=True)
-    if response := locked(request, membership.trip):
-        return response
     participant = get_object_or_404(Participant, pk=participant_id, trip=membership.trip)
     form = ParticipantForm(request.POST or None, instance=participant, trip=membership.trip)
     if request.method == "POST" and form.is_valid():
@@ -254,16 +269,88 @@ def member_add(request: HttpRequest, trip_id) -> HttpResponse:
 @require_POST
 def member_remove(request: HttpRequest, trip_id, member_id) -> HttpResponse:
     membership = get_membership(request, trip_id, owner_only=True)
-    member = get_object_or_404(TripMember, pk=member_id, trip=membership.trip)
-    if member.is_owner:
-        messages.error(request, _("The owner cannot be removed."))
+    member = get_object_or_404(
+        TripMember.objects.select_related("user", "trip"), pk=member_id, trip=membership.trip
+    )
+    try:
+        actions.remove_member(member, by=membership)
+    except actions.ActionRefused as refused:
+        messages.error(request, str(refused))
     else:
-        member.delete()
         messages.success(
             request,
             _("%(name)s can no longer open this trip.") % {"name": member.user.display_name},
         )
     return redirect("people", trip_id=trip_id)
+
+
+def _other_member(membership: TripMember, member_id) -> TripMember:
+    """Another account on the Owner's trip. The Owner's own row has no page: 404."""
+    return get_object_or_404(
+        TripMember.objects.select_related("user", "trip").exclude(pk=membership.pk),
+        pk=member_id,
+        trip=membership.trip,
+    )
+
+
+def member_edit(request: HttpRequest, trip_id, member_id) -> HttpResponse:
+    """One account on the trip: its role, make it the owner, or remove it. Owner only."""
+    membership = get_membership(request, trip_id, owner_only=True)
+    member = _other_member(membership, member_id)
+    form = MemberRoleForm(request.POST or None, initial={"role": member.role})
+    if request.method == "POST" and form.is_valid():
+        try:
+            actions.change_role(member, form.cleaned_data["role"], by=membership)
+        except actions.ActionRefused as refused:
+            messages.error(request, str(refused))
+        else:
+            messages.success(
+                request,
+                _("%(name)s is now %(role)s.")
+                % {"name": member.user.display_name, "role": member.get_role_display()},
+            )
+        return redirect("people", trip_id=trip_id)
+    return render(
+        request,
+        "trips/member_edit.html",
+        {"trip": membership.trip, "membership": membership, "member": member, "form": form},
+    )
+
+
+def member_transfer(request: HttpRequest, trip_id, member_id) -> HttpResponse:
+    """Make another approved account the Owner, after a confirmation; the old Owner becomes an Editor."""
+    membership = get_membership(request, trip_id, owner_only=True)
+    member = _other_member(membership, member_id)
+    blocked = "" if member.user.is_active else _("This account is not approved yet.")
+    if request.method == "POST" and not blocked:
+        try:
+            actions.transfer_ownership(member, by=membership)
+        except actions.ActionRefused as refused:
+            messages.error(request, str(refused))
+        else:
+            messages.success(
+                request, _("%(name)s is now the owner.") % {"name": member.user.display_name}
+            )
+        return redirect("people", trip_id=trip_id)
+    return render(
+        request,
+        "trips/confirm_delete.html",
+        {
+            "trip": membership.trip,
+            "membership": membership,
+            "object": member.user.display_name,
+            "title": _("Make %(name)s the owner?") % {"name": member.user.display_name},
+            "warning": _(
+                "%(name)s gets every right on this trip. You become an Editor "
+                "and cannot undo this yourself."
+            )
+            % {"name": member.user.display_name},
+            "blocked": blocked,
+            "button": _("Make owner"),
+            "button_class": "btn",
+            "back": reverse("member_edit", args=[trip_id, member.id]),
+        },
+    )
 
 
 @cacheable_page
@@ -280,19 +367,16 @@ def summary(request: HttpRequest, trip_id) -> HttpResponse:
 
 @require_POST
 def trip_settle(request: HttpRequest, trip_id) -> HttpResponse:
-    membership = get_membership(request, trip_id, owner_only=True)
-    trip = membership.trip
-    if not trip.is_settled:
-        trip.settled_at = timezone.now()
-        trip.save(update_fields=["settled_at", "updated_at"])
-    return redirect("summary", trip_id=trip.id)
+    membership = get_membership(request, trip_id, managers_only=True)
+    try:
+        actions.settle(membership.trip, by=membership)
+    except actions.ActionRefused as refused:
+        return HttpResponse(str(refused), status=400, content_type="text/plain; charset=utf-8")
+    return redirect("summary", trip_id=trip_id)
 
 
 @require_POST
 def trip_reopen(request: HttpRequest, trip_id) -> HttpResponse:
-    membership = get_membership(request, trip_id, owner_only=True)
-    trip = membership.trip
-    if trip.is_settled:
-        trip.settled_at = None
-        trip.save(update_fields=["settled_at", "updated_at"])
-    return redirect("summary", trip_id=trip.id)
+    membership = get_membership(request, trip_id, managers_only=True)
+    actions.reopen(membership.trip, by=membership)
+    return redirect("summary", trip_id=trip_id)

@@ -92,8 +92,10 @@ def test_non_member_gets_404_on_every_trip_page(client, trip, make_user):
 def test_member_can_record_expenses_but_not_manage_the_trip(client, trip, make_user):
     member = make_user("member")
     TripMember.objects.create(trip=trip, user=member)
+    payer = trip.participants.get(name="Friend")
+    payer.user = member  # A Member records expenses paid by their own linked traveler.
+    payer.save()
     client.force_login(member)
-    payer = trip.participants.first()
     response = client.post(
         reverse("expense_create", args=[trip.id]),
         {
@@ -462,7 +464,6 @@ def test_settled_trip_locks_everything_that_changes_the_numbers(owner_client, tr
         reverse("expense_edit", args=[trip.id, expense.id]),
         reverse("expense_delete", args=[trip.id, expense.id]),
         reverse("participant_create", args=[trip.id]),
-        reverse("participant_edit", args=[trip.id, friend.id]),
         reverse("participant_delete", args=[trip.id, friend.id]),
     ):
         response = owner_client.post(url, {"name": "X", "amount": "1"})
@@ -475,14 +476,23 @@ def test_settled_trip_locks_everything_that_changes_the_numbers(owner_client, tr
         == 302
     )
     assert not trip.rates.exists()
+    # The traveler page stays open on a settled trip, but only the linked account can change.
+    owner_client.post(reverse("participant_edit", args=[trip.id, friend.id]), {"name": "X"})
+    friend.refresh_from_db()
+    assert friend.name == "Friend"
     expense.refresh_from_db()
     assert expense.deleted_at is None and trip.participants.count() == 2
     page = owner_client.get(reverse("trip", args=[trip.id])).content.decode()
     assert "Add expense" not in page
-    assert reverse("expense_edit", args=[trip.id, expense.id]) not in page
+    # Cards still open the expense page, read-only.
+    edit_url = reverse("expense_edit", args=[trip.id, expense.id])
+    assert edit_url in page
+    detail = owner_client.get(edit_url).content.decode()
+    assert "Save changes" not in detail and "Delete this expense" not in detail
+    assert "This trip is settled" in detail
 
 
-def test_only_the_owner_settles_or_reopens(client, trip, make_user):
+def test_a_member_cannot_settle_or_reopen(client, trip, make_user):
     member = make_user("member")
     TripMember.objects.create(trip=trip, user=member)
     client.force_login(member)

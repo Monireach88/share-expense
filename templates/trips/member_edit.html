@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% block title %}{{ member.user.display_name }} · {{ trip.name }}{% endblock %}
+{% block back %}<a class="back" href="{% url 'people' trip.id %}">{% icon "chevron-left" %}<span>{% translate "Travelers" %}</span></a>{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ member.user.display_name }}</h1>
+<p class="lead">{{ member.user.username }} · {% if member.linked_traveler %}{% blocktranslate with name=member.linked_traveler.name %}Traveler: {{ name }}{% endblocktranslate %}{% else %}{% translate "No traveler linked" %}{% endif %}</p>
+<form method="post" id="member-form" style="margin-top: 16px">{% csrf_token %}
+  {% include "_form_errors.html" %}
+  {% include "_checks.html" with field=form.role %}
+  {% if not member.linked_traveler %}<p class="help" style="margin-top: 8px">{% translate "A Member with no traveler can only view the trip (shown as Viewer)." %}</p>{% endif %}
+</form>
+<div class="form-foot stack">
+  {% if member.user.is_active %}<p><a href="{% url 'member_transfer' trip.id member.id %}">{% translate "Make owner" %}</a></p>{% endif %}
+  <form method="post" action="{% url 'member_remove' trip.id member.id %}" hx-confirm="{% translate 'Remove this account from the trip?' %}">{% csrf_token %}
+    <button type="submit" class="link-danger">{% translate "Remove from trip" %}</button>
+  </form>
+</div>
+{% endblock %}
+{% block bar %}
+<div class="bottom-bar"><div class="container">
+  <a class="btn btn-secondary" href="{% url 'people' trip.id %}">{% translate "Cancel" %}</a>
+  <button type="submit" form="member-form" class="btn">{% translate "Save changes" %}</button>
+</div></div>
+{% endblock %}

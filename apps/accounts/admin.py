@@ -2,6 +2,8 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 
+from apps.trips.models import TripMember
+
 from .models import User
 
 
@@ -11,6 +13,23 @@ class AppUserAdmin(UserAdmin):
     list_filter = ("is_active", "is_staff", "is_superuser")
     ordering = ("is_active", "-date_joined")
     actions = ["approve"]
+
+    def get_deleted_objects(self, objs, request):
+        """Refuse to delete an account that owns a trip, so a trip never loses its owner.
+
+        The delete page and the "delete selected" action both ask this method; a non-empty
+        ``protected`` list makes Django show the reason and offer no Delete button.
+        """
+        to_delete, model_count, perms_needed, protected = super().get_deleted_objects(objs, request)
+        owned = TripMember.objects.filter(
+            user__in=list(objs), role=TripMember.Role.OWNER
+        ).select_related("trip", "user")
+        protected = list(protected) + [
+            _("Trip “%(trip)s”, owned by %(user)s: make someone else its owner first.")
+            % {"trip": m.trip.name, "user": m.user.username}
+            for m in owned
+        ]
+        return to_delete, model_count, perms_needed, protected
 
     @admin.action(description=_("Approve selected sign-up requests"))
     def approve(self, request, queryset):

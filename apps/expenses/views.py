@@ -5,6 +5,8 @@ from itertools import groupby
 from urllib.parse import quote
 
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Max
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -18,7 +20,7 @@ from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 
 from apps.settlement.engine import SettlementError, to_base
-from apps.trips.access import get_membership, locked
+from apps.trips.access import get_membership, lock_trip, locked
 from apps.trips.offline import cacheable_page
 from apps.trips.pagination import DayPage
 from apps.trips.summary import named, trip_settlement
@@ -72,7 +74,7 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         "ai_enabled": suggest.enabled(),
         "q": q,
         # A search shows only part of a day, so cards can be reordered only in the full list.
-        "can_reorder": not q and not trip.is_settled,
+        "can_reorder": membership.can_manage_expenses and not q and not trip.is_settled,
     }
     try:
         context["summary"] = named(trip, trip_settlement(trip), request.user)
@@ -105,21 +107,22 @@ def _matches(expense: Expense, query: str) -> bool:
 @require_POST
 def expense_reorder(request: HttpRequest, trip_id) -> HttpResponse:
     """Save the order of one day's cards after a drag: ``ids`` lists the whole day, in order."""
-    membership = get_membership(request, trip_id)
-    trip = membership.trip
-    if trip.is_settled:
-        return HttpResponse(status=409)
+    membership = get_membership(request, trip_id, managers_only=True)
     ids = request.POST.getlist("ids")
     try:
         day = date.fromisoformat(request.POST.get("day", ""))
-        expenses = {str(e.id): e for e in trip.expenses.filter(date=day)}
     except ValueError:
         return HttpResponse(status=400)
-    if sorted(ids) != sorted(expenses):
-        return HttpResponse(status=409)  # The day changed in the meantime; the page reloads.
-    for position, expense_id in enumerate(ids):
-        expenses[expense_id].position = position
-    Expense.objects.bulk_update(expenses.values(), ["position"])
+    with transaction.atomic():
+        trip = lock_trip(membership.trip)
+        if trip.is_settled:
+            return HttpResponse(status=409)
+        expenses = {str(e.id): e for e in trip.expenses.filter(date=day)}
+        if sorted(ids) != sorted(expenses):
+            return HttpResponse(status=409)  # The day changed in the meantime; the page reloads.
+        for position, expense_id in enumerate(ids):
+            expenses[expense_id].position = position
+        Expense.objects.bulk_update(expenses.values(), ["position"])
     return HttpResponse(status=204)
 
 
@@ -136,57 +139,64 @@ def _form_error(form) -> JsonResponse:
 
 @require_POST
 def category_create(request: HttpRequest, trip_id) -> HttpResponse:
-    """Add a type from the expense form; answers JSON so the form keeps what was typed."""
-    trip = get_membership(request, trip_id).trip
-    if trip.is_settled:
-        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    """Add a type from the expense form; answers JSON so the form keeps what was typed.
+    Everyone who may add an expense may add a type; only Owner and Editors rename or remove."""
+    trip = get_membership(request, trip_id, can_add=True).trip
     form = CategoryForm(request.POST, trip=trip)
     if not form.is_valid():
         return _form_error(form)
-    category = form.save(commit=False)
-    category.trip = trip
-    category.position = (trip.categories.aggregate(m=Max("position"))["m"] or 0) + 1
-    category.save()
+    with transaction.atomic():
+        if lock_trip(trip).is_settled:
+            return JsonResponse({"error": _("This trip is settled.")}, status=409)
+        category = form.save(commit=False)
+        category.trip = trip
+        category.position = (trip.categories.aggregate(m=Max("position"))["m"] or 0) + 1
+        category.save()
     return _category_json(category, status=201)
 
 
 @require_POST
 def category_edit(request: HttpRequest, trip_id, category_id) -> HttpResponse:
-    trip = get_membership(request, trip_id).trip
+    trip = get_membership(request, trip_id, managers_only=True).trip
     category = get_object_or_404(Category, pk=category_id, trip=trip)
-    if trip.is_settled:
-        return JsonResponse({"error": _("This trip is settled.")}, status=409)
     form = CategoryForm(request.POST, instance=category, trip=trip)
     if not form.is_valid():
         return _form_error(form)
-    return _category_json(form.save())
+    with transaction.atomic():
+        if lock_trip(trip).is_settled:
+            return JsonResponse({"error": _("This trip is settled.")}, status=409)
+        category = form.save()
+    return _category_json(category)
 
 
 @require_POST
 def category_delete(request: HttpRequest, trip_id, category_id) -> HttpResponse:
     """Remove a type no expense uses. Deleted expenses that had it simply lose their type."""
-    trip = get_membership(request, trip_id).trip
+    trip = get_membership(request, trip_id, managers_only=True).trip
     category = get_object_or_404(Category, pk=category_id, trip=trip)
-    if trip.is_settled:
-        return JsonResponse({"error": _("This trip is settled.")}, status=409)
-    used = trip.expenses.filter(category=category).count()
-    if used:
-        message = ngettext(
-            "“%(name)s” is used by %(n)d expense, so it cannot be removed.",
-            "“%(name)s” is used by %(n)d expenses, so it cannot be removed.",
-            used,
-        ) % {"name": category.name, "n": used}
-        return JsonResponse({"error": message}, status=409)
-    if trip.categories.count() == 1:
-        return JsonResponse({"error": _("A trip needs at least one type.")}, status=409)
-    category.delete()
+    with transaction.atomic():
+        if lock_trip(trip).is_settled:
+            return JsonResponse({"error": _("This trip is settled.")}, status=409)
+        used = trip.expenses.filter(category=category).count()
+        if used:
+            message = ngettext(
+                "“%(name)s” is used by %(n)d expense, so it cannot be removed.",
+                "“%(name)s” is used by %(n)d expenses, so it cannot be removed.",
+                used,
+            ) % {"name": category.name, "n": used}
+            return JsonResponse({"error": message}, status=409)
+        if trip.categories.count() == 1:
+            return JsonResponse({"error": _("A trip needs at least one type.")}, status=409)
+        category.delete()
     return HttpResponse(status=204)
 
 
 @require_POST
 def expense_ai_fill(request: HttpRequest, trip_id) -> HttpResponse:
-    """Read one sentence about an expense; answer the form values it states for certain."""
-    trip = get_membership(request, trip_id).trip
+    """Read one sentence about an expense; answer the form values it states for certain.
+    A Member's payer is always their own traveler (``fixed_payer``)."""
+    membership = get_membership(request, trip_id, can_add=True)
+    trip = membership.trip
     if trip.is_settled:
         return JsonResponse({"error": _("This trip is settled.")}, status=409)
     if not suggest.enabled():
@@ -195,14 +205,17 @@ def expense_ai_fill(request: HttpRequest, trip_id) -> HttpResponse:
         return JsonResponse(
             {"error": _("Too many requests. Try again in a few minutes.")}, status=429
         )
-    me = trip.participants.filter(user=request.user).first()
-    return JsonResponse(ai_fill.fill(trip, request.POST.get("text", ""), me))
+    me = membership.linked_traveler
+    fixed_payer = not membership.can_manage_expenses
+    return JsonResponse(
+        ai_fill.fill(trip, request.POST.get("text", ""), me, fixed_payer=fixed_payer)
+    )
 
 
 @require_POST
 def description_suggestion(request: HttpRequest, trip_id) -> HttpResponse:
     """A better wording of the description being typed, as JSON {"suggestion": "..."}."""
-    trip = get_membership(request, trip_id).trip
+    trip = get_membership(request, trip_id, can_add=True).trip
     if not suggest.enabled():
         return JsonResponse({"suggestion": ""})
     if not suggest.allowed(request.user.pk):
@@ -216,10 +229,11 @@ def _in_trip(trip, day) -> bool:
     )
 
 
-def _initial(request: HttpRequest, trip) -> dict:
+def _initial(request: HttpRequest, membership) -> dict:
     """Sensible defaults: today, the current user as payer, everyone as beneficiary, last currency."""
+    trip = membership.trip
     last = trip.expenses.filter(created_by=request.user).order_by("-created_at").first()
-    me = trip.participants.filter(user=request.user).first()
+    me = membership.linked_traveler
     today = timezone.localdate()
     return {
         "date": today if _in_trip(trip, today) or not trip.start_date else trip.start_date,
@@ -240,6 +254,18 @@ def _trip_days(trip) -> list:
     if count > MAX_DAY_CHIPS:
         return []
     return [trip.start_date + timedelta(days=i) for i in range(count)]
+
+
+def _payer_only(membership):
+    """The one payer a Member may record (their own traveler); None for Owner and Editors."""
+    return None if membership.can_manage_expenses else membership.linked_traveler
+
+
+def _check_payer(request: HttpRequest, membership) -> None:
+    """A Member's request with another traveler as payer is refused (403), never changed."""
+    payer = request.POST.get("payer")
+    if payer and not membership.allowed_payer(payer):
+        raise PermissionDenied
 
 
 def _form_context(trip, membership, form, expense=None) -> dict:
@@ -270,19 +296,29 @@ def _saved_text(expense) -> str:
 
 
 def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
-    membership = get_membership(request, trip_id)
+    membership = get_membership(request, trip_id, can_add=True)
     if response := locked(request, membership.trip):
         return response
     trip = membership.trip
     if not trip.participants.exists():
         return redirect("people", trip_id=trip.id)
-    form = ExpenseForm(request.POST or None, trip=trip, initial=_initial(request, trip))
+    if request.method == "POST":
+        _check_payer(request, membership)
+    form = ExpenseForm(
+        request.POST or None,
+        trip=trip,
+        initial=_initial(request, membership),
+        payer_only=_payer_only(membership),
+    )
     if request.method == "POST" and form.is_valid():
-        expense = form.save(commit=False)
-        expense.trip = trip
-        expense.created_by = expense.updated_by = request.user
-        expense.save()
-        form.save_m2m()
+        with transaction.atomic():
+            if response := locked(request, lock_trip(trip)):
+                return response
+            expense = form.save(commit=False)
+            expense.trip = trip
+            expense.created_by = expense.updated_by = request.user
+            expense.save()
+            form.save_m2m()
         messages.success(request, _("Added: %(expense)s") % {"expense": _saved_text(expense)})
         if "add_another" in request.POST:
             return redirect("expense_create", trip_id=trip.id)
@@ -301,16 +337,34 @@ def _back_url(request: HttpRequest, trip_id) -> str:
 
 
 def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
+    """The expense page: the edit form for people who may edit the expense, else read-only.
+    On a settled trip it is read-only for everyone."""
     membership = get_membership(request, trip_id)
-    if response := locked(request, membership.trip):
+    trip = membership.trip
+    expense = get_object_or_404(
+        Expense.objects.select_related("payer", "category", "created_by", "updated_by"),
+        pk=expense_id,
+        trip=trip,
+    )
+    can_edit = membership.can_edit_expense(expense)
+    if request.method != "POST" and (trip.is_settled or not can_edit):
+        return _expense_view(request, membership, expense)
+    if response := locked(request, trip):
         return response
-    expense = get_object_or_404(Expense, pk=expense_id, trip=membership.trip)
-    form = ExpenseForm(request.POST or None, instance=expense, trip=membership.trip)
+    if not can_edit:
+        raise PermissionDenied
+    _check_payer(request, membership)
+    form = ExpenseForm(
+        request.POST or None, instance=expense, trip=trip, payer_only=_payer_only(membership)
+    )
     if request.method == "POST" and form.is_valid():
-        expense = form.save(commit=False)
-        expense.updated_by = request.user
-        expense.save()
-        form.save_m2m()
+        with transaction.atomic():
+            if response := locked(request, lock_trip(trip)):
+                return response
+            expense = form.save(commit=False)
+            expense.updated_by = request.user
+            expense.save()
+            form.save_m2m()
         messages.success(request, _("Saved: %(expense)s") % {"expense": _saved_text(expense)})
         return redirect(_back_url(request, trip_id))
     context = _form_context(membership.trip, membership, form, expense)
@@ -323,10 +377,15 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     if response := locked(request, membership.trip):
         return response
     expense = get_object_or_404(Expense, pk=expense_id, trip=membership.trip)
+    if not membership.can_edit_expense(expense):
+        raise PermissionDenied
     if request.method == "POST":
-        expense.deleted_at = timezone.now()
-        expense.updated_by = request.user
-        expense.save(update_fields=["deleted_at", "updated_by", "updated_at"])
+        with transaction.atomic():
+            if response := locked(request, lock_trip(membership.trip)):
+                return response
+            expense.deleted_at = timezone.now()
+            expense.updated_by = request.user
+            expense.save(update_fields=["deleted_at", "updated_by", "updated_at"])
         messages.success(request, _("Deleted: %(expense)s") % {"expense": _saved_text(expense)})
         return redirect(_back_url(request, trip_id))
     return render(
@@ -342,6 +401,35 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
             "back": reverse("expense_edit", args=[trip_id, expense.id])
             + (f"?next={quote(_back_url(request, trip_id))}" if request.GET.get("next") else ""),
             "next": _back_url(request, trip_id),
+        },
+    )
+
+
+def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
+    """The expense page read-only: the same values as the form, with no Save or Delete."""
+    trip = membership.trip
+    if trip.is_settled:
+        reason = _("This trip is settled, so its expenses are locked.")
+    elif membership.is_viewer:
+        reason = _("You can view this trip but not change it.")
+    else:
+        reason = _("Only %(name)s, the owner and editors can change this expense.") % {
+            "name": expense.payer.name
+        }
+    base_amount = None
+    with suppress(SettlementError):
+        base_amount = to_base(expense.amount, expense.currency, trip.base_currency, trip.rate_map())
+    return render(
+        request,
+        "expenses/detail.html",
+        {
+            "trip": trip,
+            "membership": membership,
+            "expense": expense,
+            "beneficiaries": list(expense.beneficiaries.all()),
+            "base_amount": base_amount,
+            "reason": reason,
+            "back_url": _back_url(request, trip.id),
         },
     )
 

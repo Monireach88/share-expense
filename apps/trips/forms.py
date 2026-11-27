@@ -68,6 +68,10 @@ class ParticipantForm(forms.ModelForm):
     def __init__(self, *args, trip: Trip, **kwargs):
         super().__init__(*args, **kwargs)
         self.trip = trip
+        if trip.is_settled:
+            # A settled trip keeps its travelers and covers; linking an account changes no number.
+            self.fields["name"].disabled = True
+            self.fields["sponsors"].disabled = True
         # Only travelers who pay for themselves can cover someone, so only they are offered.
         others = trip.participants.filter(sponsors__isnull=True)
         if self.instance.pk:
@@ -92,6 +96,19 @@ class ParticipantForm(forms.ModelForm):
         if clash.exists():
             raise forms.ValidationError(_("Someone on this trip already has this name."))
         return name
+
+    def clean_user(self):
+        user = self.cleaned_data["user"]
+        if user is None:
+            return user
+        taken = self.trip.participants.filter(user=user)
+        if self.instance.pk:
+            taken = taken.exclude(pk=self.instance.pk)
+        if other := taken.first():
+            raise forms.ValidationError(
+                _("This account is already linked to %(name)s.") % {"name": other.name}
+            )
+        return user
 
     def clean_sponsors(self):
         sponsors = self.cleaned_data["sponsors"]
@@ -126,3 +143,20 @@ class MemberAddForm(forms.Form):
             raise forms.ValidationError(_("This account is already on the trip."))
         self.user = user
         return username
+
+
+class MemberRoleForm(forms.Form):
+    """The Owner makes an account a Member or an Editor."""
+
+    role = forms.ChoiceField(
+        label=_("Role"),
+        choices=[
+            (TripMember.Role.MEMBER, _("Member")),
+            (TripMember.Role.EDITOR, _("Editor")),
+        ],
+        widget=forms.RadioSelect,
+        help_text=_(
+            "A Member changes only expenses their own traveler paid. "
+            "An Editor changes every expense and can settle the trip."
+        ),
+    )

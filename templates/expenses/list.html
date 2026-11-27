@@ -41,7 +41,7 @@
 {% include "_pager.html" %}
 </div>
 {% endblock %}
-{% block bar %}{% if not trip.is_settled %}{% if ai_enabled %}
+{% block bar %}{% if membership.can_add_expense and not trip.is_settled %}{% if ai_enabled %}
 <details class="fab-menu" data-fab-menu>
   <summary class="fab" aria-label="{% translate 'Add expense' %}">{% icon "plus" %}</summary>
   <div class="fab-options" role="menu">

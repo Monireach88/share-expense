@@ -53,7 +53,7 @@
     {% for error in form.beneficiaries.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
   </fieldset>
 
-  <fieldset data-types data-create="{% url 'category_create' trip.id %}" data-edit="{% url 'category_edit' trip.id 0 %}" data-delete="{% url 'category_delete' trip.id 0 %}">
+  <fieldset data-types data-create="{% url 'category_create' trip.id %}"{% if membership.can_manage_expenses %} data-edit="{% url 'category_edit' trip.id 0 %}" data-delete="{% url 'category_delete' trip.id 0 %}"{% endif %}>
     <legend class="types-legend">{{ form.category.label }}<button type="button" class="btn-text types-done" data-types-done hidden>{% translate "Done" %}</button></legend>
     <div class="chips type-chips">{% for choice in form.category %}{% with c=choice.data.value.instance %}<label data-type="{{ c.pk }}" data-name="{{ c.name }}" data-emoji="{{ c.emoji }}">{{ choice.tag }}<span class="type-emoji" aria-hidden="true">{{ c.emoji }}</span><span class="type-name">{{ c.name }}</span><button type="button" class="type-remove" data-remove aria-label="{% blocktranslate with name=c.name %}Remove {{ name }}{% endblocktranslate %}">−</button></label>{% endwith %}{% endfor %}<button type="button" class="chip chip-add" data-add-type>{% icon "plus" %}{% translate "Add type" %}</button></div>
     {% for error in form.category.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
