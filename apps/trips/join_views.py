@@ -56,7 +56,7 @@ def join(request: HttpRequest, token: str) -> HttpResponse:
             if refused.reason == "removed":
                 return render(request, "trips/join_removed.html", {"trip": trip})
             error = (
-                _("Already taken, choose again.")
+                _("Another account has just chosen this traveler. Choose again.")
                 if refused.reason == "taken"
                 else _("Choose who you are.")
             )

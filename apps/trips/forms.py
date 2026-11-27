@@ -137,7 +137,7 @@ class MemberAddForm(forms.Form):
 
     username = forms.CharField(label=_("Username"), max_length=150)
     traveler = forms.ChoiceField(
-        label=_("This account is…"), widget=forms.RadioSelect, choices=[], required=True
+        label=_("Traveler for this account"), widget=forms.RadioSelect, choices=[], required=True
     )
 
     def __init__(self, *args, trip: Trip, **kwargs):
@@ -148,22 +148,28 @@ class MemberAddForm(forms.Form):
         free = list(trip.participants.filter(user__isnull=True))
         choices = [(str(p.pk), p.name) for p in free]
         if not trip.is_settled:
-            choices.append((self.NEW, _("A new traveler with the account's name")))
-        choices.append((self.NONE, _("Not a traveler (only view)")))
+            choices.append((self.NEW, _("New traveler with the account's name")))
+        choices.append((self.NONE, _("No traveler (view only)")))
         self.fields["traveler"].choices = choices
         self._free = {str(p.pk): p for p in free}
         self.fields["username"].widget.attrs.update(autocapitalize="none", spellcheck="false")
-        self.fields["username"].help_text = _("The account must be approved already.")
 
     def preselect(self, username: str) -> None:
         """Pick the traveler whose name is the account's name, when the form is first shown."""
         user = self._find_user(username)
         if user is None:
             return
+        self._name_new_traveler(user)
         for key, person in self._free.items():
             if person.name.lower() == user.display_name.lower():
                 self.initial["traveler"] = key
                 return
+
+    def _name_new_traveler(self, user) -> None:
+        """Once the account is known, the "new traveler" choice shows the name it would get."""
+        label = _("New traveler: %(name)s") % {"name": user.display_name}
+        choices = [(k, label if k == self.NEW else v) for k, v in self.fields["traveler"].choices]
+        self.fields["traveler"].choices = choices
 
     def _find_user(self, username: str):
         return (
@@ -180,6 +186,7 @@ class MemberAddForm(forms.Form):
         if TripMember.objects.filter(trip=self.trip, user=user).exists():
             raise forms.ValidationError(_("This account is already on the trip."))
         self.user = user
+        self._name_new_traveler(user)
         return username
 
     def clean_traveler(self):

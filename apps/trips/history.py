@@ -369,7 +369,7 @@ def describe(entry: HistoryEntry) -> str:
     if (kind, action) == ("account", "joined"):
         if traveler := entry.values.get("traveler"):
             return _("%(who)s joined by link as %(traveler)s") % {**data, "traveler": traveler}
-        return _("%(who)s joined by link (only view)") % data
+        return _("%(who)s joined by link (view only)") % data
     if (kind, action) in texts:
         return texts[(kind, action)] % data
     if kind == "dispute":

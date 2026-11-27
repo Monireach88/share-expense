@@ -60,7 +60,7 @@ def test_username_case_does_not_create_a_second_account(client, make_user):
 @pytest.mark.parametrize("bad", ["ma.ly", "ab", "x" * 31, "ma ly", "mály", "a-b-c"])
 def test_invalid_username_characters_or_length_are_refused(client, bad):
     response = signup(client, bad)
-    assert "Use only a–z, 0–9 and _, 3 to 30 characters." in response.content.decode()
+    assert "Use only the characters listed above." in response.content.decode()
     assert not User.objects.filter(first_name="Cara").exists()
 
 
@@ -96,7 +96,7 @@ def test_the_admin_lowercases_and_refuses_a_taken_username(client, make_user):
     taken = client.post(url, {"username": "Maly", **data})
     assert "This username is taken." in taken.content.decode()
     bad = client.post(url, {"username": "no.dots", **data})
-    assert "Use only a–z, 0–9 and _, 3 to 30 characters." in bad.content.decode()
+    assert "Use only the characters listed above." in bad.content.decode()
     assert client.post(url, {"username": "Fresh_Name", **data}).status_code == 302
     assert User.objects.filter(username="fresh_name").exists()
 
@@ -180,11 +180,7 @@ def test_add_account_creates_the_traveler(crew):
     assert add(crew, traveler="new").status_code == 302
     sam = crew.trip.participants.get(name="Sam")
     assert sam.user == crew.users["sam"]
-    assert texts(crew.trip) == [
-        "Ann added traveler Sam",
-        "Ann linked traveler Sam to account Sam",
-        "Ann added Sam's account",
-    ]
+    assert texts(crew.trip) == ["Ann added traveler Sam", "Ann added Sam's account"]
 
 
 def test_add_account_with_a_new_traveler_fails_when_the_name_is_taken(crew):
@@ -228,8 +224,8 @@ def test_a_settled_trip_offers_no_new_traveler(crew):
     crew.trip.settled_at = crew.trip.created_at
     crew.trip.save()
     page = crew.client("ann").get(crew.url("member_add"))
-    assert "A new traveler" not in page.content.decode()
-    assert "Not a traveler (only view)" in page.content.decode()
+    assert "New traveler" not in page.content.decode()
+    assert "No traveler (view only)" in page.content.decode()
     assert "Select a valid choice" in add(crew, traveler="new").content.decode()
 
 
@@ -268,7 +264,7 @@ def link_on(crew) -> str:
 def test_the_invite_link_is_off_by_default_and_owner_turns_it_on_and_off(crew):
     assert crew.trip.invite_token is None
     page = crew.client("ann").get(crew.url("people")).content.decode()
-    assert "Turn on invite link" in page and 'id="invite-url"' not in page
+    assert "Turn on" in page and 'id="invite-url"' not in page
     invite(crew, "on")
     crew.trip.refresh_from_db()
     token = crew.trip.invite_token
@@ -296,7 +292,7 @@ def test_renewing_replaces_the_link_and_stops_the_old_one(crew):
     new = reverse("join", args=[crew.trip.invite_token])
     assert new != old
     response = crew.client("sam").get(old)
-    assert response.status_code == 404 and "This link no longer works." in response.content.decode()
+    assert response.status_code == 404 and "This link no longer works" in response.content.decode()
     assert crew.client("sam").get(new).status_code == 200
     assert texts(crew.trip)[-1] == "Ann renewed the invite link"
 
@@ -327,17 +323,14 @@ def test_join_by_link_as_a_traveler(crew):
     sam = crew.client("sam")
     page = sam.get(url).content.decode()
     assert "Which traveler are you?" in page and "Crew trip" in page
-    assert "Fay" in page and "Gus" in page and "None of them (only view)" in page
+    assert "Fay" in page and "Gus" in page and "None of them (view only)" in page
     assert "Dan" not in page.replace("Dan", "Dan", 0) or "value" in page  # Linked ones are absent.
     assert f'value="{crew.travelers["dan"].pk}"' not in page
     response = sam.post(url, {"traveler": str(fay.pk)})
     assert response.status_code == 302 and response["Location"] == crew.url("trip")
     member = TripMember.objects.get(trip=crew.trip, user=crew.users["sam"])
     assert member.role == TripMember.Role.MEMBER and member.linked_traveler == fay
-    assert texts(crew.trip)[-2:] == [
-        "Sam joined by link as Fay",
-        "Sam linked traveler Fay to account Sam",
-    ]
+    assert texts(crew.trip)[1:] == ["Sam joined by link as Fay"]  # One line: the link is in it.
 
 
 def test_join_by_link_as_none_of_them_is_a_viewer(crew):
@@ -345,7 +338,7 @@ def test_join_by_link_as_none_of_them_is_a_viewer(crew):
     assert crew.client("sam").post(url, {"traveler": "none"}).status_code == 302
     member = TripMember.objects.get(trip=crew.trip, user=crew.users["sam"])
     assert member.is_viewer
-    assert texts(crew.trip)[-1] == "Sam joined by link (only view)"
+    assert texts(crew.trip)[-1] == "Sam joined by link (view only)"
 
 
 def test_the_join_choice_is_required(crew):
@@ -388,7 +381,9 @@ def test_two_people_choosing_the_same_traveler_the_second_is_refused(crew):
     assert "Fay" in second.get(url).content.decode()  # Both saw Fay as free.
     assert first.post(url, {"traveler": str(fay.pk)}).status_code == 302
     response = second.post(url, {"traveler": str(fay.pk)})
-    assert "Already taken, choose again." in response.content.decode()
+    assert (
+        "Another account has just chosen this traveler. Choose again." in response.content.decode()
+    )
     assert not TripMember.objects.filter(trip=crew.trip, user=other).exists()
     fay.refresh_from_db()
     assert fay.user == crew.users["sam"]
@@ -406,7 +401,7 @@ def test_a_link_renewed_while_the_form_was_open_is_refused_on_send(crew):
     sam.get(url)
     invite(crew, "renew")
     response = sam.post(url, {"traveler": "none"})
-    assert response.status_code == 404 and "This link no longer works." in response.content.decode()
+    assert response.status_code == 404 and "This link no longer works" in response.content.decode()
     assert not TripMember.objects.filter(trip=crew.trip, user=crew.users["sam"]).exists()
 
 
@@ -441,7 +436,7 @@ def test_the_invite_survives_an_account_request_approval_and_first_sign_in(crew)
     visitor = Client()
     assert visitor.get(url).status_code == 200
     sent = signup(visitor, "cara_k", invite=token)
-    assert "choose who you are" in sent.content.decode()
+    assert "choose your traveler" in sent.content.decode()
     user = User.objects.get(username="cara_k")
     assert user.invite_token == token and not user.is_active
     User.objects.filter(pk=user.pk).update(is_active=True)  # The admin approves it.
@@ -466,7 +461,7 @@ def test_a_renewed_link_after_an_account_request_shows_no_longer_works(crew):
     login = visitor.post(reverse("login"), {"username": "cara_k", "password": PASSWORD})
     assert login["Location"] == url
     response = visitor.get(url)
-    assert response.status_code == 404 and "This link no longer works." in response.content.decode()
+    assert response.status_code == 404 and "This link no longer works" in response.content.decode()
 
 
 def test_a_sign_up_with_a_made_up_invite_keeps_nothing(client, crew):
@@ -475,6 +470,7 @@ def test_a_sign_up_with_a_made_up_invite_keeps_nothing(client, crew):
 
 
 def test_the_invite_survives_a_google_sign_up(client, google, crew):  # noqa: F811
+    Participant.objects.create(trip=crew.trip, name="Fay")
     url = link_on(crew)
     token = crew.trip.invite_token
     client.get(url)  # Opening the link remembers it for the trip to Google and back.
@@ -500,5 +496,39 @@ def test_an_account_that_joins_through_the_link_shows_in_history_search(crew):
     url = link_on(crew)
     crew.client("sam").post(url, {"traveler": "none"})
     page = crew.client("ann").get(crew.url("history"), {"q": "joined"}).content.decode()
-    assert "Sam joined by link (only view)" in page
+    assert "Sam joined by link (view only)" in page
     assert Trip.objects.get(pk=crew.trip.pk).memberships.count() == 6
+
+
+def test_join_page_with_no_free_traveler_offers_view_only(crew):
+    url = link_on(crew)
+    for name in ("eve", "sam"):
+        assert name  # Every traveler of the crew has an account already.
+    page = crew.client("sam").get(url).content.decode()
+    assert (
+        "Every traveler on this trip already has an account. You can join to view the trip." in page
+    )
+    assert 'name="traveler" value="none"' in page and "Which traveler are you?" not in page
+    assert crew.client("sam").post(url, {"traveler": "none"}).status_code == 302
+    assert texts(crew.trip)[-1] == "Sam joined by link (view only)"
+
+
+def test_the_new_traveler_choice_shows_the_name_once_the_username_is_known(crew):
+    page = crew.client("ann").get(crew.url("member_add")).content.decode()
+    assert "New traveler with the account&#x27;s name" in page
+    page = crew.client("ann").get(crew.url("member_add"), {"username": "sam"}).content.decode()
+    assert "New traveler: Sam" in page
+    taken = add(crew, traveler="new", username="zz").content.decode()
+    assert "New traveler with the account&#x27;s name" in taken
+
+
+def test_the_google_pending_page_mentions_the_invite(client, google, crew):  # noqa: F811
+    client.get(link_on(crew))
+    sign_in_with_google(client)
+    page = client.get(reverse("account_inactive")).content.decode()
+    assert "you will choose your traveler on the trip from the invite link" in page
+
+
+def test_the_home_page_shows_the_username(crew):
+    page = crew.client("sam").get(reverse("home")).content.decode()
+    assert "Your username:" in page and "A trip Owner can use it to add you." in page

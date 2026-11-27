@@ -43,7 +43,8 @@ def signup(request: HttpRequest) -> HttpResponse:
 @login_not_required
 def pending(request: HttpRequest) -> HttpResponse:
     """After a first Google sign-in: the new account waits for the admin's approval."""
-    return render(request, "registration/signup_sent.html", {"google": True})
+    invite = request.session.pop("signup_invite", False)
+    return render(request, "registration/signup_sent.html", {"google": True, "invite": invite})
 
 
 @login_not_required

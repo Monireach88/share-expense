@@ -44,9 +44,9 @@
   <h2 class="section-title">{% translate "Invite link" %}</h2>
   <div class="card stack">
     {% if invite_url %}
-    <p class="small muted">{% translate "Anyone with this link and an approved account can join this trip as a Member and choose who they are." %}</p>
+    <p class="small muted">{% translate "People with an approved account can use this link to join this trip as a Member and choose their traveler." %}</p>
     <div class="field">
-      <label for="invite-url">{% translate "Invite link" %}</label>
+      <label class="visually-hidden" for="invite-url">{% translate "Invite link" %}</label>
       <input type="text" id="invite-url" value="{{ invite_url }}" readonly>
     </div>
     <div class="actions">
@@ -55,8 +55,8 @@
       <form method="post" action="{% url 'invite_change' trip.id 'off' %}" hx-confirm="{% translate 'Turn the link off? Nobody can join with it until you turn it on again.' %}">{% csrf_token %}<button type="submit" class="btn btn-secondary btn-sm">{% translate "Turn off" %}</button></form>
     </div>
     {% else %}
-    <p class="small muted">{% translate "The invite link is off. Turn it on to let people with an approved account join this trip by opening a link." %}</p>
-    <form method="post" action="{% url 'invite_change' trip.id 'on' %}">{% csrf_token %}<button type="submit" class="btn btn-sm">{% translate "Turn on invite link" %}</button></form>
+    <p class="small muted">{% translate "The invite link is off. When it is on, people with an approved account can join this trip with it." %}</p>
+    <form method="post" action="{% url 'invite_change' trip.id 'on' %}">{% csrf_token %}<button type="submit" class="btn btn-sm">{% translate "Turn on" %}</button></form>
     {% endif %}
   </div>
 </section>

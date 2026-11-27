@@ -40,4 +40,5 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         sociallogin.user.is_active = False  # The admin approves new accounts.
         # Keep the invite link this visitor came from; the first sign-in after approval opens it.
         sociallogin.user.invite_token = request.session.pop("invite_token", "")
+        request.session["signup_invite"] = bool(sociallogin.user.invite_token)
         return super().save_user(request, sociallogin, form)

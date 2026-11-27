@@ -30,7 +30,7 @@
   <div class="empty-icon" aria-hidden="true">🧳</div>
   <p>{% translate "No trips yet." %}</p>
   <a class="btn" href="{% url 'trip_create' %}">{% icon "plus" %}{% translate "New trip" %}</a>
-  <p class="small" style="margin: 24px 0 0">{% translate "Your username, for trip owners who add you:" %} <strong>{{ user.username }}</strong></p>
+  <p class="small" style="margin: 24px 0 0">{% translate "Your username:" %} <strong>{{ user.username }}</strong>. {% translate "A trip Owner can use it to add you." %}</p>
 </div>
 {% endif %}
 {% endblock %}

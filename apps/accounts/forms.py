@@ -14,7 +14,9 @@ class SignupRequestForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["username"].help_text = _("Use a–z, 0–9 and _, 3 to 30 characters.")
+        self.fields["username"].help_text = _(
+            "3 to 30 characters: letters a–z, digits 0–9 and the underscore (_)."
+        )
         self.fields["username"].widget.attrs.update(autocapitalize="none", spellcheck="false")
         self.fields["password1"].help_text = _("At least 8 characters, not only numbers.")
         self.fields["password2"].help_text = _("Type the password again.")

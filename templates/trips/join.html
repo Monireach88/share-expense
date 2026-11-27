@@ -4,17 +4,21 @@
 {% block content %}
 <div class="auth-intro">
   <h1 class="page-title">{{ trip.name }}</h1>
-  <p>{% translate "Which traveler are you?" %}</p>
+  <p>{% if travelers %}{% translate "Which traveler are you?" %}{% else %}{% translate "Every traveler on this trip already has an account. You can join to view the trip." %}{% endif %}</p>
 </div>
 <form method="post" id="join-form" class="stack">{% csrf_token %}
   {% if error %}<div class="note note-error" role="alert" autofocus>{% icon "triangle-alert" %}<div>{{ error }}</div></div>{% endif %}
+  {% if travelers %}
   <fieldset>
     <legend class="visually-hidden">{% translate "Which traveler are you?" %}</legend>
     <div class="chips">
       {% for p in travelers %}<label><input type="radio" name="traveler" value="{{ p.pk }}" required>{{ p.name }}</label>{% endfor %}
-      <label><input type="radio" name="traveler" value="{{ none }}" required>{% translate "None of them (only view)" %}</label>
+      <label><input type="radio" name="traveler" value="{{ none }}" required>{% translate "None of them (view only)" %}</label>
     </div>
   </fieldset>
+  {% else %}
+  <input type="hidden" name="traveler" value="{{ none }}">
+  {% endif %}
   <button type="submit" class="btn btn-block">{% translate "Join this trip" %}</button>
 </form>
 {% endblock %}

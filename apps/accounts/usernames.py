@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 USERNAME_RE = re.compile(r"[A-Za-z0-9_]{3,30}")
 MAX_LENGTH = 30
 TAKEN = _("This username is taken.")
-BAD = _("Use only a–z, 0–9 and _, 3 to 30 characters.")
+BAD = _("Use only the characters listed above.")
 
 
 def validate_username(value: str) -> None:

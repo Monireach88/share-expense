@@ -156,7 +156,6 @@ def add_member(
             if trip.participants.filter(name__iexact=user.display_name).exists():
                 raise ActionRefused(_("Someone on this trip already has this name."))
             traveler = Participant.objects.create(trip=trip, name=user.display_name, user=user)
-            before = None
         elif traveler is not None:
             traveler = Participant.objects.select_for_update().get(pk=traveler.pk, trip=trip)
             if traveler.user_id is not None:
@@ -166,8 +165,11 @@ def add_member(
             traveler.save(update_fields=["user"])
         member = TripMember.objects.create(trip=trip, user=user)
         RemovedAccount.objects.filter(trip=trip, user=user).delete()
-        if traveler is not None and new_traveler:
-            history.record_traveler_changes(trip, by, traveler, None)
+        if new_traveler:
+            # "Added traveler X" and "added X's account" already say the two are linked.
+            history.record(
+                trip, by, "added", "traveler", object_id=traveler.pk, label=traveler.name
+            )
         history.record(trip, by, "added", "account", object_id=member.pk, label=user.display_name)
         if traveler is not None and not new_traveler:
             history.record_traveler_changes(trip, by, traveler, before)
@@ -231,7 +233,6 @@ def join_by_link(token: str, user, traveler_id: str) -> Trip:
                 raise JoinRefused("invalid") from None
             if traveler.user_id is not None:
                 raise JoinRefused("taken")
-            before = history.traveler_state(traveler)
             traveler.user = user
             try:
                 with transaction.atomic():
@@ -248,6 +249,4 @@ def join_by_link(token: str, user, traveler_id: str) -> Trip:
             label=user.display_name,
             values={"via": "link", "traveler": traveler.name if traveler else ""},
         )
-        if traveler is not None:
-            history.record_traveler_changes(trip, user, traveler, before)
     return trip
