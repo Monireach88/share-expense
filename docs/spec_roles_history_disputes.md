@@ -308,70 +308,124 @@ Scenario: A Viewer cannot open a dispute
 - Accounts created by Google sign-in get a username built from the email name that follows these rules (plus a number when taken).
 - Before the migration: list production usernames that break the rules or clash in lowercase; the owner decides each rename. The migration must not fail on existing data.
 
-### 6.2 Adding an account by username (Owner)
+### 6.2 Inviting a person (Owner)
 
-The "Add account" form has the username and a required choice "Traveler for this account":
+Decided by the owner on 2026-11-27; replaces the shared invite link and the public "Request an account" page.
 
-- an existing traveler with no account yet (the one whose name matches the account's name is pre-selected);
-- a new traveler with the account's name (a form error if that name is taken);
-- no traveler ("Viewer"; the form says "No traveler (view only)").
+On the Travelers page the Owner taps **Invite** and fills one form:
 
-The new membership is a Member. History: "Ann added Cara's account". Adding a previously removed account clears its block on the invite link.
+- **Traveler:** required. An existing traveler with no account and no pending invite, or "A new traveler" with a name typed by the Owner, or "No traveler (view only)".
+- **Username or email:** one field.
+  - **A username of an approved account**, or **an email address that an approved account signs in with through Google:** the account joins the trip at once as a Member, linked to the chosen traveler. History: "Ann added Cara's account". The account sees the trip on its trips list and gets a notification (§4).
+  - **Any other email address:** the app creates a **personal invite**. A personal invite belongs to one email address and one trip and one traveler choice, works once, and expires 7 days after it was made. The app copies the invite link to the Owner's clipboard (with a "Copied" confirmation and a Copy button as a fallback) and sends the invite email (§6.6). History: "Ann invited cara@example.com as Cara".
+  - Any other text (not an existing username and not an email address): "No account has this username. To invite someone new, type their email address."
+- An address that already has a pending invite to this trip: the form offers "Send again" (same link, new 7 days) instead of a second invite.
+- **Pending invites** are listed in the Accounts section for the Owner: address, traveler, "expires in N days", with **Copy link**, **Send again** and **Cancel**. History records invited, sent again, cancelled, accepted, expired (expiry is recorded when someone opens an expired link, not by a timer).
 
-### 6.3 Invite link (Owner)
+### 6.3 Accepting a personal invite
 
-- On the Travelers page, Accounts section: the Owner turns the link on, copies it, renews it (the old link stops working) or turns it off. Off by default.
-- A signed-in approved account opening a working link sees the trip name and the question "Which traveler are you?", listing the travelers with no account, plus "None of them (view only)".
-- After the choice, the account joins as a Member, linked to the chosen traveler. History: one line, "Cara joined by link as Cara" (or "Cara joined by link (view only)"); no separate "linked" line.
-- **Without an account:** the link sends the visitor to sign in, or to request an account. The request form keeps the link: after the admin approves the account, its first sign-in lands on "Which traveler are you?". A link that was renewed or turned off in between shows "This link no longer works".
-- An account already on the trip is taken straight to the trip.
-- An account the Owner removed sees "You were removed from this trip. Ask the Owner to add you again."
-- Two people choosing the same traveler at the same moment: the second gets "Another account has just chosen this traveler. Choose again.".
-- Risk accepted: someone could choose another person's name. History shows it, and the Owner can unlink or remove the account.
+- The invite link opens a page with the trip name, who invited them, the address the invite is for, and one button: **Continue with Google**. It never shows the trip's expenses or travelers before acceptance.
+- Google signs the person in. The invite is accepted only when the Google account's verified email equals the invited address (letter case ignored). Then:
+  - no account uses this Google account yet: a new **approved** account is created (username from the email name, §6.1), it joins the trip as a Member linked to the invited traveler, and lands on the trip;
+  - an account already uses this Google account: that account joins the trip the same way.
+- **Wrong Google account** (another address): nothing is created or joined. The page says "This invite is for c***@example.com. You signed in with another Google account. Sign out of Google and try again with the invited address." The page shows the invited address partly hidden.
+- **Used, expired or cancelled invite:** "This invite no longer works. Ask the Owner for a new one." An account already on the trip is simply taken to the trip.
+- **The invited traveler got an account in the meantime:** the account joins as "No traveler (view only)" and the Owner is notified to link the right traveler. (Rare; it keeps the database rule "one traveler per account".)
+- **A removed account** (the Owner removed it from this trip) can be invited again; an invite is the Owner's explicit decision.
+- The invite token is long and random (at least 32 random bytes, URL-safe) and stored only as a hash, so a database copy does not reveal working links.
+
+### 6.4 Signing in and creating accounts
+
+- **New accounts are created only by accepting a personal invite with Google**, or by the admin in the Django admin. The public "Request an account" page and link are removed; its address shows the sign-in page.
+- **Google sign-in with no matching account and no invite** is refused; nothing is created. Message: "No account uses this Google account. If you have a username and password, sign in with them and link Google from the account menu. To join a trip, ask its Owner for an invite."
+- Existing username-and-password accounts keep working. They can link Google from the account menu (§6.5).
+- Google accounts with any address are accepted (Gmail or a work or school address); the proof is Google's verified email, not the domain.
+- **Forgotten password:** the admin sets a new one in the Django admin. People who sign in with Google have no password to forget.
+
+### 6.5 Account menu
+
+- The menu row "Google sign-in" becomes **"Google account"**, with a second line: "Linked: you@gmail.com" or "Not linked". It opens the page to link or unlink Google (unlinking is refused when the account has no password, as today).
+- A new row **"Delete account"** opens a page:
+  - Text: "Your account will be closed. You will be signed out and cannot sign in again. Your name stays in the records of your trips (expenses, balances and History), because they are shared money records. The admin can restore the account if you ask."
+  - The person types their username to confirm, then taps "Close my account".
+  - An Owner of a trip with other accounts is refused: "You are the Owner of Phnom Penh. Make someone else the Owner first." An Owner who is the only account of a trip may close their account; the trip stays (the admin can restore it).
+  - Closing makes the account inactive and records the time; it ends all its sessions; it keeps its memberships and traveler links unchanged so the admin can restore it fully. History of each of its trips: "Cara closed their account".
+  - A closed account that tries to sign in (password or Google) sees "This account is closed. Ask the admin to restore it." It never sees the "waiting for approval" page.
+  - Other members still see the closed account in Accounts, labelled "Closed".
+
+### 6.6 Email
+
+- The app sends one kind of email: the personal invite. Subject: "Ann invited you to Phnom Penh on Share Expense". Body: who invited them, the trip name, the invite link, "This link works once and expires on 4 Dec 2026", and "If you do not know Ann, ignore this email." Plain text plus a simple HTML version.
+- Sending uses Django's email system with SMTP. Every setting comes from environment variables, nothing is hard-coded: sender address (`DEFAULT_FROM_EMAIL`, for example `Share Expense <invites@monireach.com>`), SMTP host, port, user, password and TLS. The provider is Cloudflare Email Service (SMTP).
+- When email is not configured (empty host), the invite is still created, the link is copied, and the Owner sees "Email is not set up, so send this link yourself." Tests and development use Django's console or in-memory backend.
+- A failed send never loses the invite: the Owner sees "The email could not be sent. Copy the link and send it yourself." and can use "Send again" later.
+- An Owner can send at most 20 invite emails per hour (all trips together), so a stolen Owner account cannot be used to send spam.
 
 ### Acceptance criteria
 
 ```gherkin
 Scenario: Username case does not create a second account
   Given an account "maly" exists
-  When someone requests the account "Maly"
+  When the admin creates the account "Maly"
   Then the form says the username is taken
 
-Scenario: Invalid username characters are refused
-  When someone requests the username "ma.ly"
-  Then the form says only a–z, 0–9 and _ are allowed
+Scenario: Inviting an existing account by username
+  Given an approved account "cara" exists
+  When Ann invites "cara" as traveler Cara
+  Then cara is a Member linked to Cara at once
+  And cara gets a notification
 
-Scenario: Join by invite link
-  Given the invite link is on
-  And traveler "Cara" has no account
-  When the account cara opens the link and picks "Cara"
-  Then cara is a Member linked to Cara
-  And History shows "Cara joined by link as Cara"
+Scenario: Inviting a new person by email
+  When Ann invites "dan@example.com" as traveler Dan
+  Then the invite link is copied to Ann's clipboard
+  And one invite email is sent to dan@example.com
+  And Accounts lists the pending invite with "expires in 7 days"
 
-Scenario: The invite survives an account request
-  Given the invite link is on
-  When a visitor opens it and requests the account "cara"
-  And the admin approves cara
-  And cara signs in for the first time
-  Then cara sees "Which traveler are you?" for that trip
+Scenario: Accepting with the invited Google account
+  Given a pending invite for dan@example.com as Dan
+  When someone opens the link and continues with the Google account dan@example.com
+  Then a new approved account exists, linked to traveler Dan, Member of the trip
+  And the invite cannot be used again
 
-Scenario: A renewed link stops the old one
-  When the Owner renews the invite link
-  Then the old link shows "This link no longer works"
+Scenario: A leaked link is useless to a stranger
+  Given a pending invite for dan@example.com
+  When someone opens the link and continues with the Google account eve@example.com
+  Then no account is created and nobody joins
+  And the page says the invite is for another address
 
-Scenario: A removed account cannot rejoin by link
-  Given Ann removed Dan's account
-  When Dan opens the invite link
-  Then Dan sees "You were removed from this trip"
+Scenario: Google sign-in without an invite is refused
+  Given no account uses the Google account x@example.com
+  When someone continues with Google as x@example.com from the sign-in page
+  Then no account is created
+  And the page says to ask a trip Owner for an invite
 
-Scenario: Add account creates the traveler
-  When Ann adds the account "eve" and picks "A new traveler"
-  Then "Eve" appears in All travelers, linked to eve
+Scenario: An expired invite
+  Given an invite made 8 days ago
+  When it is opened
+  Then the page says the invite no longer works
+
+Scenario: Closing an account
+  Given Cara is a Member of one trip
+  When Cara deletes her account and types her username
+  Then Cara is signed out and cannot sign in again
+  And Cara still appears in the trip's expenses and balances
+  And History shows "Cara closed their account"
+
+Scenario: An Owner cannot close an account while others are in the trip
+  Given Ann owns a trip with other accounts
+  When Ann tries to delete her account
+  Then she is told to make someone else the Owner first
+
+Scenario: Email not configured
+  Given no SMTP host is set
+  When Ann invites dan@example.com
+  Then the invite is created and the link is copied
+  And Ann sees that she must send the link herself
 ```
 
 ## 7. Out of scope
 
-- Email, Telegram or push notifications.
+- Email, Telegram or push notifications, except the invite email (§6.6).
 - More than one Owner.
 - Roles for travelers without accounts (they never sign in).
 - History for reordering.
@@ -379,6 +433,9 @@ Scenario: Add account creates the traveler
 - Protecting a trip from its own Owner: the Owner can remove accounts and delete the trip.
 
 ## 8. Delivery
+
+Update 2026-11-27: PRs 1–4 are merged into `develop`. §6.2–§6.6 (personal invites, Google-only new accounts, account menu, closing an account, invite email) replace the shared invite link and the "Request an account" page; they ship as one PR 5 against `develop`. The email code is included and is switched on only by the SMTP environment variables, so the PR works before the email provider is set up.
+
 
 Four pull requests into `develop`, in this order (each builds on the one before):
 
