@@ -1,5 +1,7 @@
 """Bridge between the database and the pure settlement engine."""
 
+from decimal import Decimal
+
 from apps.settlement.engine import ExpenseInput, SettlementResult, settle
 
 from .models import Trip
@@ -57,6 +59,7 @@ def named(trip: Trip, result: SettlementResult, user=None) -> dict:
                 "covered_by": list(person.sponsors.all()),
                 # (person, amount) for each traveler whose share this one pays.
                 "covers": [(people[x], amount) for x, amount in s.covers.items()],
+                "covers_total": sum(s.covers.values(), Decimal(0)),
             }
         )
     rows.sort(key=_order)
