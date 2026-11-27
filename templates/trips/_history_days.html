@@ -1,0 +1,16 @@
+{% load i18n ui %}{% comment %}
+The day groups of the History page, built like the Expenses list (expenses/_days.html): each day is
+one line that opens to show its entries, newest first. The newest day starts open; open_all opens
+every day (search results). An expense entry opens its expense page; the others are plain lines.
+{% endcomment %}{% for day, items, skip in days %}{% with iso=day|date:"Y-m-d" %}
+<details class="day" data-keep-open="history-{{ iso }}"{% if open_all or forloop.first and page.number == 1 %} open{% endif %}>
+  <summary class="day-head">
+    <span class="day-date">{% if multi_year %}{{ day|date:"D j M Y" }}{% else %}{{ day|date:"D j M" }}{% endif %}</span>
+    <span class="day-count">{% blocktranslate count n=items|length %}{{ n }} change{% plural %}{{ n }} changes{% endblocktranslate %}</span>
+    {% icon "chevron-down" "chev" %}
+  </summary>
+  <ul class="list">
+    {% for e in items %}<li>{% if e.object_type == "expense" %}<a class="row" href="{% url 'expense_edit' trip.id e.object_id %}?next={{ request.get_full_path|urlencode }}"><span class="row-main"><span class="row-title history-line">{{ e.created_at|time:"H:i" }} · {{ e.text }}</span></span>{% icon "chevron-right" "chev" %}</a>{% else %}<div class="row"><span class="row-main"><span class="row-title history-line">{{ e.created_at|time:"H:i" }} · {{ e.text }}</span></span></div>{% endif %}</li>{% endfor %}
+  </ul>
+</details>
+{% endwith %}{% endfor %}

@@ -150,6 +150,7 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
 }
 .tab-icon { display: grid; place-items: center; width: 56px; height: 28px; border-radius: 999px; }
 .tabbar a[aria-current="page"] { color: var(--accent); }
+.icon-btn[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
 .tabbar a[aria-current="page"] .tab-icon { background: var(--accent-soft); }
 @media (min-width: 720px) {
   .tabbar { padding-inline: calc((100vw - 640px) / 2); }
@@ -245,6 +246,7 @@ a.row:hover { background: var(--bg); }
   font-weight: 600; overflow: hidden; overflow-wrap: anywhere;
   display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
 }
+.row-title.history-line { font-weight: 500; -webkit-line-clamp: unset; }
 .row-title.placeholder { font-weight: 400; font-style: italic; color: var(--muted); }
 .row-sub {
   font-size: 13px; color: var(--muted); overflow: hidden; overflow-wrap: anywhere;

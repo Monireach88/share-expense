@@ -3,7 +3,7 @@ from django.urls import path
 from apps.accounts.views import health
 from apps.expenses import views as expense_views
 
-from . import views
+from . import history_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -47,6 +47,12 @@ urlpatterns = [
         expense_views.category_delete,
         name="category_delete",
     ),
+    path(
+        "trips/<uuid:trip_id>/expenses/<uuid:expense_id>/restore/",
+        expense_views.expense_restore,
+        name="expense_restore",
+    ),
+    path("trips/<uuid:trip_id>/history/", history_views.history_page, name="history"),
     path("trips/<uuid:trip_id>/summary/", views.summary, name="summary"),
     path("trips/<uuid:trip_id>/settle/", views.trip_settle, name="trip_settle"),
     path("trips/<uuid:trip_id>/reopen/", views.trip_reopen, name="trip_reopen"),

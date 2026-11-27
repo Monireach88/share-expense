@@ -186,3 +186,63 @@ class ExchangeRate(models.Model):
 
     def __str__(self) -> str:
         return f"1 {self.trip.base_currency} = {self.rate} {self.currency}"
+
+
+class HistoryQuerySet(models.QuerySet):
+    """History is append-only: nothing in the code updates or deletes entries.
+
+    Deleting a whole trip still removes its entries, because Django's cascade does not go
+    through these methods.
+    """
+
+    def update(self, **kwargs):
+        raise TypeError("History entries cannot be changed.")
+
+    def bulk_update(self, objs, fields, batch_size=None):
+        raise TypeError("History entries cannot be changed.")
+
+    def delete(self):
+        raise TypeError("History entries cannot be deleted.")
+
+
+class HistoryEntry(models.Model):
+    """One change to a trip, written in the same transaction as the change (``history.record``).
+
+    Values are kept as names and text, plus ids, so an entry still reads correctly after a
+    traveler, type or account is renamed or removed.
+    """
+
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="history")
+    created_at = models.DateTimeField(auto_now_add=True)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    actor_name = models.CharField(max_length=150)
+    action = models.CharField(max_length=30)
+    object_type = models.CharField(max_length=20)
+    object_id = models.CharField(max_length=40, blank=True)
+    object_label = models.CharField(max_length=200, blank=True)
+    # Per changed field: {"amount": {"old": "40 USD", "new": "4 USD"}}, plus ids where useful.
+    changes = models.JSONField(default=dict)
+    # An expense's full values after the action; Restore brings back the last ones.
+    values = models.JSONField(default=dict)
+    # Lowercase text built at write time, so the History search runs in the database.
+    search_text = models.TextField(blank=True)
+
+    objects = HistoryQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [models.Index(fields=["trip", "-created_at"], name="history_trip_time")]
+        verbose_name_plural = "history entries"
+
+    def __str__(self) -> str:
+        return f"{self.actor_name} {self.action} {self.object_type} {self.object_label}"
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise TypeError("History entries cannot be changed.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise TypeError("History entries cannot be deleted.")
