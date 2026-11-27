@@ -9,6 +9,8 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.disputes import rules as dispute_rules
+from apps.disputes.models import Dispute
 from apps.expenses.models import Expense
 from apps.settlement.engine import SettlementError
 
@@ -153,7 +155,10 @@ def rate_delete(request: HttpRequest, trip_id, rate_id) -> HttpResponse:
         return response
     rate = get_object_or_404(ExchangeRate, pk=rate_id, trip=membership.trip)
     in_use = membership.trip.expenses.filter(currency=rate.currency).exists()
-    if request.method == "POST" and not in_use:
+    disputed = Dispute.objects.filter(
+        trip=membership.trip, expense__currency=rate.currency
+    ).exists()
+    if request.method == "POST" and not in_use and not disputed:
         with transaction.atomic():
             history.record(
                 membership.trip,
@@ -178,7 +183,11 @@ def rate_delete(request: HttpRequest, trip_id, rate_id) -> HttpResponse:
             "trip": membership.trip,
             "membership": membership,
             "object": f"{rate.currency} {rate.rate}",
-            "blocked": _("Expenses use this currency. Change them first.") if in_use else "",
+            "blocked": _("Expenses use this currency. Change them first.")
+            if in_use
+            else dispute_rules.disputes_in_use_message("rate")
+            if disputed
+            else "",
             "button": _("Delete rate"),
             "back": reverse("trip_settings", args=[trip_id]),
         },
@@ -298,7 +307,13 @@ def participant_delete(request: HttpRequest, trip_id, participant_id) -> HttpRes
     in_use = membership.trip.expenses.filter(
         Q(payer=participant) | Q(beneficiaries=participant)
     ).exists()
-    if request.method == "POST" and not in_use:
+    # Removing the traveler erases the deleted expenses they paid, so a dispute on any expense
+    # with them, deleted or not, blocks it (spec section 3).
+    disputed = Dispute.objects.filter(
+        Q(expense__payer=participant) | Q(expense__beneficiaries=participant),
+        trip=membership.trip,
+    ).exists()
+    if request.method == "POST" and not in_use and not disputed:
         with transaction.atomic():
             # Deleted expenses are kept for the record but must not block removing a person.
             Expense.all_objects.filter(payer=participant).delete()
@@ -322,6 +337,8 @@ def participant_delete(request: HttpRequest, trip_id, participant_id) -> HttpRes
             "object": participant.name,
             "blocked": _("This traveler appears in expenses. Change those expenses first.")
             if in_use
+            else dispute_rules.disputes_in_use_message("traveler")
+            if disputed
             else "",
             "button": _("Remove traveler"),
             "back": reverse("participant_edit", args=[trip_id, participant.id]),
@@ -451,7 +468,12 @@ def member_transfer(request: HttpRequest, trip_id, member_id) -> HttpResponse:
 def summary(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
-    context = {"trip": trip, "membership": membership, "tab": "summary"}
+    context = {
+        "trip": trip,
+        "membership": membership,
+        "tab": "summary",
+        "open_disputes": Dispute.objects.filter(trip=trip, state=Dispute.State.OPEN).count(),
+    }
     try:
         context["summary"] = named(trip, trip_settlement(trip), request.user)
     except SettlementError as error:

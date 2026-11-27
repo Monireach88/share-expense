@@ -1,4 +1,5 @@
 {% extends "base.html" %}{% load i18n ui %}
+{% block header_end %}<div class="header-actions">{% include "_bell.html" %}{{ block.super }}</div>{% endblock %}
 {% block content %}
 <h1 class="page-title">{% translate "Trips" %}</h1>
 {% if trips %}
