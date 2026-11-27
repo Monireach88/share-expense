@@ -70,8 +70,11 @@ def _amount(value) -> Decimal | None:
     return amount if amount > 0 else None
 
 
-def fill(trip: Trip, text: str, me: Participant | None) -> dict:
+def fill(trip: Trip, text: str, me: Participant | None, *, fixed_payer: bool = False) -> dict:
     """The form values the note states for certain, and what is still missing.
+
+    ``fixed_payer`` (a Member): the payer is always ``me``. When the note names someone else
+    as payer, "who paid" stays empty and is listed as missing, so nothing is changed silently.
 
     Returns {"fields": {...}, "missing": [...]} or {"error": "..."}.
     """
@@ -123,7 +126,12 @@ def fill(trip: Trip, text: str, me: Participant | None) -> dict:
 
     payer_name = str(data.get("payer") or "").strip()
     payer = match_traveler(payer_name, travelers) if payer_name else None
-    if payer:
+    if fixed_payer:
+        if payer_name and payer != me:
+            missing.append(_("who paid"))
+        else:
+            fields["payer"] = str(me.id)
+    elif payer:
         fields["payer"] = str(payer.id)
     elif payer_name:
         missing.append(

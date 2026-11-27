@@ -1,4 +1,4 @@
-{% load i18n ui %}{% if trip.is_settled %}<div class="row">{% else %}<a class="row" href="{% url 'expense_edit' trip.id e.id %}{% if return_to %}?next={{ return_to|urlencode }}{% endif %}">{% endif %}
+{% load i18n ui %}<a class="row" href="{% url 'expense_edit' trip.id e.id %}{% if return_to %}?next={{ return_to|urlencode }}{% endif %}">
   <span class="type-icon" aria-hidden="true">{{ e.category.emoji|default:"📦" }}</span>
   <span class="row-main">
     {% if e.description %}<span class="row-title">{{ e.description|keep_hyphens }}</span>{% else %}<span class="row-title placeholder">{{ e.category.name }}</span>{% endif %}
@@ -11,4 +11,4 @@
     {% else %}<span class="num">{{ e.amount|money:e.currency }}</span>
     {% if e.currency != trip.base_currency and e.base_amount is not None %}<span class="row-sub num">≈ {{ e.base_amount|money:trip.base_currency }}</span>{% endif %}{% endif %}
   </span>
-{% if trip.is_settled %}</div>{% else %}</a>{% endif %}
+</a>

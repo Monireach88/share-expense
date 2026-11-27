@@ -3,7 +3,7 @@
 {% block back %}<a class="back" href="{% url 'people' trip.id %}">{% icon "chevron-left" %}<span>{% translate "Travelers" %}</span></a>{% endblock %}
 {% block content %}
 <h1 class="page-title">{% translate "Add account" %}</h1>
-<p class="lead">{% translate "An existing account with this username can open this trip and add expenses." %}</p>
+<p class="lead">{% translate "An approved account with this username can open this trip as a Member. To let it add expenses, open its traveler on the Travelers page and choose this account." %}</p>
 <form method="post" id="member-form" style="margin-top: 16px">{% csrf_token %}
   {% include "_form_errors.html" %}
   {% include "_field.html" with field=form.username %}

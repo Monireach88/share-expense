@@ -8,7 +8,7 @@
   {% if trip.is_settled %}
   <section class="card settled" aria-label="{% translate 'Trip status' %}">
     <p class="settled-line">{% icon "circle-check" %}<span>{% blocktranslate with day=trip.settled_at|date:"j M Y" %}Settled on {{ day }}{% endblocktranslate %}</span></p>
-    {% if membership.is_owner %}
+    {% if membership.can_settle %}
     <form method="post" action="{% url 'trip_reopen' trip.id %}" hx-confirm="{% translate 'Reopen this trip? Its expenses can be changed again.' %}">{% csrf_token %}
       <button type="submit" class="btn btn-secondary btn-sm">{% translate "Reopen trip" %}</button>
     </form>
@@ -59,7 +59,7 @@
 {% endif %}
 </div>
 {% endblock %}
-{% block bar %}{% if membership.is_owner and not error and not trip.is_settled and summary.total %}
+{% block bar %}{% if membership.can_settle and not error and not trip.is_settled and summary.total %}
 <form method="post" action="{% url 'trip_settle' trip.id %}" hx-confirm="{% translate 'Mark this trip as settled? Its expenses are locked until the trip is reopened.' %}">{% csrf_token %}
   <button type="submit" class="fab">{% icon "check" %}{% translate "Mark as settled" %}</button>
 </form>

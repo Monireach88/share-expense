@@ -1,8 +1,8 @@
 {% extends "base.html" %}{% load i18n ui %}
-{% block title %}{{ button }}{% endblock %}
+{% block title %}{{ title|default:button }}{% endblock %}
 {% block back %}<a class="back" href="{{ back }}">{% icon "chevron-left" %}<span>{% translate "Back" %}</span></a>{% endblock %}
 {% block content %}
-<h1 class="page-title">{{ button }}?</h1>
+<h1 class="page-title">{% if title %}{{ title }}{% else %}{{ button }}?{% endif %}</h1>
 <div class="card" style="margin-top: 16px">
   {% if expense %}
   <p class="row-title">{% if expense.description %}{{ expense.description }}{% else %}{{ expense.category.name }}{% endif %}</p>
@@ -24,7 +24,7 @@
   <a class="btn btn-secondary" href="{{ back }}">{% translate "Back" %}</a>
   {% else %}
   <a class="btn btn-secondary" href="{{ back }}">{% translate "Cancel" %}</a>
-  <form method="post" style="display: contents">{% csrf_token %}<button type="submit" class="btn btn-danger">{{ button }}</button></form>
+  <form method="post" style="display: contents">{% csrf_token %}<button type="submit" class="{{ button_class|default:'btn btn-danger' }}">{{ button }}</button></form>
   {% endif %}
 </div></div>
 {% endblock %}

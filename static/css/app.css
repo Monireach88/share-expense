@@ -237,6 +237,7 @@ body:has(.fab-solo) main.container { padding-bottom: calc(56px + var(--s6) + env
 }
 a.row:hover { background: var(--bg); }
 .row-main { flex: 1; min-width: 0; }
+.row > .chev { flex-shrink: 0; }
 .row-main > span, .row-end > span { display: block; }
 .row-main > .tags { margin-top: 2px; }
 /* Titles and details wrap to two lines rather than cutting a word after a few letters. */
@@ -294,7 +295,7 @@ ul[data-reorder] li.ghost { opacity: 0.35; }
 .tag {
   display: inline-block; font-size: 13px; line-height: 1.6; padding: 0 var(--s2);
   border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted);
-  margin-right: var(--s1); white-space: nowrap;
+  margin-right: var(--s1); white-space: normal; max-width: 100%; overflow-wrap: anywhere;
 }
 
 /* Hero card: the one main number of a page, with a few smaller numbers under it. */
@@ -359,6 +360,12 @@ details.filters { padding-block: 0; }
 .why dd { margin: 0; text-align: right; }
 .why .why-total { font-weight: 700; color: var(--fg); padding-top: var(--s1); border-top: 1px solid var(--line); }
 .why p { margin: var(--s2) 0 0; }
+/* The read-only expense page: label on the left, value on the right, like the breakdown above. */
+.facts { margin: var(--s4) 0 0; padding-top: var(--s3); border-top: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr; gap: var(--s2) var(--s4); font-size: 15px; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; text-align: right; }
+.facts .name { white-space: nowrap; }
+.facts .facts-split { display: block; }
 .you {
   display: inline-block; vertical-align: 2px; margin-left: 4px; padding: 1px 6px; border-radius: 999px;
   font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft);
