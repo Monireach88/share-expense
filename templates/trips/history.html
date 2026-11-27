@@ -1,0 +1,24 @@
+{% extends "trips/_trip_base.html" %}{% load i18n ui %}
+{% block title %}{% translate "History" %} · {{ trip.name }}{% endblock %}
+{% block content %}
+<h1 class="page-title">{% translate "History" %}</h1>
+{% if days or q %}
+<form method="get" role="search" class="search" action="{% url 'history' trip.id %}">
+  {% icon "search" %}<input type="search" name="q" value="{{ q }}" placeholder="{% translate 'Search History' %}" aria-label="{% translate 'Search History' %}" autocomplete="off" enterkeyhint="search"
+    hx-get="{% url 'history' trip.id %}" hx-trigger="input changed delay:300ms, search" hx-select=".paged" hx-target=".paged" hx-swap="outerHTML" hx-replace-url="true"><span class="spinner" aria-hidden="true"></span>
+</form>
+{% endif %}
+<div class="paged">
+{% if days %}
+{% include "trips/_history_days.html" with open_all=q %}
+{% elif q %}
+  <p class="muted small search-empty">{% blocktranslate %}Nothing in History matches “{{ q }}”.{% endblocktranslate %}</p>
+{% else %}
+  <div class="card empty">
+    <div class="empty-icon" aria-hidden="true">🕘</div>
+    <p>{% translate "Nothing has changed yet." %}</p>
+  </div>
+{% endif %}
+{% translate "Show older" as older %}{% include "_pager.html" with more_label=older %}
+</div>
+{% endblock %}

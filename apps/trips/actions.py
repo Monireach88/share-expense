@@ -11,6 +11,7 @@ from django.utils.translation import gettext as _
 
 from apps.settlement.engine import SettlementError
 
+from . import history
 from .access import lock_trip
 from .models import Trip, TripMember
 from .summary import trip_settlement
@@ -33,6 +34,7 @@ def settle(trip: Trip, *, by: TripMember) -> None:
             ) from error
         trip.settled_at = timezone.now()
         trip.save(update_fields=["settled_at", "updated_at"])
+        history.record(trip, by, "settled", "trip", object_id=trip.pk, label=trip.name)
 
 
 def reopen(trip: Trip, *, by: TripMember) -> None:
@@ -42,6 +44,7 @@ def reopen(trip: Trip, *, by: TripMember) -> None:
             return
         trip.settled_at = None
         trip.save(update_fields=["settled_at", "updated_at"])
+        history.record(trip, by, "reopened", "trip", object_id=trip.pk, label=trip.name)
 
 
 def change_role(member: TripMember, role: str, *, by: TripMember) -> None:
@@ -53,8 +56,18 @@ def change_role(member: TripMember, role: str, *, by: TripMember) -> None:
     if member.role == role:
         return
     with transaction.atomic():
+        old = member.get_role_display()
         member.role = role
         member.save(update_fields=["role"])
+        history.record(
+            member.trip,
+            by,
+            "role_changed",
+            "account",
+            object_id=member.pk,
+            label=member.user.display_name,
+            changes={"role": history.change(old, member.get_role_display())},
+        )
 
 
 def transfer_ownership(new_owner: TripMember, *, by: TripMember) -> None:
@@ -72,6 +85,14 @@ def transfer_ownership(new_owner: TripMember, *, by: TripMember) -> None:
         by.save(update_fields=["role"])
         new_owner.role = TripMember.Role.OWNER
         new_owner.save(update_fields=["role"])
+        history.record(
+            by.trip,
+            by,
+            "became_owner",
+            "account",
+            object_id=new_owner.pk,
+            label=new_owner.user.display_name,
+        )
 
 
 def remove_member(member: TripMember, *, by: TripMember) -> None:
@@ -79,5 +100,28 @@ def remove_member(member: TripMember, *, by: TripMember) -> None:
     if member.is_owner:
         raise ActionRefused(_("The Owner cannot be removed."))
     with transaction.atomic():
-        member.trip.participants.filter(user_id=member.user_id).update(user=None)
+        trip = member.trip
+        name = member.user.display_name
+        traveler = member.linked_traveler
+        if traveler is not None:
+            trip.participants.filter(pk=traveler.pk).update(user=None)
+        history.record(trip, by, "removed", "account", object_id=member.pk, label=name)
+        if traveler is not None:
+            history.record(
+                trip,
+                by,
+                "unlinked",
+                "traveler",
+                object_id=traveler.pk,
+                label=traveler.name,
+                changes={"account": history.change(name, "")},
+            )
         member.delete()
+
+
+def add_member(trip: Trip, user, *, by: TripMember) -> TripMember:
+    """Give an approved account access to the trip, as a Member."""
+    with transaction.atomic():
+        member = TripMember.objects.create(trip=trip, user=user)
+        history.record(trip, by, "added", "account", object_id=member.pk, label=user.display_name)
+    return member

@@ -245,6 +245,7 @@ a.row:hover { background: var(--bg); }
   font-weight: 600; overflow: hidden; overflow-wrap: anywhere;
   display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
 }
+.row-title.history-line { font-weight: 500; -webkit-line-clamp: unset; }
 .row-title.placeholder { font-weight: 400; font-style: italic; color: var(--muted); }
 .row-sub {
   font-size: 13px; color: var(--muted); overflow: hidden; overflow-wrap: anywhere;
