@@ -24,7 +24,9 @@
       <summary>{% translate "Breakdown" %}{% icon "chevron-right" "chev" %}</summary>
       <dl class="num">
         <dt>{% translate "You paid" %}</dt><dd>{{ me.row.paid|amount:cur }}</dd>
-        <dt>{% translate "Your share" %}</dt><dd>−{{ me.row.responsible_for|amount:cur }}</dd>
+        <dt>{% translate "Your share" %}</dt><dd>−{{ me.row.own_share|amount:cur }}</dd>
+        {% if me.covered_by %}<dt>{% blocktranslate with by=me.covered_by|join:", " %}Covered by {{ by }}{% endblocktranslate %}</dt><dd>+{{ me.row.covered|amount:cur }}</dd>{% endif %}
+        {% for person, amount in me.covers %}<dt>{% blocktranslate with name=person.name %}You cover {{ name }}{% endblocktranslate %}</dt><dd>−{{ amount|amount:cur }}</dd>{% endfor %}
         <dt class="why-total">{% translate "Balance" %}</dt><dd class="why-total">{{ me.row.balance|signed:cur }} <span class="cur">{{ cur }}</span></dd>
       </dl>
     </details>
@@ -40,8 +42,9 @@
         <span class="row-main">
           <span class="row-title">{{ item.person.name }}{% if item.is_me %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
           <span class="row-sub num">{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
-          <span class="row-sub num">{% translate "Share" %}&nbsp;{{ item.row.responsible_for|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
-          {% if item.covered_by %}<span class="row-sub">{% blocktranslate with by=item.covered_by|join:", " %}Covered by {{ by }}{% endblocktranslate %}</span>{% endif %}
+          <span class="row-sub num">{% translate "Share" %}&nbsp;{{ item.row.own_share|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
+          {% if item.covered_by %}<span class="row-sub num">{% blocktranslate with by=item.covered_by|join:", " %}Covered by {{ by }}{% endblocktranslate %} <span class="nowrap">+{{ item.row.covered|amount:summary.currency }}&nbsp;{{ summary.currency }}</span></span>{% endif %}
+          {% for person, amount in item.covers %}<span class="row-sub num">{% blocktranslate with name=person.name %}Covers {{ name }}{% endblocktranslate %} <span class="nowrap">−{{ amount|amount:summary.currency }}&nbsp;{{ summary.currency }}</span></span>{% endfor %}
         </span>
         <span class="row-end">
           <strong class="num {% if item.row.balance > 0 %}pos{% elif item.row.balance < 0 %}neg{% else %}muted{% endif %}">{{ item.row.balance|money:summary.currency }}</strong>

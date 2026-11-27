@@ -6,7 +6,7 @@
 <form method="post" id="participant-form" style="margin-top: 16px">{% csrf_token %}
   {% include "_form_errors.html" %}
   {% include "_field.html" with field=form.name %}
-  {% if form.fields.sponsors.queryset %}<div style="margin-top: 24px">{% include "_checks.html" with field=form.sponsors %}</div>{% endif %}
+  {% if form.fields.sponsors.queryset %}<div style="margin-top: 24px">{% include "_checks.html" with field=form.sponsors everyone=True %}</div>{% endif %}
   <div style="margin-top: 24px">{% include "_field.html" with field=form.user %}</div>
   {% if participant %}
   <div class="form-foot"><a class="link-danger" href="{% url 'participant_delete' trip.id participant.id %}">{% translate "Remove traveler" %}</a></div>

@@ -9,7 +9,7 @@ spreadsheet:
 2. The converted amount is split equally among the expense's beneficiaries.
 3. A participant may be covered by one or more sponsors. Their share then
    moves to the sponsors, split equally. No sponsor means self-covered.
-4. balance = amount paid - shares this participant is responsible for.
+4. balance = paid - own share + share covered by sponsors - shares covered for others.
    Positive: the group owes them. Negative: they owe the group.
 
 Shares are kept as exact fractions until the end, then rounded to whole
@@ -57,6 +57,9 @@ class PersonSummary:
     # The part of ``paid`` that covered this person's own ``responsible_for``. The rest of
     # ``paid`` was for others, and the rest of ``responsible_for`` others paid for them.
     paid_for_self: Decimal = Decimal("0.00")
+    # Covering, rounded so that on every row: paid - own_share + covered - sum(covers) = balance.
+    covered: Decimal = Decimal("0.00")  # The own share that sponsors pay for this person.
+    covers: dict = field(default_factory=dict)  # Covered person -> the part this person pays.
 
 
 @dataclass
@@ -193,18 +196,37 @@ def settle(
     exact_balances = {p: paid[p] - responsible[p] for p in participants}
     balances = {p: _cents(c) for p, c in _round_preserving_sum(exact_balances).items()}
 
+    # A covered person's share is rounded once; its parts for each sponsor are rounded so
+    # they add up to it exactly (152.98 split by 3 is 50.99 + 50.99 + 51.00).
+    covers: dict[ParticipantId, dict[ParticipantId, int]] = defaultdict(dict)
+    covered_cents: dict[ParticipantId, int] = {}
+    for person in participants:
+        payers = covered_by[person]
+        if payers == [person]:
+            continue
+        covered_cents[person] = _to_cents(own[person])
+        parts = _round_preserving_sum(
+            {sponsor: Fraction(covered_cents[person], len(payers)) for sponsor in payers}
+        )
+        for sponsor, cents in parts.items():
+            covers[sponsor][person] = cents
+
     people = []
     for p in participants:
         person = PersonSummary(
             participant=p,
             paid=_cents(_to_cents(paid[p])),
-            own_share=_cents(_to_cents(own[p])),
             balance=balances[p],
             paid_for_self=_cents(_to_cents(paid_for_self[p])),
+            covers={x: _cents(c) for x, c in covers[p].items()},
         )
         # Taken from the rounded balance, not rounded on its own, so that on every row
         # paid - share = balance, and all shares add up to the total.
         person.responsible_for = person.paid - person.balance
+        if p in covered_cents:
+            person.own_share = person.covered = _cents(covered_cents[p])
+        else:
+            person.own_share = person.responsible_for - sum(person.covers.values(), Decimal(0))
         people.append(person)
     return SettlementResult(
         base_currency=base_currency,

@@ -62,27 +62,15 @@ class ReportFilterForm(forms.Form):
 class ReportRow:
     expense: Expense
     base_amount: Decimal
-    share: (
-        Decimal | None
-    )  # The filtered person's share in the base currency; None without a person.
+    share: Decimal | None  # The chosen traveler's own share in the base currency, else None.
     # The same share in the expense's own currency, for the row's card (no conversion needed).
     share_local: Decimal | None = None
 
 
-def _shares(trip: Trip) -> dict:
-    """For each participant, the people who pay their share (themselves if nobody covers them)."""
-    people = trip.participants.prefetch_related("sponsors")
-    return {p.id: [s.id for s in p.sponsors.all()] or [p.id] for p in people}
-
-
-def _share_of(person_id, expense: Expense, base: Decimal, covered_by: dict) -> Fraction:
+def _own_share(person_id, expense: Expense, base: Decimal) -> Fraction:
+    """The traveler's own part of an expense: equal split among the people it was for."""
     people = [b.id for b in expense.beneficiaries.all()]
-    share = Fraction(0)
-    for beneficiary in people:
-        payers = covered_by.get(beneficiary, [beneficiary])
-        if person_id in payers:
-            share += Fraction(base) / len(people) / len(payers)
-    return share
+    return Fraction(base) / len(people) if person_id in people else Fraction(0)
 
 
 def _bars(values: dict) -> dict:
@@ -108,6 +96,10 @@ def _round_to(exact: list[Fraction], target_cents: int) -> list[Decimal]:
     return [Decimal(f) / 100 for f in floors]
 
 
+def _cents_of(exact: Fraction) -> Decimal:
+    return Decimal(_to_cents(exact * 100)) / 100
+
+
 def _local_share(expense: Expense, base: Decimal, exact: Fraction) -> Decimal:
     """The person's part of the expense in its own currency: amount × (share ÷ amount in base)."""
     if not base:
@@ -130,7 +122,9 @@ def build_report(trip: Trip, filters: dict) -> dict:
         expenses = expenses.filter(date__lte=filters["end"])
 
     rates = trip.rate_map()
-    covered_by = _shares(trip) if person else {}
+    # The travelers the chosen one covers, with how many people share each one's cost.
+    covered = {p: p.sponsors.count() for p in (person.sponsored.all() if person else [])}
+    exact_covers: dict[Participant, Fraction] = defaultdict(Fraction)
     rows: list[ReportRow] = []
     exact_shares: list[Fraction] = []
     total = paid = Decimal(0)
@@ -140,11 +134,10 @@ def build_report(trip: Trip, filters: dict) -> dict:
         except SettlementError:
             continue  # The page shows the missing rate; the row cannot be totalled without it.
         if person:
-            exact = _share_of(person.id, expense, base, covered_by)
-            involved = expense.payer_id == person.id or any(
-                b.id == person.id for b in expense.beneficiaries.all()
-            )
-            if not exact and not involved:
+            for other, sponsor_count in covered.items():
+                exact_covers[other] += _own_share(other.id, expense, base) / sponsor_count
+            exact = _own_share(person.id, expense, base)
+            if not exact and expense.payer_id != person.id:
                 continue
             exact_shares.append(exact)
             if expense.payer_id == person.id:
@@ -153,6 +146,7 @@ def build_report(trip: Trip, filters: dict) -> dict:
         rows.append(ReportRow(expense, base, None))
         total += base
 
+    covers = {other: _cents_of(exact) for other, exact in exact_covers.items()}
     if person:
         # The rows' shares are rounded together so they add up to the person's share; without
         # other filters that is the Balances page's number, so both pages always agree.
@@ -161,7 +155,8 @@ def build_report(trip: Trip, filters: dict) -> dict:
             with suppress(SettlementError, StopIteration):
                 result = trip_settlement(trip)
                 share = next(p for p in result.people if p.participant == person.id)
-                target = int(share.responsible_for * 100)
+                target = int(share.own_share * 100)
+                covers = {other: share.covers.get(other.id, Decimal(0)) for other in covered}
         for row, share, exact in zip(
             rows, _round_to(exact_shares, target), exact_shares, strict=True
         ):
@@ -184,15 +179,15 @@ def build_report(trip: Trip, filters: dict) -> dict:
         "paid": paid,
         "share": sum((r.share for r in rows), Decimal(0)) if person else None,
         "covered_by": list(person.sponsors.all()) if person else [],
-        # With a traveler chosen, every card shows their share, also when someone covers them
-        # (it is then 0, and the cards they paid show "Paid <amount>").
+        # With a traveler chosen, every card shows their own share of it.
         "show_share": bool(person),
         "by_category": [
             {"category": category, **type_bars[category]}
             for category, _amount in sorted(by_category.items(), key=lambda kv: -kv[1])
         ],
         "by_day": [{"day": day, **day_bars[day]} for day in sorted(by_day)],
-        "covers": list(person.sponsored.all()) if person else [],
+        # (traveler, amount) for each traveler whose share the chosen one pays.
+        "covers": sorted(covers.items(), key=lambda kv: kv[0].name),
     }
 
 

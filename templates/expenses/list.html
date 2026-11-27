@@ -13,7 +13,7 @@
     <div class="stats">
       {% if today_total is not None %}<div><span>{% translate "Today" %}</span><strong class="num">{{ today_total|money:summary.currency }}</strong></div>{% endif %}
       {% if summary.me %}
-      <div><span>{% translate "Your share" %}</span><strong class="num">{{ summary.me.row.responsible_for|money:summary.currency }}</strong></div>
+      <div><span>{% translate "Your share" %}</span><strong class="num">{{ summary.me.row.own_share|money:summary.currency }}</strong></div>
       {% with b=summary.me.row.balance %}<a href="{% url 'summary' trip.id %}"><span>{% if trip.is_settled and b > 0 %}{% translate "You were owed" %}{% elif trip.is_settled and b < 0 %}{% translate "You owed" %}{% elif b > 0 %}{% translate "You are owed" %}{% elif b < 0 %}{% translate "You owe" %}{% else %}{% translate "Nothing owed" %}{% endif %}</span><strong class="num {% if b > 0 %}pos{% elif b < 0 %}neg{% endif %}">{{ b|money:summary.currency }}</strong></a>{% endwith %}
       {% endif %}
     </div>
