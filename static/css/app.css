@@ -534,21 +534,18 @@ dialog.sheet::backdrop { background: rgb(16 24 40 / 0.45); }
 @keyframes progress { from { transform: scaleX(0.05); } to { transform: scaleX(0.92); } }
 @media (prefers-reduced-motion: reduce) { .progress.on { animation: none; transform: scaleX(1); } }
 
-/* The pressed button shows a spinner in place of its label and cannot be pressed again. */
-.btn, .fab, .chip-add { --spin: var(--on-accent); }
-.btn-secondary { --spin: var(--fg); }
-.btn-danger { --spin: var(--on-neg); }
-.btn-text, .chip-add { --spin: var(--accent); }
-.is-loading { position: relative; pointer-events: none; color: transparent !important; }
-.is-loading > * { visibility: hidden; }
-.is-loading::after, .spinner {
-  content: ""; width: 18px; height: 18px; border-radius: 999px;
-  border: 2px solid var(--spin, var(--accent)); border-right-color: transparent;
+/* The pressed button keeps its place, look and label; a small spinner in the label's color
+   takes the place of its icon (or comes before the text), and it cannot be pressed again. */
+.is-loading { pointer-events: none; opacity: 0.85; }
+.is-loading > .icon { display: none; }
+.is-loading::before, .spinner {
+  content: ""; flex: none; width: 16px; height: 16px; border-radius: 999px;
+  border: 2px solid currentColor; border-right-color: transparent;
   animation: spin 0.7s linear infinite;
 }
-.is-loading::after { position: absolute; inset: 0; margin: auto; }
+.spinner { border-color: var(--accent); border-right-color: transparent; }
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .is-loading::after, .spinner { animation-duration: 1.6s; } }
+@media (prefers-reduced-motion: reduce) { .is-loading::before, .spinner { animation-duration: 1.6s; } }
 
 /* Small spinners at the end of a field: live search, writing suggestion. */
 .search .spinner, .busy-field .spinner {
@@ -565,8 +562,6 @@ dialog.sheet::backdrop { background: rgb(16 24 40 / 0.45); }
 .hero-note { margin-top: var(--s1); color: var(--muted); font-size: 15px; }
 
 /* ---------- AI: add an expense from a sentence, and the description suggestion ---------- */
-.fab-menu-label > summary { width: auto; padding: 0 var(--s5) 0 var(--s4); }
-.fab-menu-label[open] > summary .icon { transform: rotate(45deg); }
 .title-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
 .title-row .btn .icon, .ai-btn .icon { width: 18px; height: 18px; }
 dialog[data-ai-dialog] .section-title { display: flex; align-items: center; gap: var(--s2); }
@@ -578,12 +573,14 @@ dialog[data-ai-dialog] textarea { min-height: 96px; resize: vertical; padding-bl
 .ai-missing li + li { margin-top: var(--s1); }
 /* The ✨ button inside the description box asks for a better wording. */
 .desc-box { position: relative; }
-.desc-box textarea { padding-right: 48px; }
+.desc-box textarea { display: block; padding-right: 44px; }
+/* A plain icon inside the box, at its bottom right corner (one line: centered on it). */
 .ai-btn {
-  position: absolute; right: 6px; bottom: 6px; width: 36px; height: 36px; display: grid; place-items: center;
-  border: 0; border-radius: 10px; background: var(--accent-soft); color: var(--accent); cursor: pointer;
+  position: absolute; right: 6px; bottom: 6px; width: 34px; height: 34px; display: grid; place-items: center;
+  border: 0; border-radius: 8px; background: none; color: var(--accent); cursor: pointer; padding: 0;
 }
-.ai-btn.is-loading { --spin: var(--accent); }
+.ai-btn:hover, .ai-btn:focus-visible { background: var(--accent-soft); }
+.ai-btn .icon { width: 20px; height: 20px; }
 
 /* "Covers 3 travelers -x USD": one line that opens to list each traveler and amount. */
 details.covers > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; flex-wrap: wrap; }
@@ -598,4 +595,4 @@ details.covers li { display: flex; justify-content: space-between; gap: var(--s3
 details.filters.is-filtered:not([open]) {
   position: sticky; top: 64px; z-index: 15; box-shadow: 0 4px 12px rgb(16 24 40 / 0.12);
 }
-.filters .two > .field:nth-child(3) { grid-column: 1 / -1; }
+.filters .two > .field:nth-child(5) { grid-column: 1 / -1; }

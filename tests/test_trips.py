@@ -769,3 +769,12 @@ def test_someone_covering_several_travelers_gets_one_short_line(owner_client, tr
     assert friend_row.count("Kid ") == 3  # Listed inside the line that opens.
     kid_row = html[html.index('row-title">Kid 0') :].split("</li>", 1)[0]
     assert "Covered by Friend" in kid_row and "+" not in kid_row.split("Covered by", 1)[1][:40]
+
+
+def test_avatar_letter_comes_from_the_given_name():
+    from apps.trips.templatetags.ui import initial
+
+    assert initial("HENG MALY") == "M"
+    assert initial("Person A") == "A"
+    assert initial("dara") == "D"
+    assert initial("") == ""

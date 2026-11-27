@@ -22,7 +22,7 @@
       {% endblock %}
       {% block header_end %}{% if user.is_authenticated %}
       <details class="menu">
-        <summary aria-label="{% translate 'Account menu' %}"><span class="avatar" aria-hidden="true">{{ user.display_name|first|upper }}</span></summary>
+        <summary aria-label="{% translate 'Account menu' %}"><span class="avatar" aria-hidden="true">{{ user.display_name|initial }}</span></summary>
         <div class="menu-panel">
           <div class="who"><strong>{{ user.display_name }}</strong><div class="tiny muted">{{ user.username }}</div></div>
           <a class="menu-item" href="{% url 'home' %}">{% translate "Trips" %}</a>

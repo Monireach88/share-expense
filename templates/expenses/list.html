@@ -42,8 +42,8 @@
 </div>
 {% endblock %}
 {% block bar %}{% if not trip.is_settled %}{% if ai_enabled %}
-<details class="fab-menu fab-menu-label" data-fab-menu>
-  <summary class="fab">{% icon "plus" %}{% translate "Add expense" %}</summary>
+<details class="fab-menu" data-fab-menu>
+  <summary class="fab" aria-label="{% translate 'Add expense' %}">{% icon "plus" %}</summary>
   <div class="fab-options" role="menu">
     <a role="menuitem" href="{% url 'expense_create' trip.id %}">{% icon "pencil" %}{% translate "Add manually" %}</a>
     <a role="menuitem" href="{% url 'expense_create' trip.id %}?ai=1">{% icon "sparkles" %}{% translate "Add with AI" %}</a>

@@ -38,7 +38,7 @@
     <ul class="list">
       {% for item in summary.others %}
       <li><div class="row">
-        <span class="avatar" aria-hidden="true">{{ item.person.name|first|upper }}</span>
+        <span class="avatar" aria-hidden="true">{{ item.person.name|initial }}</span>
         <span class="row-main">
           <span class="row-title">{{ item.person.name }}{% if item.is_me %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
           <span class="row-sub num">{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
