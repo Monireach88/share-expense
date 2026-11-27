@@ -49,12 +49,13 @@ class CloseAccountForm(forms.Form):
         self.fields["username"].widget.attrs.update(
             autocapitalize="none", spellcheck="false", autocomplete="off"
         )
+        self.fields["username"].help_text = self.confirm_text()
+
+    def confirm_text(self) -> str:
+        return _("Type “%(username)s” to confirm.") % {"username": self.user.username}
 
     def clean_username(self):
         typed = self.cleaned_data["username"].strip().lower()
         if typed != self.user.username:
-            raise forms.ValidationError(
-                _("Type your username, %(username)s, to confirm.")
-                % {"username": self.user.username}
-            )
+            raise forms.ValidationError(self.confirm_text())
         return typed

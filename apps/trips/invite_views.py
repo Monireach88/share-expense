@@ -40,7 +40,7 @@ def invite_page(request: HttpRequest, token: str) -> HttpResponse:
                 "trips/invite_notice.html",
                 {
                     "text": _(
-                        "You are signed in as %(name)s. Sign out first, then open this link again."
+                        "You are logged in as %(name)s. Log out first, then open this link again."
                     )
                     % {"name": user.display_name},
                     "sign_out": True,

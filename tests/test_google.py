@@ -91,7 +91,7 @@ def test_an_account_waiting_for_approval_sees_the_waiting_page(client, google, m
 @pytest.mark.django_db
 def test_a_signed_in_account_connects_google(owner_client, owner, google):
     page = owner_client.get(reverse("socialaccount_connections")).content.decode()
-    assert "Connect Google account" in page and "Not linked." in page
+    assert "Link Google account" in page and "Not linked." in page
     start = owner_client.post(reverse("google_login") + "?process=connect")
     state = parse_qs(urlparse(start["Location"]).query)["state"][0]
     owner_client.get(reverse("google_callback"), {"code": "c", "state": state})

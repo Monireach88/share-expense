@@ -21,14 +21,29 @@ class CloseRefused(Exception):
     """The account cannot be closed yet; the message says why."""
 
 
-def close_account(user: User) -> None:
+def owner_block(user: User) -> str:
+    """Why the account cannot be closed yet, or "": it owns trips that have other accounts."""
     owned = TripMember.objects.filter(user=user, role=TripMember.Role.OWNER).select_related("trip")
-    for membership in owned:
-        if membership.trip.memberships.exclude(user=user).exists():
-            raise CloseRefused(
-                _("You are the Owner of %(trip)s. Make someone else the Owner first.")
-                % {"trip": membership.trip.name}
-            )
+    names = [m.trip.name for m in owned if m.trip.memberships.exclude(user=user).exists()]
+    if not names:
+        return ""
+    trips = (
+        names[0]
+        if len(names) == 1
+        else _("%(trips)s and %(last)s")
+        % {
+            "trips": ", ".join(names[:-1]),
+            "last": names[-1],
+        }
+    )
+    return _("You are the Owner of %(trips)s. Make someone else the Owner first.") % {
+        "trips": trips
+    }
+
+
+def close_account(user: User) -> None:
+    if blocked := owner_block(user):
+        raise CloseRefused(blocked)
     with transaction.atomic():
         invites.cancel_owned_by(user)
         User.objects.filter(pk=user.pk).update(is_active=False, closed_at=timezone.now())

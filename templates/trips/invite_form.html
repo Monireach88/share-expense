@@ -6,23 +6,22 @@
 <h1 class="page-title">{% translate "Invite" %}</h1>
 {% if question %}
 <form method="post" id="invite-form" class="stack" style="margin-top: 16px">{% csrf_token %}
-  <div class="card"><p class="row-title">{{ question }}</p></div>
+  <div class="card stack"><p class="row-title history-line">{{ question.title }}</p><p class="row-sub">{{ question.detail }}</p></div>
   <input type="hidden" name="who" value="{{ form.who.value }}">
   <input type="hidden" name="traveler" value="{{ form.traveler.value }}">
   <input type="hidden" name="new_name" value="{{ form.new_name.value|default:'' }}">
   <input type="hidden" name="confirm" value="1">
 </form>
 {% else %}
-<p class="lead">{% translate "An approved account joins this trip at once as a Member. A new person gets a personal invite: a link that works once, for 7 days, with the Google account of the address you type." %}</p>
-<form method="post" id="invite-form" class="stack" style="margin-top: 16px">{% csrf_token %}
+<form method="post" id="invite-form" class="stack invite-form" style="margin-top: 16px">{% csrf_token %}
   {% include "_form_errors.html" %}
   {% include "_field.html" with field=form.who %}
   {% if form.pending %}
-  <div class="note">{% icon "triangle-alert" %}<div><p>{% translate "This address already has an invite to this trip." %}</p>
-    <button type="submit" class="btn btn-sm" formaction="{% url 'invite_resend' trip.id form.pending.pk %}" formnovalidate>{% translate "Send again" %}</button></div></div>
+  <div><button type="submit" class="btn btn-sm" formaction="{% url 'invite_resend' trip.id form.pending.pk %}" formnovalidate>{% translate "Send the invite again" %}</button></div>
   {% endif %}
   {% include "_checks.html" with field=form.traveler %}
-  {% if not trip.is_settled %}{% include "_field.html" with field=form.new_name %}{% endif %}
+  {# Shown only while "A new traveler" is chosen (CSS :has, no script); the server checks it too. #}
+  {% if not trip.is_settled %}<div class="new-name">{% include "_field.html" with field=form.new_name %}</div>{% endif %}
 </form>
 {% endif %}
 {% endblock %}

@@ -58,7 +58,7 @@
     <li><div class="row" style="flex-wrap: wrap">
       <span class="row-main">
         <span class="row-title">{{ invite.email }}</span>
-        <span class="row-sub">{% if invite.traveler_label %}{% blocktranslate with name=invite.traveler_label %}As {{ name }}{% endblocktranslate %}{% else %}{% translate "View only" %}{% endif %} · {% if invite.days_left %}{% blocktranslate count n=invite.days_left %}expires in {{ n }} day{% plural %}expires in {{ n }} days{% endblocktranslate %}{% else %}{% translate "Expired" %}{% endif %}</span>
+        <span class="row-sub">{% if invite.traveler_label %}{% blocktranslate with name=invite.traveler_label %}As {{ name }}{% endblocktranslate %}{% else %}{% translate "As Viewer" %}{% endif %} · {% if invite.expired %}{% translate "Expired" %}{% else %}{% blocktranslate with when=invite.expires_text %}expires on {{ when }}{% endblocktranslate %}{% endif %}</span>
       </span>
       <div class="actions" style="width: 100%">
         <form method="post" action="{% url 'invite_copy' trip.id invite.pk %}" hx-confirm="{% translate 'Make a new link? The old link will stop working.' %}">{% csrf_token %}<button type="submit" class="btn btn-secondary btn-sm">{% translate "Copy link" %}</button></form>
@@ -72,7 +72,7 @@
 {% endif %}
 {% if not membership.is_owner %}
 <section>
-  <form method="post" action="{% url 'trip_leave' trip.id %}" hx-confirm="{% translate 'Leave this trip? You will no longer see it, and your traveler is unlinked from your account. Only the Owner can add you again.' %}">{% csrf_token %}
+  <form method="post" action="{% url 'trip_leave' trip.id %}" hx-confirm="{% if membership.linked_traveler %}{% blocktranslate with name=membership.linked_traveler.name %}Leave this trip? You will no longer see it, and the traveler {{ name }} is unlinked from your account. Only the Owner can add you again.{% endblocktranslate %}{% else %}{% translate 'Leave this trip? You will no longer see it. Only the Owner can add you again.' %}{% endif %}">{% csrf_token %}
     <button type="submit" class="link-danger">{% translate "Leave this trip" %}</button>
   </form>
 </section>

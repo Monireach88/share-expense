@@ -80,8 +80,8 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             if verified_email(sociallogin) != invite.email:
                 request.session.pop(SESSION_KEY, None)
                 text = _(
-                    "This invite is for %(address)s. You signed in with another Google account. "
-                    "Sign out of Google and try again with the invited address."
+                    "This invite is for %(address)s, but you used another Google account. Sign "
+                    "out of Google, then open the invite link again and choose the invited address."
                 ) % {"address": invites.mask(invite.email)}
                 raise ImmediateHttpResponse(notice(request, text))
             return  # Signs in, or signs up below; the invite page then accepts the invite.
@@ -91,7 +91,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     request,
                     _(
                         "No account uses this Google account. If you have a username and "
-                        "password, sign in with them and link Google from the account menu. To "
+                        "password, log in with them and link Google from the account menu. To "
                         "join a trip, ask its Owner for an invite."
                     ),
                 )

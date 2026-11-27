@@ -634,3 +634,5 @@ details.filters.is-filtered:not([open]) {
 .dispute-close > summary, .dispute-new > summary { list-style: none; cursor: pointer; }
 .dispute-close > summary::-webkit-details-marker, .dispute-new > summary::-webkit-details-marker { display: none; }
 .fab-warn { background: var(--warn); color: var(--surface); }
+/* Invite form: the new traveler's name only while "A new traveler" is chosen. */
+.invite-form:not(:has(input[name="traveler"][value="new"]:checked)) .new-name { display: none; }

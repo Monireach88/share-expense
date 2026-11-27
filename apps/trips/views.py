@@ -6,7 +6,6 @@ from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -222,10 +221,10 @@ def people(request: HttpRequest, trip_id) -> HttpResponse:
     trip = membership.trip
     pending, new_link = [], None
     if membership.is_owner:
-        now = timezone.now()
         pending = list(invites.open_invites(trip))
         for invite in pending:
-            invite.days_left = invites.days_left(invite, now)
+            invite.expired = invites.is_expired(invite)
+            invite.expires_text = invites.expiry_text(invite)
         new_link = request.session.pop(NEW_LINK_KEY, None)
         if new_link and not any(i.pk == new_link["id"] for i in pending):
             new_link = None
@@ -368,12 +367,11 @@ NEW_LINK_KEY = "new_invite_link"
 
 def _show_link(request: HttpRequest, invite: Invite, token: str) -> None:
     """Keep the new link for the next Travelers page only: it is the one place it is shown."""
-    expires = timezone.localtime(invite.expires_at)
     request.session[NEW_LINK_KEY] = {
         "id": invite.pk,
         "url": invites.link_for(request, token),
         "email": invite.email,
-        "expires": f"{expires.day} {expires:%b} {expires.year}",
+        "expires": invites.expiry_text(invite),
     }
 
 
@@ -387,7 +385,7 @@ def invite_new(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id, owner_only=True)
     trip = membership.trip
     form = InviteForm(request.POST or None, trip=trip)
-    question = ""
+    question = None
     if request.method == "POST" and "back" not in request.POST and form.is_valid():
         if "confirm" not in request.POST:
             question = _question(form)
@@ -428,18 +426,18 @@ def invite_new(request: HttpRequest, trip_id) -> HttpResponse:
     )
 
 
-def _question(form: InviteForm) -> str:
-    traveler = form.traveler_text
+def _question(form: InviteForm) -> dict:
+    """The confirmation card: a title naming exactly who, and a second line with the traveler."""
     if form.user is not None:
-        text = _("Add %(name)s (%(username)s) to this trip now?") % {
+        title = _("Add %(name)s (%(username)s) to this trip now?") % {
             "name": form.user.display_name,
             "username": form.user.username,
         }
     else:
-        text = _("Invite exactly %(email)s?") % {"email": form.email}
-    if traveler:
-        return text + " " + _("Traveler: %(name)s.") % {"name": traveler}
-    return text + " " + _("No traveler (view only).")
+        title = _("Invite %(email)s?") % {"email": form.email}
+    traveler = form.traveler_text
+    detail = _("As %(name)s") % {"name": traveler} if traveler else _("As Viewer")
+    return {"title": title, "detail": detail}
 
 
 def _open_invite(membership: TripMember, invite_id) -> Invite:
@@ -459,7 +457,6 @@ def invite_copy(request: HttpRequest, trip_id, invite_id) -> HttpResponse:
     token = invites.renew(invite, by=membership, again=False)
     invite.refresh_from_db()
     _show_link(request, invite, token)
-    messages.success(request, _("This is a new link. The old link no longer works."))
     return redirect("people", trip_id=trip_id)
 
 

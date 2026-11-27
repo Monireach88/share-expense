@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 
 from apps.trips.invite_views import SESSION_KEY
 
-from .closing import CloseRefused, close_account
+from .closing import CloseRefused, close_account, owner_block
 from .forms import CloseAccountForm, LoginForm
 
 
@@ -36,9 +36,11 @@ def pending(request: HttpRequest) -> HttpResponse:
 
 
 def close(request: HttpRequest) -> HttpResponse:
-    """Delete account (spec section 6.5): the account is closed, not erased."""
+    """Close account (spec section 6.5): the account is closed, not erased. An Owner of a trip
+    with other accounts sees only why it cannot be closed yet."""
     form = CloseAccountForm(request.POST or None, user=request.user)
-    if request.method == "POST" and form.is_valid():
+    blocked = owner_block(request.user)
+    if request.method == "POST" and not blocked and form.is_valid():
         try:
             close_account(request.user)
         except CloseRefused as refused:
@@ -47,7 +49,7 @@ def close(request: HttpRequest) -> HttpResponse:
             logout(request)
             messages.success(request, _("Your account is closed."))
             return redirect("login")
-    return render(request, "registration/close_account.html", {"form": form})
+    return render(request, "registration/close_account.html", {"form": form, "blocked": blocked})
 
 
 @login_not_required

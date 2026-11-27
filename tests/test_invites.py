@@ -27,7 +27,14 @@ from django.utils import timezone
 from apps.disputes import rules
 from apps.disputes.models import Notification
 from apps.trips import history
-from apps.trips.models import HistoryEntry, Invite, InviteEmailAttempt, Participant, TripMember
+from apps.trips.models import (
+    HistoryEntry,
+    Invite,
+    InviteEmailAttempt,
+    Participant,
+    Trip,
+    TripMember,
+)
 
 from .conftest import PASSWORD
 from .test_google import google, sign_in_with_google  # noqa: F401
@@ -37,7 +44,7 @@ pytestmark = pytest.mark.django_db
 
 User = get_user_model()
 LINK = re.compile(r"/invite/([A-Za-z0-9_-]{40,})/")
-GONE = "This invite no longer works. Ask the Owner for a new one."
+GONE = "Ask the Owner of the trip for a new one."
 
 
 @pytest.fixture
@@ -103,14 +110,14 @@ def accept_with_google(client, link, google, email):  # noqa: F811
 def test_inviting_an_existing_account_by_username_adds_it_at_once(crew):
     fay = Participant.objects.create(trip=crew.trip, name="Fay")
     ask = post_invite(crew, "SAM", str(fay.pk), confirm=False).content.decode()
-    assert "Add Sam (sam) to this trip now?" in ask
+    assert "Add Sam (sam) to this trip now?" in ask and "As Fay" in ask
     assert not TripMember.objects.filter(trip=crew.trip, user=crew.users["sam"]).exists()
     response = post_invite(crew, "SAM", str(fay.pk))
     assert response.redirect_chain[-1][0] == crew.url("people")
     member = TripMember.objects.get(trip=crew.trip, user=crew.users["sam"])
     assert member.role == TripMember.Role.MEMBER and member.linked_traveler == fay
     assert texts(crew.trip) == ["Ann added Sam's account", "Ann linked traveler Fay to account Sam"]
-    assert notes(crew.users["sam"]) == ["Ann added you to Crew trip"]
+    assert notes(crew.users["sam"]) == ["Ann added you to the trip"]
     assert Notification.objects.get(user=crew.users["sam"]).link == crew.url("trip")
     assert not Invite.objects.exists()
 
@@ -118,7 +125,7 @@ def test_inviting_an_existing_account_by_username_adds_it_at_once(crew):
 def test_inviting_the_google_address_of_an_approved_account_adds_it(crew):
     link_google(crew.users["sam"], "sam@example.com")
     ask = post_invite(crew, "Sam@Example.com", confirm=False).content.decode()
-    assert "Add Sam (sam) to this trip now?" in ask
+    assert "Add Sam (sam) to this trip now?" in ask and "As Viewer" in ask
     post_invite(crew, "Sam@Example.com", "new", new_name="Sammy")
     member = TripMember.objects.get(trip=crew.trip, user=crew.users["sam"])
     assert member.linked_traveler.name == "Sammy"
@@ -127,7 +134,8 @@ def test_inviting_the_google_address_of_an_approved_account_adds_it(crew):
 
 def test_inviting_a_new_person_by_email(crew, email_on):
     ask = post_invite(crew, " gina@example.com ", "new", confirm=False, new_name="Gina")
-    assert "Invite exactly gina@example.com?" in ask.content.decode()
+    assert "Invite gina@example.com?" in ask.content.decode()
+    assert "As Gina" in ask.content.decode()
     assert not Invite.objects.exists()
     page = post_invite(crew, "gina@example.com", "new", new_name="Gina").content.decode()
     invite = the_invite(crew)
@@ -138,7 +146,10 @@ def test_inviting_a_new_person_by_email(crew, email_on):
     assert f'value="http://testserver{link}" readonly' in page and "data-copy=" in page
     assert len(email_on) == 1 and email_on[0].to == ["gina@example.com"]
     assert "The invite email was sent to gina@example.com." in page
-    assert "gina@example.com" in page and "expires in 7 days" in page
+    expires = timezone.localtime(invite.expires_at)
+    when = f"{expires.day} {expires:%b} {expires.year} at {expires:%H:%M}"
+    assert f"This link works once and expires on {when}." in page
+    assert f"As Gina · expires on {when}" in page
     assert texts(crew.trip) == ["Ann invited g***@example.com as Gina"]
     assert crew.trip.participants.filter(name="Gina").count() == 0  # Made when accepted.
 
@@ -174,7 +185,7 @@ def test_an_address_with_a_pending_invite_offers_send_again(crew):
     page = post_invite(crew, "GINA@example.com", confirm=False).content.decode()
     invite = the_invite(crew)
     assert "This address already has an invite to this trip." in page
-    assert crew.url("invite_resend", invite.pk) in page and "Send again" in page
+    assert crew.url("invite_resend", invite.pk) in page and "Send the invite again" in page
     post_invite(crew, "GINA@example.com")
     assert Invite.objects.count() == 1
     with pytest.raises(IntegrityError):
@@ -247,7 +258,7 @@ def test_send_again_on_an_expired_invite(crew, email_on):
     page = crew.client("ann").post(crew.url("invite_resend", the_invite(crew).pk), follow=True)
     html = page.content.decode()
     new = LINK.search(html).group(0)
-    assert new != old and "expires in 7 days" in html
+    assert new != old and "As Viewer · expires on " in html
     assert the_invite(crew).state == Invite.State.PENDING and len(email_on) == 2
     assert new in email_on[-1].body
     assert texts(crew.trip)[-1] == "Ann sent the invite for g***@example.com again"
@@ -318,7 +329,7 @@ def test_accepting_with_the_invited_google_account(crew, google):  # noqa: F811
         "Ann added traveler Gina",
         "Gina accepted the invite for g***@example.com as Gina",
     ]
-    assert notes(crew.users["ann"]) == ["Gina accepted your invite to Crew trip."]
+    assert notes(crew.users["ann"]) == ["Gina accepted your invite"]
     # The invite works once.
     assert GONE in Client().get(link).content.decode()
     assert visitor.get(link)["Location"] == crew.url("trip")  # Already on the trip.
@@ -358,8 +369,8 @@ def test_a_leaked_link_is_useless_to_a_stranger(crew, google):  # noqa: F811
     visitor = Client()
     page = accept_with_google(visitor, link, google, "eve.stranger@example.com").content.decode()
     assert (
-        "This invite is for g***@example.com. You signed in with another Google account. "
-        "Sign out of Google and try again with the invited address." in page
+        "This invite is for g***@example.com, but you used another Google account. Sign out of "
+        "Google, then open the invite link again and choose the invited address." in page
     )
     assert User.objects.count() == 6 and not SocialAccount.objects.exists()
     assert "_auth_user_id" not in visitor.session
@@ -371,7 +382,7 @@ def test_the_wrong_google_account_of_an_existing_account_joins_nothing(crew, goo
     link = invite_link(crew)
     visitor = Client()
     page = accept_with_google(visitor, link, google, "sam@example.com").content.decode()
-    assert "This invite is for g***@example.com." in page
+    assert "This invite is for g***@example.com, but you used another Google account." in page
     assert "_auth_user_id" not in visitor.session
     assert not TripMember.objects.filter(trip=crew.trip, user=crew.users["sam"]).exists()
 
@@ -392,7 +403,7 @@ def test_unknown_tokens_show_nothing(crew):
 def test_signed_in_as_another_account(crew):
     link = invite_link(crew)
     page = crew.client("sam").get(link).content.decode()
-    assert "You are signed in as Sam. Sign out first, then open this link again." in page
+    assert "You are logged in as Sam. Log out first, then open this link again." in page
     assert not TripMember.objects.filter(trip=crew.trip, user=crew.users["sam"]).exists()
 
 
@@ -423,9 +434,9 @@ def test_a_traveler_linked_or_removed_meanwhile_joins_as_view_only(crew, google,
     assert member.is_viewer
     assert texts(crew.trip)[-1] == "Gina accepted the invite for g***@example.com (view only)"
     assert notes(crew.users["ann"]) == [
-        "Gina accepted your invite to Crew trip, but traveler Fay could not be linked. "
-        "Link the right traveler on the Travelers page.",
-        "Gina accepted your invite to Crew trip.",
+        "Gina accepted your invite, but traveler Fay could not be linked. Link the right "
+        "traveler on the Travelers page.",
+        "Gina accepted your invite",
     ]
 
 
@@ -461,7 +472,7 @@ def test_google_sign_in_without_an_invite_is_refused(client, google, crew):  # n
     response = sign_in_with_google(client)
     page = response.content.decode()
     assert (
-        "No account uses this Google account. If you have a username and password, sign in with "
+        "No account uses this Google account. If you have a username and password, log in with "
         "them and link Google from the account menu. To join a trip, ask its Owner for an invite."
         in page
     )
@@ -492,7 +503,8 @@ def test_a_linked_google_account_signs_in_even_after_its_address_changed(client,
 def test_old_shared_links_are_dead(client, crew):
     for path in ("/join/abc123/", "/join/" + "y" * 32 + "/"):
         response = client.get(path)
-        assert "This invite no longer works." in response.content.decode()
+        assert "This invite no longer works" in response.content.decode()
+        assert "Go to my trips" not in response.content.decode()  # Not logged in.
     assert "Crew trip" not in crew.client("sam").get("/join/abc/").content.decode()
 
 
@@ -507,7 +519,9 @@ def test_the_old_sign_up_address_goes_to_the_sign_in_page(client):
 def test_a_member_leaves_the_trip(crew):
     cara = crew.client("cara")
     page = cara.get(crew.url("people")).content.decode()
-    assert "Leave this trip" in page
+    assert "Leave this trip" in page and "the traveler Cara is unlinked" in page
+    viewer = crew.client("eve").get(crew.url("people")).content.decode()
+    assert "Leave this trip? You will no longer see it. Only the Owner can add you again." in viewer
     assert "Leave this trip" not in crew.client("ann").get(crew.url("people")).content.decode()
     response = cara.post(crew.url("trip_leave"))
     assert response["Location"] == reverse("home")
@@ -535,7 +549,7 @@ def test_the_owner_cannot_leave(crew):
 def test_the_account_menu_shows_the_google_account(crew, settings):
     settings.GOOGLE_CLIENT_ID = "test-client"
     page = crew.client("sam").get(reverse("home")).content.decode()
-    assert "Google account" in page and "Not linked" in page and "Delete account" in page
+    assert "Google account" in page and "Not linked" in page and "Close account" in page
     link_google(crew.users["sam"], "sam@example.com")
     page = crew.client("sam").get(reverse("home")).content.decode()
     assert "Linked: sam@example.com" in page
@@ -553,9 +567,12 @@ def test_closing_an_account(crew, make_user):
     for device in (phone, laptop):
         device.post(reverse("login"), {"username": "cara", "password": PASSWORD})
     page = phone.get(reverse("account_close")).content.decode()
-    assert "Your account will be closed. You will be signed out and cannot sign in again." in page
-    assert "Close my account" in page
-    assert "Type your username" in close(phone, "carax").content.decode()
+    assert (
+        "Your account will be closed. You will be logged out and cannot log in until the admin "
+        "restores the account." in page
+    )
+    assert "Close my account" in page and "Type “cara” to confirm." in page
+    assert "Type “cara” to confirm." in close(phone, "carax").content.decode()
     response = close(phone, "CARA")
     assert response.status_code == 302 and response["Location"] == reverse("login")
     cara.refresh_from_db()
@@ -572,15 +589,22 @@ def test_closing_an_account(crew, make_user):
 
 
 def test_an_owner_cannot_close_while_others_are_in_the_trip(crew):
-    page = close(crew.client("ann"), "ann").content.decode()
+    ann = crew.client("ann")
+    page = ann.get(reverse("account_close")).content.decode()
     assert "You are the Owner of Crew trip. Make someone else the Owner first." in page
+    assert "Close my account" not in page and 'name="username"' not in page
+    other = Trip.objects.create(name="Other trip", created_by=crew.users["ann"])
+    TripMember.objects.create(trip=other, user=crew.users["ann"], role=TripMember.Role.OWNER)
+    TripMember.objects.create(trip=other, user=crew.users["ben"])
+    page = ann.get(reverse("account_close")).content.decode()
+    assert "You are the Owner of Crew trip and Other trip. Make someone else" in page
+    page = close(ann, "ann").content.decode()
+    assert "You are the Owner of Crew trip and Other trip." in page
     assert User.objects.get(username="ann").is_active
 
 
 def test_an_owner_alone_on_a_trip_may_close_and_their_invites_are_cancelled(crew):
     sam = crew.users["sam"]
-    from apps.trips.models import Trip
-
     solo = Trip.objects.create(name="Solo trip", created_by=sam)
     TripMember.objects.create(trip=solo, user=sam, role=TripMember.Role.OWNER)
     client = crew.client("sam")
@@ -646,7 +670,8 @@ def test_closed_accounts_cannot_become_owner(crew):
 # --- 6.6 Email ----------------------------------------------------------------------------------
 
 
-def test_the_invite_email(crew, email_on):
+def test_the_invite_email(crew, email_on, settings):
+    settings.TIME_ZONE = "Asia/Phnom_Penh"
     crew.trip.name = "Phnom <b>Penh</b>"
     crew.trip.save()
     users = User.objects.filter(pk=crew.users["ann"].pk)
@@ -655,10 +680,10 @@ def test_the_invite_email(crew, email_on):
     message = email_on[0]
     assert message.subject == "Ann <i> invited you to Phnom <b>Penh</b> on Share Expense"
     expires = timezone.localtime(the_invite(crew).expires_at)
-    day = f"{expires.day} {expires:%b} {expires.year}"
+    day = f"{expires.day} {expires:%b} {expires.year} at {expires:%H:%M}"
     for text in (
-        f"http://testserver{link}",
-        f"This link works once and expires on {day}.",
+        f"http://testserver{link}\nUse the Google account of gina@example.com.",
+        f"This link works once and expires on {day} (Phnom Penh time).",
         "If you do not know Ann <i>, ignore this email.",
     ):
         assert text in message.body
@@ -672,7 +697,7 @@ def test_email_not_configured(crew, settings):
     settings.EMAIL_HOST = ""
     mail.outbox.clear()
     page = post_invite(crew, "gina@example.com").content.decode()
-    assert "Email is not set up, so send this link yourself." in page
+    assert "Email sending is not set up. Copy the link and send it yourself." in page
     assert LINK.search(page) and Invite.objects.count() == 1 and not mail.outbox
     assert not InviteEmailAttempt.objects.exists()
 

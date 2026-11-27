@@ -154,7 +154,6 @@ class InviteForm(forms.Form):
         label=_("New traveler's name"),
         max_length=80,
         required=False,
-        help_text=_("Only for “A new traveler”."),
     )
 
     def __init__(self, *args, trip: Trip, **kwargs):

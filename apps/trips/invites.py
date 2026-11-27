@@ -8,7 +8,6 @@ partly hidden ("d***@example.com"), because every member can read History.
 
 import hashlib
 import logging
-import math
 import secrets
 from dataclasses import dataclass
 from datetime import timedelta
@@ -88,10 +87,22 @@ def google_user(email: str):
     return account.user if account else None
 
 
-def days_left(invite: Invite, now=None) -> int:
-    """Whole days left, rounded up: 7 right after it was made, 0 once expired."""
-    seconds = (invite.expires_at - (now or timezone.now())).total_seconds()
-    return max(0, math.ceil(seconds / 86400))
+def expiry_text(invite: Invite) -> str:
+    """When the link stops working, in the app's time zone: "5 Dec 2026 at 00:16"."""
+    when = timezone.localtime(invite.expires_at)
+    return _("%(day)s at %(time)s") % {
+        "day": f"{when.day} {when:%b} {when.year}",
+        "time": f"{when:%H:%M}",
+    }
+
+
+def time_zone_city() -> str:
+    """The city of the app's time zone, for the email: "Asia/Phnom_Penh" -> "Phnom Penh"."""
+    return settings.TIME_ZONE.rsplit("/", 1)[-1].replace("_", " ")
+
+
+def is_expired(invite: Invite) -> bool:
+    return invite.state == Invite.State.EXPIRED or invite.expires_at <= timezone.now()
 
 
 def open_invites(trip: Trip):
@@ -224,7 +235,9 @@ def accept(invite: Invite, token: str, user) -> Trip:
         trip = lock_trip(invite.trip)
         invite = Invite.objects.select_for_update().get(pk=invite.pk)
         if invite.token_hash != token_hash(token) or not is_live(invite):
-            raise InviteRefused(_("This invite no longer works. Ask the Owner for a new one."))
+            raise InviteRefused(
+                _("This invite no longer works. Ask the Owner of the trip for a new one.")
+            )
         if user.is_closed:
             raise InviteRefused(_("This account is closed. Ask the admin to restore it."))
         if TripMember.objects.filter(trip=trip, user=user).exists():
@@ -314,7 +327,7 @@ def send_email(invite: Invite, link: str, sender) -> Outcome:
     """Send the invite email, unless email is not set up or ``sender`` reached the hourly limit.
     A failed send never loses the invite; the Owner copies the link instead."""
     if not email_configured():
-        return Outcome(False, _("Email is not set up, so send this link yourself."))
+        return Outcome(False, _("Email sending is not set up. Copy the link and send it yourself."))
     since = timezone.now() - timedelta(hours=1)
     if (
         InviteEmailAttempt.objects.filter(sender=sender, created_at__gte=since).count()
@@ -328,12 +341,13 @@ def send_email(invite: Invite, link: str, sender) -> Outcome:
             ),
         )
     InviteEmailAttempt.objects.create(sender=sender)
-    expires = timezone.localtime(invite.expires_at)
     context = {
         "inviter": sender.display_name,
         "trip": invite.trip.name,
         "link": link,
-        "expires": f"{expires.day} {expires:%b} {expires.year}",
+        "address": invite.email,
+        "expires": expiry_text(invite),
+        "city": time_zone_city(),
     }
     message = EmailMultiAlternatives(
         subject=render_to_string("trips/email/invite_subject.txt", context).strip(),
