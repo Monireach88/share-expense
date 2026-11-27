@@ -13,6 +13,10 @@ def env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in os.environ.get(name, default).split(",") if item.strip()]
 
 
+def env_bool(name: str, default: str = "false") -> bool:
+    return os.environ.get(name, default).strip().lower() in ("1", "true", "yes")
+
+
 DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY:
@@ -120,12 +124,37 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 SOCIALACCOUNT_ADAPTER = "apps.accounts.adapters.SocialAccountAdapter"
 ACCOUNT_ADAPTER = "apps.accounts.adapters.AccountAdapter"
-# A Google account whose verified email belongs to an account signs in to that account.
-SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
-SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+# A Google sign-in is matched only by the Google account itself, never by an email address
+# typed into an account: with these on, anyone whose Google address equals an account's stored
+# email would take over that account (spec section 6.4).
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = False
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = False
+# New accounts come only from a personal invite (apps/accounts/adapters.py opens sign-up then).
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_STORE_TOKENS = False
-ACCOUNT_EMAIL_VERIFICATION = "none"  # The app sends no email; Google has verified the address.
+ACCOUNT_EMAIL_VERIFICATION = "none"  # Google has verified the address.
+# Addresses never identify an account here, so two accounts may share one; otherwise an invite
+# accepted by an address the admin once typed into another account would stop at allauth's form.
+ACCOUNT_UNIQUE_EMAIL = False
+
+# The personal invite email (spec section 6.6), sent by SMTP. Every value comes from the
+# environment. An empty EMAIL_HOST means email is not set up: the Owner sends the link
+# themselves, and Django only prints emails to the console.
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_HOST
+    else "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "25"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS")
+if EMAIL_USE_SSL and EMAIL_USE_TLS:
+    raise ImproperlyConfigured("Set only one of EMAIL_USE_SSL and EMAIL_USE_TLS to true")
+EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "10"))
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webmaster@localhost")
 
 # Login rate limit (django-axes): lock a username + IP pair after 5 failures for 1 hour.
 AXES_FAILURE_LIMIT = int(os.environ.get("AXES_FAILURE_LIMIT", "5"))

@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% block title %}{% translate "Delete account" %}{% endblock %}
+{% block back %}<a class="back" href="{% url 'home' %}">{% icon "chevron-left" %}<span>{% translate "Trips" %}</span></a>{% endblock %}
+{% block content %}
+<h1 class="page-title">{% translate "Delete account" %}</h1>
+<div class="note" style="margin-top: 16px">{% icon "triangle-alert" %}<div>{% translate "Your account will be closed. You will be signed out and cannot sign in again. Your name stays in the records of your trips (expenses, balances and History), because they are shared money records. The admin can restore the account if you ask." %}</div></div>
+<form method="post" id="close-form" class="stack" style="margin-top: 16px">{% csrf_token %}
+  {% include "_form_errors.html" %}
+  {% include "_field.html" with field=form.username %}
+  <p class="help">{% blocktranslate with username=user.username %}Type {{ username }} to confirm.{% endblocktranslate %}</p>
+</form>
+{% endblock %}
+{% block bar %}
+<div class="bottom-bar"><div class="container">
+  <a class="btn btn-secondary" href="{% url 'home' %}">{% translate "Cancel" %}</a>
+  <button type="submit" form="close-form" class="btn btn-danger">{% translate "Close my account" %}</button>
+</div></div>
+{% endblock %}

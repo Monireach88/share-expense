@@ -2,6 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models
+from django.db.models.functions import Lower
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
@@ -25,9 +26,6 @@ class Trip(models.Model):
     # Set when the owner marks the trip as settled; the expenses are then locked until the
     # owner reopens it. How people paid each other is up to them, not recorded here.
     settled_at = models.DateTimeField(_("settled on"), null=True, blank=True)
-    # The secret in the invite link (spec section 6.3). None means the link is off; renewing
-    # replaces it, which stops the old link.
-    invite_token = models.CharField(max_length=64, unique=True, null=True, blank=True, default=None)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
     )
@@ -132,25 +130,6 @@ class TripMember(models.Model):
             return True
         traveler = self.linked_traveler
         return traveler is not None and str(payer_id) == str(traveler.pk)
-
-
-class RemovedAccount(models.Model):
-    """An account the Owner removed from a trip. It cannot rejoin by invite link until the Owner
-    adds it again, which deletes this mark."""
-
-    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="removed_accounts")
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="removed_from"
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["trip", "user"], name="unique_removed_account")
-        ]
-
-    def __str__(self) -> str:
-        return f"{self.user} removed from {self.trip}"
 
 
 class Participant(models.Model):
@@ -268,3 +247,84 @@ class HistoryEntry(models.Model):
 
     def delete(self, *args, **kwargs):
         raise TypeError("History entries cannot be deleted.")
+
+
+class Invite(models.Model):
+    """A personal invite: one email address, one trip, one traveler choice (spec section 6.2).
+
+    The link holds a random token; only its SHA-256 hash is stored, so a new link (Copy link,
+    Send again) replaces the hash and ends the old link. An invite is open while it is pending
+    or expired; Send again makes an expired one pending again. The database allows one open
+    invite per trip and address, letter case ignored.
+    """
+
+    class State(models.TextChoices):
+        PENDING = "pending", _("Pending")
+        EXPIRED = "expired", _("Expired")
+        ACCEPTED = "accepted", _("Accepted")
+        CANCELLED = "cancelled", _("Cancelled")
+
+    OPEN_STATES = (State.PENDING, State.EXPIRED)
+
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="invites")
+    email = models.EmailField(_("email address"))
+    # The traveler choice: an existing traveler, a new traveler's name, or neither (view only).
+    traveler = models.ForeignKey(
+        Participant, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    traveler_name = models.CharField(max_length=80, blank=True)  # Kept if the traveler goes.
+    new_traveler_name = models.CharField(max_length=80, blank=True)
+    token_hash = models.CharField(max_length=64, unique=True)
+    state = models.CharField(max_length=10, choices=State.choices, default=State.PENDING)
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    invited_by_name = models.CharField(max_length=150, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    sent_at = models.DateTimeField(null=True, blank=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    accepted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                Lower("email"),
+                "trip",
+                condition=models.Q(state__in=["pending", "expired"]),
+                name="one_open_invite_per_address",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.email} to {self.trip} ({self.state})"
+
+    @property
+    def is_open(self) -> bool:
+        return self.state in self.OPEN_STATES
+
+    @property
+    def traveler_label(self) -> str:
+        """The traveler the invite is for, or "" for view only."""
+        return self.new_traveler_name or self.traveler_name
+
+
+class InviteEmailAttempt(models.Model):
+    """One invite email sent or attempted, counted for the limit of 20 per account per hour."""
+
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["sender", "created_at"], name="invite_email_sender_time")]
+
+    def __str__(self) -> str:
+        return f"{self.sender} at {self.created_at}"

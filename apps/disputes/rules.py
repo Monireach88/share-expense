@@ -166,6 +166,7 @@ def notification_text(item: Notification) -> str:
         "label": f"“{item.label}”",
         "detail": item.detail,
         "opener": item.opener_name or _("someone"),
+        "trip": item.label,
     }
     texts = {
         Notification.Kind.DISPUTE_OPENED: _("%(who)s opened a dispute on %(label)s: %(detail)s"),
@@ -178,6 +179,12 @@ def notification_text(item: Notification) -> str:
         ),
         Notification.Kind.SETTLED: _("%(who)s settled the trip"),
         Notification.Kind.REOPENED: _("%(who)s reopened the trip"),
+        Notification.Kind.ADDED: _("%(who)s added you to %(trip)s"),
+        Notification.Kind.INVITE_ACCEPTED: _("%(who)s accepted your invite to %(trip)s."),
+        Notification.Kind.INVITE_UNLINKED: _(
+            "%(who)s accepted your invite to %(trip)s, but traveler %(detail)s could not be "
+            "linked. Link the right traveler on the Travelers page."
+        ),
     }
     return texts[item.kind] % data
 

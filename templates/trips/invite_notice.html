@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load i18n %}
+{% comment %}A personal invite that cannot be accepted by this visitor (spec section 6.3), or a Google sign-in that is refused (section 6.4).{% endcomment %}
+{% block title %}{% translate "Share Expense" %}{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<div class="card empty" style="margin-top: 24px">
+  <div class="empty-icon" aria-hidden="true">🔑</div>
+  <p>{{ text }}</p>
+  {% if sign_out %}
+  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="btn">{% translate "Log out" %}</button></form>
+  {% else %}
+  <a class="btn" href="{% url 'login' %}">{% translate "Back to log in" %}</a>
+  {% endif %}
+</div>
+{% endblock %}

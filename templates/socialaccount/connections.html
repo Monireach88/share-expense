@@ -1,9 +1,9 @@
 {% extends "base.html" %}{% load i18n ui socialaccount %}
 {% comment %}Replaces django-allauth's page: connect or remove the Google account used to sign in.{% endcomment %}
-{% block title %}{% translate "Google sign-in" %}{% endblock %}
+{% block title %}{% translate "Google account" %}{% endblock %}
 {% block back %}<a class="back" href="{% url 'home' %}">{% icon "chevron-left" %}<span>{% translate "All trips" %}</span></a>{% endblock %}
 {% block content %}
-<h1 class="page-title">{% translate "Google sign-in" %}</h1>
+<h1 class="page-title">{% translate "Google account" %}</h1>
 <div class="stack-lg" style="margin-top: 16px">
 {% if form.accounts %}
 <section class="card stack">
@@ -21,7 +21,7 @@
 </section>
 {% else %}
 <section class="card stack">
-  <p>{% translate "Connect a Google account to sign in without your password." %}</p>
+  <p>{% translate "Not linked. Link a Google account to sign in without your password." %}</p>
   <form method="post" action="{% provider_login_url 'google' process='connect' %}" hx-boost="false">{% csrf_token %}
     <button type="submit" class="btn btn-secondary btn-block btn-google">{% include "_google_logo.html" %}{% translate "Connect Google account" %}</button>
   </form>

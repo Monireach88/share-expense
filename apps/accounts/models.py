@@ -7,7 +7,8 @@ from . import usernames
 
 
 class User(AbstractUser):
-    """A person who can log in. New sign-ups stay inactive until the admin approves them.
+    """A person who can log in. Inactive accounts either wait for the admin's approval (made
+    before personal invites existed) or were closed by their owner (``closed_at`` is set).
 
     The username is a-z, 0-9 and _ (3 to 30), always stored in lowercase, and unique in any
     letter case (a database index on the lowercase name backs this up).
@@ -20,9 +21,9 @@ class User(AbstractUser):
         validators=[usernames.validate_username],
         error_messages={"unique": usernames.TAKEN},
     )
-    # The invite link this account came from while it waited for approval (spec section 6.3).
-    # Its first sign-in opens that join page; opening any join page clears it.
-    invite_token = models.CharField(max_length=64, blank=True, editable=False)
+    # Set when the person closes their account (spec section 6.5). A closed account is also
+    # inactive; this field tells it apart from one that waits for the admin's approval.
+    closed_at = models.DateTimeField("closed on", null=True, blank=True)
 
     class Meta(AbstractUser.Meta):
         constraints = [
@@ -32,6 +33,10 @@ class User(AbstractUser):
                 violation_error_message=usernames.TAKEN,
             )
         ]
+
+    @property
+    def is_closed(self) -> bool:
+        return self.closed_at is not None
 
     @property
     def display_name(self) -> str:

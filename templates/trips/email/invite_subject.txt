@@ -1,0 +1,1 @@
+{% load i18n %}{% autoescape off %}{% blocktranslate %}{{ inviter }} invited you to {{ trip }} on Share Expense{% endblocktranslate %}{% endautoescape %}

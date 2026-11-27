@@ -3,9 +3,10 @@ from contextlib import suppress
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, Q
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -14,10 +15,10 @@ from apps.disputes.models import Dispute
 from apps.expenses.models import Expense
 from apps.settlement.engine import SettlementError
 
-from . import actions, history
+from . import actions, history, invites
 from .access import get_membership, locked
-from .forms import ExchangeRateForm, MemberAddForm, MemberRoleForm, ParticipantForm, TripForm
-from .models import ExchangeRate, Participant, Trip, TripMember
+from .forms import ExchangeRateForm, InviteForm, MemberRoleForm, ParticipantForm, TripForm
+from .models import ExchangeRate, Invite, Participant, Trip, TripMember
 from .offline import cacheable_page
 from .pagination import paginate
 from .summary import named, trip_settlement, trip_status
@@ -219,25 +220,32 @@ def trip_delete(request: HttpRequest, trip_id) -> HttpResponse:
 def people(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
-    invite_url = ""
-    if membership.is_owner and trip.invite_token:
-        invite_url = request.build_absolute_uri(reverse("join", args=[trip.invite_token]))
+    pending, new_link = [], None
+    if membership.is_owner:
+        now = timezone.now()
+        pending = list(invites.open_invites(trip))
+        for invite in pending:
+            invite.days_left = invites.days_left(invite, now)
+        new_link = request.session.pop(NEW_LINK_KEY, None)
+        if new_link and not any(i.pk == new_link["id"] for i in pending):
+            new_link = None
     response = render(
         request,
         "trips/people.html",
         {
             "trip": trip,
             "membership": membership,
-            "invite_url": invite_url,
             "participants": paginate(
                 request, trip.participants.select_related("user").prefetch_related("sponsors")
             ),
             "members": _members(trip),
+            "pending": pending,
+            "new_link": new_link,
             "tab": "people",
         },
     )
-    if invite_url:
-        response.no_sw_cache = True  # The secret link is not kept by the browser.
+    if pending or new_link:
+        response.no_sw_cache = True  # Addresses and the secret link are not kept by the browser.
     return response
 
 
@@ -353,47 +361,142 @@ def participant_delete(request: HttpRequest, trip_id, participant_id) -> HttpRes
     )
 
 
-def member_add(request: HttpRequest, trip_id) -> HttpResponse:
+# --- Inviting a person (spec section 6.2) --------------------------------------------------------
+
+NEW_LINK_KEY = "new_invite_link"
+
+
+def _show_link(request: HttpRequest, invite: Invite, token: str) -> None:
+    """Keep the new link for the next Travelers page only: it is the one place it is shown."""
+    expires = timezone.localtime(invite.expires_at)
+    request.session[NEW_LINK_KEY] = {
+        "id": invite.pk,
+        "url": invites.link_for(request, token),
+        "email": invite.email,
+        "expires": f"{expires.day} {expires:%b} {expires.year}",
+    }
+
+
+def _email_message(request: HttpRequest, outcome: invites.Outcome) -> None:
+    (messages.success if outcome.sent else messages.error)(request, outcome.message)
+
+
+def invite_new(request: HttpRequest, trip_id) -> HttpResponse:
+    """One form for both cases, then a confirmation: an approved account joins at once, any
+    other email address gets a personal invite (its link is shown on the Travelers page)."""
     membership = get_membership(request, trip_id, owner_only=True)
     trip = membership.trip
-    form = MemberAddForm(request.POST or None, trip=trip)
-    if request.method == "GET" and request.GET.get("username"):
-        # The page asks again when the username changes, to pre-select the matching traveler.
-        form = MemberAddForm(trip=trip, initial={"username": request.GET["username"]})
-        form.preselect(request.GET["username"])
-    if request.method == "POST" and form.is_valid():
-        try:
-            actions.add_member(
+    form = InviteForm(request.POST or None, trip=trip)
+    question = ""
+    if request.method == "POST" and "back" not in request.POST and form.is_valid():
+        if "confirm" not in request.POST:
+            question = _question(form)
+        elif form.user is not None:
+            try:
+                actions.add_member(
+                    trip,
+                    form.user,
+                    by=membership,
+                    traveler=form.participant,
+                    new_traveler_name=form.new_traveler_name,
+                )
+            except actions.ActionRefused as refused:
+                form.add_error(None, str(refused))
+            else:
+                messages.success(
+                    request,
+                    _("%(name)s can now open this trip.") % {"name": form.user.display_name},
+                )
+                return redirect("people", trip_id=trip.id)
+        else:
+            invite, token = invites.create(
                 trip,
-                form.user,
+                form.email,
                 by=membership,
                 traveler=form.participant,
-                new_traveler=form.new_traveler,
+                new_traveler_name=form.new_traveler_name,
             )
-        except actions.ActionRefused as refused:
-            form.add_error("traveler", str(refused))
-        else:
-            messages.success(
-                request, _("%(name)s can now open this trip.") % {"name": form.user.display_name}
+            _show_link(request, invite, token)
+            _email_message(
+                request, invites.send_email(invite, invites.link_for(request, token), request.user)
             )
             return redirect("people", trip_id=trip.id)
-    return render(request, "trips/member_form.html", {"trip": trip, "form": form})
+    return render(
+        request,
+        "trips/invite_form.html",
+        {"trip": trip, "membership": membership, "form": form, "question": question},
+    )
+
+
+def _question(form: InviteForm) -> str:
+    traveler = form.traveler_text
+    if form.user is not None:
+        text = _("Add %(name)s (%(username)s) to this trip now?") % {
+            "name": form.user.display_name,
+            "username": form.user.username,
+        }
+    else:
+        text = _("Invite exactly %(email)s?") % {"email": form.email}
+    if traveler:
+        return text + " " + _("Traveler: %(name)s.") % {"name": traveler}
+    return text + " " + _("No traveler (view only).")
+
+
+def _open_invite(membership: TripMember, invite_id) -> Invite:
+    return get_object_or_404(
+        Invite.objects.select_related("trip"),
+        pk=invite_id,
+        trip=membership.trip,
+        state__in=Invite.OPEN_STATES,
+    )
 
 
 @require_POST
-def invite_change(request: HttpRequest, trip_id, change: str) -> HttpResponse:
-    """Owner: turn the invite link on or off, or renew it (the old link stops working)."""
+def invite_copy(request: HttpRequest, trip_id, invite_id) -> HttpResponse:
+    """A new link to copy: the old link stops working and the 7 days start again."""
     membership = get_membership(request, trip_id, owner_only=True)
-    if change not in ("on", "off", "renew"):
-        raise Http404
-    actions.set_invite_link(membership.trip, change, by=membership)
-    text = {
-        "on": _("The invite link is on."),
-        "off": _("The invite link is off."),
-        "renew": _("The invite link is renewed. The old link no longer works."),
-    }[change]
-    messages.success(request, text)
+    invite = _open_invite(membership, invite_id)
+    token = invites.renew(invite, by=membership, again=False)
+    invite.refresh_from_db()
+    _show_link(request, invite, token)
+    messages.success(request, _("This is a new link. The old link no longer works."))
     return redirect("people", trip_id=trip_id)
+
+
+@require_POST
+def invite_resend(request: HttpRequest, trip_id, invite_id) -> HttpResponse:
+    """A new link by email, also for an expired invite; the old link stops working."""
+    membership = get_membership(request, trip_id, owner_only=True)
+    invite = _open_invite(membership, invite_id)
+    token = invites.renew(invite, by=membership, again=True)
+    invite.refresh_from_db()
+    _show_link(request, invite, token)
+    _email_message(
+        request, invites.send_email(invite, invites.link_for(request, token), request.user)
+    )
+    return redirect("people", trip_id=trip_id)
+
+
+@require_POST
+def invite_cancel(request: HttpRequest, trip_id, invite_id) -> HttpResponse:
+    membership = get_membership(request, trip_id, owner_only=True)
+    invite = _open_invite(membership, invite_id)
+    invites.cancel(invite, by=membership)
+    messages.success(request, _("The invite for %(email)s is cancelled.") % {"email": invite.email})
+    return redirect("people", trip_id=trip_id)
+
+
+@require_POST
+def trip_leave(request: HttpRequest, trip_id) -> HttpResponse:
+    """A Member or an Editor leaves the trip (spec section 6.4); the Owner cannot."""
+    membership = get_membership(request, trip_id)
+    try:
+        actions.leave_trip(membership)
+    except actions.ActionRefused as refused:
+        messages.error(request, str(refused))
+        return redirect("people", trip_id=trip_id)
+    messages.success(request, _("You left %(trip)s.") % {"trip": membership.trip.name})
+    return redirect("home")
 
 
 @require_POST
@@ -469,7 +572,13 @@ def member_transfer(request: HttpRequest, trip_id, member_id) -> HttpResponse:
     """Make another approved account the Owner, after a confirmation; the old Owner becomes an Editor."""
     membership = get_membership(request, trip_id, owner_only=True)
     member = _other_member(membership, member_id)
-    blocked = "" if member.user.is_active else _("This account is not approved yet.")
+    blocked = (
+        _("This account is closed.")
+        if member.user.is_closed
+        else ""
+        if member.user.is_active
+        else _("This account is not approved yet.")
+    )
     if request.method == "POST" and not blocked:
         try:
             actions.transfer_ownership(member, by=membership)

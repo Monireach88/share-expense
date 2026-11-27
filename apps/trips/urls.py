@@ -4,7 +4,7 @@ from apps.accounts.views import health
 from apps.disputes import views as dispute_views
 from apps.expenses import views as expense_views
 
-from . import history_views, join_views, views
+from . import history_views, invite_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -96,13 +96,26 @@ urlpatterns = [
         views.participant_delete,
         name="participant_delete",
     ),
-    path("trips/<uuid:trip_id>/members/new/", views.member_add, name="member_add"),
+    path("trips/<uuid:trip_id>/invites/new/", views.invite_new, name="invite_new"),
     path(
-        "trips/<uuid:trip_id>/invite/<slug:change>/",
-        views.invite_change,
-        name="invite_change",
+        "trips/<uuid:trip_id>/invites/<int:invite_id>/copy/",
+        views.invite_copy,
+        name="invite_copy",
     ),
-    path("join/<str:token>/", join_views.join, name="join"),
+    path(
+        "trips/<uuid:trip_id>/invites/<int:invite_id>/resend/",
+        views.invite_resend,
+        name="invite_resend",
+    ),
+    path(
+        "trips/<uuid:trip_id>/invites/<int:invite_id>/cancel/",
+        views.invite_cancel,
+        name="invite_cancel",
+    ),
+    path("trips/<uuid:trip_id>/leave/", views.trip_leave, name="trip_leave"),
+    path("invite/<str:token>/", invite_views.invite_page, name="invite"),
+    # The removed shared invite link: old addresses say that it no longer works.
+    path("join/<str:token>/", invite_views.old_join_link, name="join"),
     path("trips/<uuid:trip_id>/members/<int:member_id>/", views.member_edit, name="member_edit"),
     path(
         "trips/<uuid:trip_id>/members/<int:member_id>/owner/",
