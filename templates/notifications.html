@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% comment %}The account's notifications, newest first; each names its trip and opens what it is about. Opening this page marks them read.{% endcomment %}
+{% block title %}{% translate "Notifications" %}{% endblock %}
+{% block back %}<a class="back" href="{% url 'home' %}">{% icon "chevron-left" %}<span>{% translate "Trips" %}</span></a>{% endblock %}
+{% block content %}
+<h1 class="page-title">{% translate "Notifications" %}</h1>
+{% if items %}
+<div class="paged">
+<ul class="list" style="margin-top: 16px">
+  {% for item in items %}
+  <li><a class="row{% if not item.read_at %} unread{% endif %}" href="{{ item.link }}">
+    <span class="row-main">
+      <span class="row-title history-line">{% if not item.read_at %}<span class="dot" aria-label="{% translate 'New' %}"></span>{% endif %}{{ item.text }}</span>
+      <span class="row-sub">{{ item.trip.name }} · {% blocktranslate with day=item.created_at|date:"j M Y" time=item.created_at|time:"H:i" %}{{ day }} at {{ time }}{% endblocktranslate %}</span>
+    </span>
+    {% icon "chevron-right" "chev" %}
+  </a></li>
+  {% endfor %}
+</ul>
+{% include "_pager.html" %}
+</div>
+{% else %}
+<div class="card empty" style="margin-top: 16px">
+  <div class="empty-icon" aria-hidden="true">🔔</div>
+  <p>{% translate "No notifications yet. You receive one when someone disputes an expense you paid or recorded, writes in a dispute you are part of, or settles or reopens one of your trips." %}</p>
+</div>
+{% endif %}
+{% endblock %}

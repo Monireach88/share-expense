@@ -27,11 +27,14 @@
     hx-get="{% url 'trip' trip.id %}" hx-trigger="input changed delay:300ms, search" hx-select=".paged" hx-target=".paged" hx-swap="outerHTML" hx-replace-url="true"><span class="spinner" aria-hidden="true"></span>
 </form>
 {% endif %}
+{% if only_disputed %}<div class="note" style="margin-top: 16px">{% icon "triangle-alert" %}<div>{% translate "Showing only expenses with an open dispute." %} <a href="{% url 'trip' trip.id %}">{% translate "Show all expenses" %}</a>{% if deleted_disputed %}<br>{% translate "Deleted expenses with an open dispute:" %} {% for e in deleted_disputed %}<a href="{% url 'expense_edit' trip.id e.id %}#disputes">{{ e }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</div></div>{% endif %}
 <div class="paged">
 {% if days %}
 {% include "expenses/_days.html" with open_all=q reorder=can_reorder %}
 {% elif q %}
   <p class="muted small search-empty">{% blocktranslate %}No expenses match “{{ q }}”.{% endblocktranslate %}</p>
+{% elif only_disputed %}
+  <p class="muted small search-empty">{% translate "No expense has an open dispute." %}</p>
 {% else %}
   <div class="card empty">
     <div class="empty-icon" aria-hidden="true">🧾</div>

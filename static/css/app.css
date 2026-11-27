@@ -150,6 +150,7 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
 }
 .tab-icon { display: grid; place-items: center; width: 56px; height: 28px; border-radius: 999px; }
 .tabbar a[aria-current="page"] { color: var(--accent); }
+.icon-btn[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
 .tabbar a[aria-current="page"] .tab-icon { background: var(--accent-soft); }
 @media (min-width: 720px) {
   .tabbar { padding-inline: calc((100vw - 640px) / 2); }
@@ -245,6 +246,7 @@ a.row:hover { background: var(--bg); }
   font-weight: 600; overflow: hidden; overflow-wrap: anywhere;
   display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
 }
+.row-title.history-line { font-weight: 500; -webkit-line-clamp: unset; }
 .row-title.placeholder { font-weight: 400; font-style: italic; color: var(--muted); }
 .row-sub {
   font-size: 13px; color: var(--muted); overflow: hidden; overflow-wrap: anywhere;
@@ -603,3 +605,32 @@ details.filters.is-filtered:not([open]) {
   position: sticky; top: 64px; z-index: 15; box-shadow: 0 4px 12px rgb(16 24 40 / 0.12);
 }
 .filters .two > .field:nth-child(5) { grid-column: 1 / -1; }
+
+/* ---------- Notifications and disputes (spec sections 4 and 5) ---------- */
+.header-actions { display: flex; align-items: center; gap: var(--s1); flex: none; }
+.bell { position: relative; }
+.bell-count {
+  position: absolute; top: 4px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 999px; background: var(--neg); color: var(--on-neg);
+  font-size: 11px; font-weight: 700; line-height: 18px; text-align: center;
+}
+.row.unread .row-title { font-weight: 700; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--neg); margin-right: var(--s2); vertical-align: middle; }
+.badge-warn { background: var(--warn-soft); color: var(--warn); }
+.row-main > .badge { display: inline-flex; }
+.disputes { margin-top: var(--s6); }
+.dispute { display: flex; flex-direction: column; gap: var(--s3); }
+.dispute-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
+.dispute-head .badge { margin-top: 0; }
+.dispute-messages { list-style: none; margin: 0; padding: 0; }
+.dispute-messages li + li { margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line); }
+.dispute-messages p { margin: 0; overflow-wrap: anywhere; }
+.dispute-write { display: flex; gap: var(--s2); align-items: flex-end; }
+.dispute-write textarea { flex: 1; min-width: 0; resize: vertical; }
+.dispute-actions { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: flex-start; }
+.dispute-actions form { display: contents; }
+.dispute-actions details form { display: block; margin-top: var(--s3); }
+.dispute-close { flex-basis: 100%; }
+.dispute-close > summary, .dispute-new > summary { list-style: none; cursor: pointer; }
+.dispute-close > summary::-webkit-details-marker, .dispute-new > summary::-webkit-details-marker { display: none; }
+.fab-warn { background: var(--warn); color: var(--surface); }

@@ -3,16 +3,18 @@ from contextlib import suppress
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, Q
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.disputes import rules as dispute_rules
+from apps.disputes.models import Dispute
 from apps.expenses.models import Expense
 from apps.settlement.engine import SettlementError
 
-from . import actions
+from . import actions, history
 from .access import get_membership, locked
 from .forms import ExchangeRateForm, MemberAddForm, MemberRoleForm, ParticipantForm, TripForm
 from .models import ExchangeRate, Participant, Trip, TripMember
@@ -55,7 +57,9 @@ def trip_settings(request: HttpRequest, trip_id) -> HttpResponse:
     trip = membership.trip
     form = TripForm(request.POST or None, instance=trip)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        with transaction.atomic():
+            form.save()
+            _record_trip_changes(trip, membership, form)
         messages.success(request, _("Trip saved."))
         return redirect("trip_settings", trip_id=trip.id)
     return render(
@@ -71,6 +75,33 @@ def trip_settings(request: HttpRequest, trip_id) -> HttpResponse:
     )
 
 
+def _record_trip_changes(trip: Trip, membership: TripMember, form: TripForm) -> None:
+    """History: a new name is "renamed"; the other settings go into one "changed" entry."""
+    if "name" in form.changed_data:
+        history.record(
+            trip,
+            membership,
+            "renamed",
+            "trip",
+            object_id=trip.pk,
+            label=trip.name,
+            changes={"name": history.change(form.initial["name"], trip.name)},
+        )
+    others = {}
+    for field in ("country", "start_date", "end_date", "base_currency"):
+        if field in form.changed_data:
+            old, new = form.initial.get(field), form.cleaned_data.get(field)
+            others[field] = history.change(
+                history.setting_text(field, old),
+                history.setting_text(field, new),
+                label=str(form[field].label).lower(),
+            )
+    if others:
+        history.record(
+            trip, membership, "changed", "trip", object_id=trip.pk, label=trip.name, changes=others
+        )
+
+
 @require_POST
 def rate_save(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id, owner_only=True)
@@ -78,11 +109,31 @@ def rate_save(request: HttpRequest, trip_id) -> HttpResponse:
         return response
     trip = membership.trip
     existing = trip.rates.filter(currency=request.POST.get("currency")).first()
+    # The form edits ``existing`` in place, so its old rate is read first.
+    old = history.rate_line(trip, existing.currency, existing.rate) if existing else ""
     form = ExchangeRateForm(request.POST, instance=existing, trip=trip)
     if form.is_valid():
         rate = form.save(commit=False)
         rate.trip = trip
-        rate.save()
+        with transaction.atomic():
+            rate.save()
+            new = history.rate_line(trip, rate.currency, rate.rate)
+            if existing is None:
+                action = "added"
+            elif old != new:
+                action = "changed"
+            else:
+                action = None
+            if action:
+                history.record(
+                    trip,
+                    membership,
+                    action,
+                    "rate",
+                    object_id=rate.pk,
+                    label=rate.currency,
+                    changes={"rate": history.change(old, new)},
+                )
         messages.success(request, _("Exchange rate saved."))
         return redirect("trip_settings", trip_id=trip.id)
     return render(
@@ -104,8 +155,25 @@ def rate_delete(request: HttpRequest, trip_id, rate_id) -> HttpResponse:
         return response
     rate = get_object_or_404(ExchangeRate, pk=rate_id, trip=membership.trip)
     in_use = membership.trip.expenses.filter(currency=rate.currency).exists()
-    if request.method == "POST" and not in_use:
-        rate.delete()
+    disputed = Dispute.objects.filter(
+        trip=membership.trip, expense__currency=rate.currency
+    ).exists()
+    if request.method == "POST" and not in_use and not disputed:
+        with transaction.atomic():
+            history.record(
+                membership.trip,
+                membership,
+                "removed",
+                "rate",
+                object_id=rate.pk,
+                label=rate.currency,
+                changes={
+                    "rate": history.change(
+                        history.rate_line(membership.trip, rate.currency, rate.rate), ""
+                    )
+                },
+            )
+            rate.delete()
         messages.success(request, _("Exchange rate deleted."))
         return redirect("trip_settings", trip_id=trip_id)
     return render(
@@ -115,7 +183,11 @@ def rate_delete(request: HttpRequest, trip_id, rate_id) -> HttpResponse:
             "trip": membership.trip,
             "membership": membership,
             "object": f"{rate.currency} {rate.rate}",
-            "blocked": _("Expenses use this currency. Change them first.") if in_use else "",
+            "blocked": _("Expenses use this currency. Change them first.")
+            if in_use
+            else dispute_rules.disputes_in_use_message("rate")
+            if disputed
+            else "",
             "button": _("Delete rate"),
             "back": reverse("trip_settings", args=[trip_id]),
         },
@@ -147,12 +219,16 @@ def trip_delete(request: HttpRequest, trip_id) -> HttpResponse:
 def people(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
-    return render(
+    invite_url = ""
+    if membership.is_owner and trip.invite_token:
+        invite_url = request.build_absolute_uri(reverse("join", args=[trip.invite_token]))
+    response = render(
         request,
         "trips/people.html",
         {
             "trip": trip,
             "membership": membership,
+            "invite_url": invite_url,
             "participants": paginate(
                 request, trip.participants.select_related("user").prefetch_related("sponsors")
             ),
@@ -160,6 +236,9 @@ def people(request: HttpRequest, trip_id) -> HttpResponse:
             "tab": "people",
         },
     )
+    if invite_url:
+        response.no_sw_cache = True  # The secret link is not kept by the browser.
+    return response
 
 
 ROLE_ORDER = [TripMember.Role.OWNER, TripMember.Role.EDITOR, TripMember.Role.MEMBER]
@@ -187,8 +266,10 @@ def participant_create(request: HttpRequest, trip_id) -> HttpResponse:
     if request.method == "POST" and form.is_valid():
         participant = form.save(commit=False)
         participant.trip = trip
-        participant.save()
-        form.save_m2m()
+        with transaction.atomic():
+            participant.save()
+            form.save_m2m()
+            history.record_traveler_changes(trip, membership, participant, None)
         messages.success(request, _("%(name)s added.") % {"name": participant.name})
         if "add_another" in request.POST:
             return redirect("participant_create", trip_id=trip.id)
@@ -204,9 +285,12 @@ def participant_edit(request: HttpRequest, trip_id, participant_id) -> HttpRespo
     """On a settled trip only the linked account can change; ParticipantForm locks the rest."""
     membership = get_membership(request, trip_id, owner_only=True)
     participant = get_object_or_404(Participant, pk=participant_id, trip=membership.trip)
+    before = history.traveler_state(participant) if request.method == "POST" else None
     form = ParticipantForm(request.POST or None, instance=participant, trip=membership.trip)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        with transaction.atomic():
+            form.save()
+            history.record_traveler_changes(membership.trip, membership, participant, before)
         messages.success(request, _("%(name)s saved.") % {"name": participant.name})
         return redirect("people", trip_id=trip_id)
     return render(
@@ -230,10 +314,24 @@ def participant_delete(request: HttpRequest, trip_id, participant_id) -> HttpRes
     in_use = membership.trip.expenses.filter(
         Q(payer=participant) | Q(beneficiaries=participant)
     ).exists()
-    if request.method == "POST" and not in_use:
+    # Removing the traveler erases the deleted expenses they paid, so a dispute on any expense
+    # with them, deleted or not, blocks it (spec section 3).
+    disputed = Dispute.objects.filter(
+        Q(expense__payer=participant) | Q(expense__beneficiaries=participant),
+        trip=membership.trip,
+    ).exists()
+    if request.method == "POST" and not in_use and not disputed:
         with transaction.atomic():
             # Deleted expenses are kept for the record but must not block removing a person.
             Expense.all_objects.filter(payer=participant).delete()
+            history.record(
+                membership.trip,
+                membership,
+                "removed",
+                "traveler",
+                object_id=participant.pk,
+                label=participant.name,
+            )
             participant.delete()
         messages.success(request, _("%(name)s removed.") % {"name": participant.name})
         return redirect("people", trip_id=trip_id)
@@ -246,6 +344,8 @@ def participant_delete(request: HttpRequest, trip_id, participant_id) -> HttpRes
             "object": participant.name,
             "blocked": _("This traveler appears in expenses. Change those expenses first.")
             if in_use
+            else dispute_rules.disputes_in_use_message("traveler")
+            if disputed
             else "",
             "button": _("Remove traveler"),
             "back": reverse("participant_edit", args=[trip_id, participant.id]),
@@ -257,13 +357,43 @@ def member_add(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id, owner_only=True)
     trip = membership.trip
     form = MemberAddForm(request.POST or None, trip=trip)
+    if request.method == "GET" and request.GET.get("username"):
+        # The page asks again when the username changes, to pre-select the matching traveler.
+        form = MemberAddForm(trip=trip, initial={"username": request.GET["username"]})
+        form.preselect(request.GET["username"])
     if request.method == "POST" and form.is_valid():
-        TripMember.objects.create(trip=trip, user=form.user)
-        messages.success(
-            request, _("%(name)s can now open this trip.") % {"name": form.user.display_name}
-        )
-        return redirect("people", trip_id=trip.id)
+        try:
+            actions.add_member(
+                trip,
+                form.user,
+                by=membership,
+                traveler=form.participant,
+                new_traveler=form.new_traveler,
+            )
+        except actions.ActionRefused as refused:
+            form.add_error("traveler", str(refused))
+        else:
+            messages.success(
+                request, _("%(name)s can now open this trip.") % {"name": form.user.display_name}
+            )
+            return redirect("people", trip_id=trip.id)
     return render(request, "trips/member_form.html", {"trip": trip, "form": form})
+
+
+@require_POST
+def invite_change(request: HttpRequest, trip_id, change: str) -> HttpResponse:
+    """Owner: turn the invite link on or off, or renew it (the old link stops working)."""
+    membership = get_membership(request, trip_id, owner_only=True)
+    if change not in ("on", "off", "renew"):
+        raise Http404
+    actions.set_invite_link(membership.trip, change, by=membership)
+    text = {
+        "on": _("The invite link is on."),
+        "off": _("The invite link is off."),
+        "renew": _("The invite link is renewed. The old link no longer works."),
+    }[change]
+    messages.success(request, text)
+    return redirect("people", trip_id=trip_id)
 
 
 @require_POST
@@ -375,7 +505,12 @@ def member_transfer(request: HttpRequest, trip_id, member_id) -> HttpResponse:
 def summary(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
-    context = {"trip": trip, "membership": membership, "tab": "summary"}
+    context = {
+        "trip": trip,
+        "membership": membership,
+        "tab": "summary",
+        "open_disputes": Dispute.objects.filter(trip=trip, state=Dispute.State.OPEN).count(),
+    }
     try:
         context["summary"] = named(trip, trip_settlement(trip), request.user)
     except SettlementError as error:

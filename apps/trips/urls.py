@@ -1,9 +1,10 @@
 from django.urls import path
 
 from apps.accounts.views import health
+from apps.disputes import views as dispute_views
 from apps.expenses import views as expense_views
 
-from . import views
+from . import history_views, join_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -47,6 +48,33 @@ urlpatterns = [
         expense_views.category_delete,
         name="category_delete",
     ),
+    path(
+        "trips/<uuid:trip_id>/expenses/<uuid:expense_id>/restore/",
+        expense_views.expense_restore,
+        name="expense_restore",
+    ),
+    path(
+        "trips/<uuid:trip_id>/expenses/<uuid:expense_id>/disputes/",
+        dispute_views.dispute_open,
+        name="dispute_open",
+    ),
+    path(
+        "trips/<uuid:trip_id>/disputes/<int:dispute_id>/messages/",
+        dispute_views.dispute_write,
+        name="dispute_write",
+    ),
+    path(
+        "trips/<uuid:trip_id>/disputes/<int:dispute_id>/resolve/",
+        dispute_views.dispute_resolve,
+        name="dispute_resolve",
+    ),
+    path(
+        "trips/<uuid:trip_id>/disputes/<int:dispute_id>/close/",
+        dispute_views.dispute_close,
+        name="dispute_close",
+    ),
+    path("notifications/", dispute_views.notification_list, name="notifications"),
+    path("trips/<uuid:trip_id>/history/", history_views.history_page, name="history"),
     path("trips/<uuid:trip_id>/summary/", views.summary, name="summary"),
     path("trips/<uuid:trip_id>/settle/", views.trip_settle, name="trip_settle"),
     path("trips/<uuid:trip_id>/reopen/", views.trip_reopen, name="trip_reopen"),
@@ -69,6 +97,12 @@ urlpatterns = [
         name="participant_delete",
     ),
     path("trips/<uuid:trip_id>/members/new/", views.member_add, name="member_add"),
+    path(
+        "trips/<uuid:trip_id>/invite/<slug:change>/",
+        views.invite_change,
+        name="invite_change",
+    ),
+    path("join/<str:token>/", join_views.join, name="join"),
     path("trips/<uuid:trip_id>/members/<int:member_id>/", views.member_edit, name="member_edit"),
     path(
         "trips/<uuid:trip_id>/members/<int:member_id>/owner/",

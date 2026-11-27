@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{{ trip.name }}{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<div class="auth-intro">
+  <h1 class="page-title">{{ trip.name }}</h1>
+  <p>{% translate "Log in to choose your traveler." %}</p>
+</div>
+<div class="card stack">
+  <a class="btn btn-block" href="{% url 'login' %}?next={{ next|urlencode }}">{% translate "Log in" %}</a>
+  <a class="btn btn-secondary btn-block" href="{% url 'signup' %}?invite={{ token|urlencode }}">{% translate "Request an account" %}</a>
+</div>
+{% endblock %}

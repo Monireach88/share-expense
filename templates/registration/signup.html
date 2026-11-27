@@ -8,6 +8,7 @@
 </div>
 <form method="post" class="card stack">{% csrf_token %}
   {% include "_form_errors.html" %}
+  {% if invite %}<input type="hidden" name="invite" value="{{ invite }}">{% endif %}
   {% for field in form %}{% include "_field.html" %}{% endfor %}
   <button type="submit" class="btn btn-block">{% translate "Send request" %}</button>
 </form>

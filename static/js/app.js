@@ -205,3 +205,22 @@
     stop();
   });
 })();
+
+// "Copy" button next to a read-only field: <button data-copy="field-id" data-done="Copied">.
+(function () {
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-copy]");
+    if (!button) return;
+    const field = document.getElementById(button.dataset.copy);
+    if (!field) return;
+    field.select();
+    try {
+      await navigator.clipboard.writeText(field.value);
+    } catch {
+      return; // The text stays selected, so the person can copy it by hand.
+    }
+    const label = button.textContent;
+    button.textContent = button.dataset.done || label;
+    setTimeout(() => (button.textContent = label), 2000);
+  });
+})();

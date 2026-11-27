@@ -26,7 +26,8 @@ def cacheable_page(view):
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         response = view(request, *args, **kwargs)
-        if request.method == "GET" and response.status_code == 200:
+        keep_private = getattr(response, "no_sw_cache", False)  # It shows a secret (invite link).
+        if request.method == "GET" and response.status_code == 200 and not keep_private:
             response[CACHE_HEADER] = "page"
         return response
 

@@ -82,6 +82,7 @@
   </div>
   {% endif %}
 </form>
+{% if expense %}{% include "expenses/_disputes.html" %}{% endif %}
 <dialog class="sheet" data-type-dialog aria-labelledby="type-dialog-title">
   <form method="dialog" class="stack">
     <h2 class="section-title" id="type-dialog-title" data-title data-add-title="{% translate 'Add type' %}" data-edit-title="{% translate 'Edit type' %}">{% translate "Add type" %}</h2>
