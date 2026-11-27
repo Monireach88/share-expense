@@ -245,59 +245,150 @@
   });
 })();
 
-// Writing suggestion: one second after typing stops, ask the server for a better wording of the
-// description and show it under the field; "Accept" puts it in the field.
+// Writing suggestion: the ✨ button in the description box (shown once there is text) asks the
+// server for a better wording and shows it under the field; "Accept" puts it in the field.
+// Nothing is sent until the button is tapped.
 (function () {
   const wrap = document.querySelector("[data-suggest]");
   if (!wrap || wrap.dataset.ready) return;
   wrap.dataset.ready = "1";
   const field = wrap.querySelector("[name=description]");
+  const button = wrap.querySelector("[data-suggest-btn]");
   const box = wrap.querySelector("[data-suggestion]");
   const text = box.querySelector("[data-suggestion-text]");
+  const accept = box.querySelector("[data-accept]");
   const headers = () => JSON.parse(document.body.getAttribute("hx-headers") || "{}");
-  let timer = null;
-  let request = null;
-  let asked = field.value.trim(); // An expense opened for editing gets no suggestion until changed.
+  let asked = null;
 
-  function hide() {
-    box.hidden = true;
+  function refresh() {
+    const value = field.value.trim();
+    button.hidden = value.length < 3 || value === asked;
   }
   async function ask() {
     const value = field.value.trim();
-    if (value.length < 3 || value === asked) return;
     asked = value;
-    if (request) request.abort();
-    request = new AbortController();
-    const mine = request;
-    wrap.classList.add("is-busy");
+    button.classList.add("is-loading");
+    let suggestion = "";
     try {
       const response = await fetch(wrap.dataset.suggest, {
-        method: "POST", headers: headers(), credentials: "same-origin", signal: request.signal,
+        method: "POST", headers: headers(), credentials: "same-origin",
         body: new URLSearchParams({ text: value }),
       });
-      const { suggestion } = response.ok ? await response.json() : {};
-      // Show it only if the field still holds the text it was made for.
-      if (suggestion && field.value.trim() === value) {
-        text.textContent = suggestion;
-        box.hidden = false;
-      }
+      suggestion = response.ok ? (await response.json()).suggestion : "";
     } catch (error) {
-      // No suggestion when offline or the request was replaced by a newer one.
-    } finally {
-      if (request === mine) wrap.classList.remove("is-busy");
+      suggestion = "";
     }
+    button.classList.remove("is-loading");
+    if (field.value.trim() !== value) return refresh(); // The text changed meanwhile.
+    text.textContent = suggestion || box.dataset.fine;
+    accept.hidden = !suggestion;
+    box.hidden = false;
+    refresh();
   }
+  box.dataset.fine = box.dataset.fine || "No better wording found.";
   field.addEventListener("input", () => {
-    hide();
-    clearTimeout(timer);
-    timer = setTimeout(ask, 1000);
+    box.hidden = true;
+    refresh();
   });
-  box.querySelector("[data-accept]").addEventListener("click", () => {
+  button.addEventListener("click", ask);
+  accept.addEventListener("click", () => {
     field.value = text.textContent;
     asked = field.value.trim();
-    hide();
+    box.hidden = true;
     field.dispatchEvent(new Event("input", { bubbles: true }));
-    clearTimeout(timer); // The input event above must not ask again for the accepted text.
     field.focus();
   });
+  refresh();
+})();
+
+// Add with AI: a short sentence fills the form with what it states for certain; a list shows
+// what is still missing. Nothing is saved until Save is pressed.
+(function () {
+  const dialog = document.querySelector("[data-ai-dialog]");
+  const form = document.getElementById("expense-form");
+  if (!dialog || !form || dialog.dataset.ready) return;
+  dialog.dataset.ready = "1";
+  const ask = dialog.querySelector("[data-ai-ask]");
+  const prompt = ask.querySelector("[name=prompt]");
+  const count = ask.querySelector("[data-ai-count]");
+  const error = ask.querySelector("[data-ai-error]");
+  const go = ask.querySelector("[data-ai-go]");
+  const result = dialog.querySelector("[data-ai-result]");
+  const headers = () => JSON.parse(document.body.getAttribute("hx-headers") || "{}");
+
+  function open() {
+    ask.hidden = false;
+    result.hidden = true;
+    error.hidden = true;
+    dialog.showModal();
+    prompt.focus();
+  }
+  function set(name, value) {
+    const inputs = [...form.querySelectorAll(`[name="${name}"]`)];
+    for (const input of inputs) {
+      if (input.type === "radio" || input.type === "checkbox") {
+        input.checked = Array.isArray(value) ? value.includes(input.value) : input.value === value;
+      } else {
+        input.value = value;
+      }
+    }
+  }
+  function setDate(iso) {
+    const chip = form.querySelector(`input[name=date][value="${iso}"]`);
+    if (chip) return (chip.checked = true);
+    const other = form.querySelector("input[name=date][value=other]");
+    if (other) {
+      other.checked = true;
+      form.querySelector("[name=date_other]").value = iso;
+    } else {
+      set("date", iso);
+    }
+  }
+  function fill(fields) {
+    // What the sentence does not state stays empty, even where the form had a default.
+    set("amount", fields.amount || "");
+    if (form.querySelectorAll("input[type=radio][name=currency]").length) set("currency", fields.currency || "");
+    set("payer", fields.payer || "");
+    set("beneficiaries", fields.beneficiaries || []);
+    set("category", fields.category || "");
+    set("description", fields.description || "");
+    if (fields.date) setDate(fields.date);
+    form.dispatchEvent(new Event("input", { bubbles: true })); // Updates the split and preview.
+  }
+
+  document.querySelectorAll("[data-ai-open]").forEach((b) => b.addEventListener("click", open));
+  dialog.querySelector("[data-ai-cancel]").addEventListener("click", () => dialog.close());
+  dialog.querySelector("[data-ai-ok]").addEventListener("click", () => dialog.close());
+  prompt.addEventListener("input", () => (count.textContent = `${prompt.value.length} / 300`));
+  ask.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    error.hidden = true;
+    go.classList.add("is-loading");
+    let data = {};
+    try {
+      const work = fetch(dialog.dataset.url, {
+        method: "POST", headers: headers(), credentials: "same-origin",
+        body: new URLSearchParams({ text: prompt.value }),
+      }).then((r) => r.json());
+      data = await (window.seBusy ? window.seBusy(work) : work);
+    } catch (e) {
+      data = { error: "The text could not be read. Try again." };
+    }
+    go.classList.remove("is-loading");
+    if (data.error) {
+      error.textContent = data.error;
+      error.hidden = false;
+      return;
+    }
+    fill(data.fields || {});
+    const missing = data.missing || [];
+    const list = result.querySelector("[data-ai-missing]");
+    list.replaceChildren(...missing.map((m) => Object.assign(document.createElement("li"), { textContent: m })));
+    result.querySelector("[data-ai-result-title]").textContent = missing.length
+      ? "Filled in. Still missing:"
+      : "All details filled in.";
+    ask.hidden = true;
+    result.hidden = false;
+  });
+  if (new URLSearchParams(location.search).get("ai")) open();
 })();
