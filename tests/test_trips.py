@@ -680,7 +680,7 @@ def test_a_covered_traveler_who_paid_is_owed_and_both_pages_say_so(owner_client,
     child_row = html[html.index("Person C") :].split("</li>", 1)[0]
     # Paid 4.00 - Share 1.33 + Covered by 1.33 = 4.00 owed to her.
     assert "Paid&nbsp;4.00" in child_row and "Share&nbsp;1.33" in child_row
-    assert "Covered by Friend <span class=\"nowrap\">+1.33" in child_row
+    assert 'Covered by Friend <span class="nowrap">+1.33' in child_row
     assert "4.00" in child_row.split("row-end", 1)[1] and "is owed" in child_row
 
     report = owner_client.get(reverse("report", args=[trip.id]), {"person": child.id})
