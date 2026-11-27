@@ -564,6 +564,27 @@ dialog.sheet::backdrop { background: rgb(16 24 40 / 0.45); }
 
 .hero-note { margin-top: var(--s1); color: var(--muted); font-size: 15px; }
 
+/* ---------- AI: add an expense from a sentence, and the description suggestion ---------- */
+.fab-menu-label > summary { width: auto; padding: 0 var(--s5) 0 var(--s4); }
+.fab-menu-label[open] > summary .icon { transform: rotate(45deg); }
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
+.title-row .btn .icon, .ai-btn .icon { width: 18px; height: 18px; }
+dialog[data-ai-dialog] .section-title { display: flex; align-items: center; gap: var(--s2); }
+.ai-hint { margin: 0; font-size: 15px; color: var(--muted); }
+.ai-hint strong { color: var(--fg); }
+dialog[data-ai-dialog] textarea { min-height: 96px; resize: vertical; padding-block: var(--s2); }
+.ai-count { text-align: right; margin-top: calc(-1 * var(--s2)); }
+.ai-missing { margin: 0; padding-left: var(--s5); }
+.ai-missing li + li { margin-top: var(--s1); }
+/* The ✨ button inside the description box asks for a better wording. */
+.desc-box { position: relative; }
+.desc-box textarea { padding-right: 48px; }
+.ai-btn {
+  position: absolute; right: 6px; bottom: 6px; width: 36px; height: 36px; display: grid; place-items: center;
+  border: 0; border-radius: 10px; background: var(--accent-soft); color: var(--accent); cursor: pointer;
+}
+.ai-btn.is-loading { --spin: var(--accent); }
+
 /* "Covers 3 travelers -x USD": one line that opens to list each traveler and amount. */
 details.covers > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; flex-wrap: wrap; }
 details.covers > summary::-webkit-details-marker { display: none; }

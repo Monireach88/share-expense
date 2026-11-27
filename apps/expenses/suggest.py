@@ -61,28 +61,18 @@ def examples(trip: Trip, exclude: str = "") -> list[str]:
     return result
 
 
-def suggest(trip: Trip, text: str) -> str:
-    """A better wording of ``text``, or "" when there is none or the service fails."""
-    text = " ".join(text.split())[:200]
-    if not enabled() or len(text) < 3:
-        return ""
-    lines = "\n".join(f"- {e}" for e in examples(trip, exclude=text)) or "(none yet)"
+def chat(messages: list[dict], *, max_tokens: int, json_output: bool = False) -> str:
+    """One DeepSeek chat call; the answer text, or "" when the service fails."""
     body = {
         "model": settings.DEEPSEEK_MODEL,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": f"Other descriptions in this trip:\n{lines}\n\nDescription: {text}",
-            },
-        ],
-        "thinking": {
-            "type": "disabled"
-        },  # A short rewrite needs no reasoning, so it answers faster.
-        "temperature": 0.2,
-        "max_tokens": 80,
+        "messages": messages,
+        "thinking": {"type": "disabled"},  # Short tasks need no reasoning, so it answers faster.
+        "temperature": 0 if json_output else 0.2,
+        "max_tokens": max_tokens,
         "stream": False,
     }
+    if json_output:
+        body["response_format"] = {"type": "json_object"}
     request = urllib.request.Request(
         API_URL,
         data=json.dumps(body).encode(),
@@ -93,10 +83,28 @@ def suggest(trip: Trip, text: str) -> str:
     )
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            answer = json.load(response)["choices"][0]["message"]["content"]
+            return str(json.load(response)["choices"][0]["message"]["content"])
     except (urllib.error.URLError, TimeoutError, KeyError, IndexError, ValueError) as error:
-        log.warning("Description suggestion failed: %s", error)
+        log.warning("DeepSeek call failed: %s", error)
         return ""
-    answer = " ".join(str(answer).split()).strip("\"'“”‘’ ").rstrip(".")[:200]
+
+
+def suggest(trip: Trip, text: str) -> str:
+    """A better wording of ``text``, or "" when there is none or the service fails."""
+    text = " ".join(text.split())[:200]
+    if not enabled() or len(text) < 3:
+        return ""
+    lines = "\n".join(f"- {e}" for e in examples(trip, exclude=text)) or "(none yet)"
+    answer = chat(
+        [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": f"Other descriptions in this trip:\n{lines}\n\nDescription: {text}",
+            },
+        ],
+        max_tokens=80,
+    )
+    answer = " ".join(answer.split()).strip("\"'“”‘’ ").rstrip(".")[:200]
     # Nothing to offer when the text is already fine.
     return answer if answer and answer != text else ""

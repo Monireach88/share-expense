@@ -2,7 +2,10 @@
 {% block title %}{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}{% endblock %}
 {% block back %}<a class="back" href="{{ back_url|default:'' }}{% if not back_url %}{% url 'trip' trip.id %}{% endif %}">{% icon "chevron-left" %}<span>{{ trip.name }}</span></a>{% endblock %}
 {% block content %}
-<h1 class="page-title">{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}</h1>
+<div class="title-row">
+  <h1 class="page-title">{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}</h1>
+  {% if suggestions and not expense %}<button type="button" class="btn btn-secondary btn-sm" data-ai-open>{% icon "sparkles" %}{% translate "Fill with AI" %}</button>{% endif %}
+</div>
 <form method="post" id="expense-form" class="stack-lg" style="margin-top: 16px" novalidate
       data-base="{{ trip.base_currency }}">
   {% csrf_token %}
@@ -24,10 +27,13 @@
     {% for error in form.currency.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
   </div>
 
-  <div{% if suggestions %} class="busy-field" data-suggest="{% url 'description_suggestion' trip.id %}"{% endif %}>
-    {% include "_field.html" with field=form.description %}
-    {% if suggestions %}<span class="spinner" aria-hidden="true"></span>{% endif %}
-    {% if suggestions %}<div class="suggestion" data-suggestion hidden aria-live="polite">
+  <div{% if suggestions %} data-suggest="{% url 'description_suggestion' trip.id %}"{% endif %}>
+    <div class="field">
+      <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+      <div class="desc-box">{{ form.description }}{% if suggestions %}<button type="button" class="ai-btn" data-suggest-btn hidden aria-label="{% translate 'Suggest a better wording' %}" title="{% translate 'Suggest a better wording' %}">{% icon "sparkles" %}</button>{% endif %}</div>
+      {% for error in form.description.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+    </div>
+    {% if suggestions %}<div class="suggestion" data-suggestion data-fine="{% translate 'No better wording found.' %}" hidden aria-live="polite">
       <span class="suggestion-label">{% translate "Suggestion" %}</span>
       <span class="suggestion-text" data-suggestion-text></span>
       <button type="button" class="btn btn-secondary btn-sm" data-accept>{% translate "Accept" %}</button>
@@ -91,6 +97,26 @@
     </div>
   </form>
 </dialog>
+{% if suggestions and not expense %}
+<dialog class="sheet" data-ai-dialog aria-labelledby="ai-dialog-title" data-url="{% url 'expense_ai_fill' trip.id %}">
+  <form method="dialog" class="stack" data-ai-ask>
+    <h2 class="section-title" id="ai-dialog-title">{% icon "sparkles" %} {% translate "Add with AI" %}</h2>
+    <p class="ai-hint"><strong>{% translate "Include:" %}</strong> {% translate "who paid · for whom · what · amount · currency." %} <em>{% translate "Date: today if not given." %}</em></p>
+    <textarea name="prompt" rows="3" maxlength="300" placeholder="{% translate 'e.g. Maly paid 40,000 VND for drinks for Maly and Sophorn yesterday' %}" aria-label="{% translate 'Describe the expense' %}"></textarea>
+    <p class="tiny muted ai-count" data-ai-count>0 / 300</p>
+    <p class="field-error" data-ai-error hidden></p>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-secondary" data-ai-cancel>{% translate "Cancel" %}</button>
+      <button type="submit" class="btn" data-ai-go>{% translate "Fill in" %}</button>
+    </div>
+  </form>
+  <div class="stack" data-ai-result hidden>
+    <h2 class="section-title" data-ai-result-title></h2>
+    <ul class="ai-missing" data-ai-missing></ul>
+    <button type="button" class="btn btn-block" data-ai-ok>{% translate "OK" %}</button>
+  </div>
+</dialog>
+{% endif %}
 {{ rates|json_script:"trip-rates" }}
 <script src="{% static 'js/expense_form.js' %}"></script>
 {% endblock %}

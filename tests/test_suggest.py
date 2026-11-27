@@ -4,6 +4,7 @@ from datetime import date
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.expenses import suggest
 from apps.expenses.models import Expense
@@ -88,3 +89,85 @@ def test_suggestions_are_limited_per_account(owner_client, trip, deepseek, monke
 def test_outsiders_get_no_suggestions(client, trip, make_user, deepseek):
     client.force_login(make_user("stranger"))
     assert ask(client, trip, "tuktuk").status_code == 404
+
+
+@pytest.fixture
+def ai_reply(settings, monkeypatch):
+    """Fake DeepSeek for "Add with AI": answer with ``reply`` as JSON, record each prompt."""
+    settings.DEEPSEEK_API_KEY = "test-key"
+    sent, reply = [], {}
+
+    def fake_chat(messages, *, max_tokens, json_output=False):
+        sent.append(messages)
+        return json.dumps(reply)
+
+    monkeypatch.setattr(suggest, "chat", fake_chat)
+    return sent, reply
+
+
+def fill(client, trip, text):
+    return client.post(reverse("expense_ai_fill", args=[trip.id]), {"text": text}).json()
+
+
+def test_ai_fills_only_what_the_sentence_states(owner_client, trip, ai_reply):
+    from apps.trips.models import ExchangeRate
+
+    ExchangeRate.objects.create(trip=trip, currency="VND", rate=25000)
+    owner_p, friend = trip.participants.all()
+    _sent, reply = ai_reply
+    reply.update(
+        is_expense=True, amount="40,000", currency="VND", payer="owner",
+        beneficiaries=["Owner", "friend"], everyone=False, type="Food & drink",
+        description="Drinks", date="2026-11-25",
+    )  # fmt: skip
+    data = fill(owner_client, trip, "Owner bought drinks for Owner and Friend, 40000 VND, Nov 25")
+    fields = data["fields"]
+    assert data["missing"] == []
+    assert fields["amount"] == "40000" and fields["currency"] == "VND"
+    assert fields["payer"] == str(owner_p.id)
+    assert fields["beneficiaries"] == [str(owner_p.id), str(friend.id)]
+    assert fields["category"] == str(trip.categories.get(name="Food & drink").pk)
+    assert fields["description"] == "Drinks" and fields["date"] == "2026-11-25"
+
+
+def test_ai_reports_what_is_missing_and_never_guesses(owner_client, trip, ai_reply):
+    _sent, reply = ai_reply
+    reply.update(is_expense=True, amount="12", currency="THB", payer="Bob", beneficiaries=[],
+                 everyone=False, type=None, description=None, date=None)  # fmt: skip
+    data = fill(owner_client, trip, "Bob paid 12 baht")
+    fields, missing = data["fields"], data["missing"]
+    assert "payer" not in fields and "beneficiaries" not in fields and "currency" not in fields
+    assert any("“Bob”" in m for m in missing)  # No traveler is called Bob.
+    assert any("THB has no exchange rate" in m for m in missing)
+    assert "who it was for" in missing and "the type" in missing and "what was bought" in missing
+    assert fields["date"] == timezone.localdate().isoformat()  # No date given: today.
+
+
+def test_ai_matches_a_short_name_only_when_one_traveler_fits(trip):
+    from apps.expenses.ai_fill import match_traveler
+    from apps.trips.models import Participant
+
+    a = Participant.objects.create(trip=trip, name="HENG MALY")
+    Participant.objects.create(trip=trip, name="HENG SOPHORN")
+    travelers = list(trip.participants.all())
+    assert match_traveler("Maly", travelers) == a
+    assert match_traveler("heng maly", travelers) == a
+    assert match_traveler("Heng", travelers) is None  # Two travelers fit: no guess.
+
+
+def test_ai_refuses_text_that_is_not_an_expense(owner_client, trip, ai_reply):
+    _sent, reply = ai_reply
+    reply.update(is_expense=False)
+    assert fill(owner_client, trip, "Write me a poem about Hanoi")["error"] == (
+        "This box only adds expenses."
+    )
+
+
+def test_everyone_and_me_are_understood(owner_client, trip, ai_reply):
+    sent, reply = ai_reply
+    owner_p, friend = trip.participants.all()
+    reply.update(is_expense=True, amount="9", currency="USD", payer="Owner", beneficiaries=[],
+                 everyone=True, type="Transport", description="Taxi", date=None)  # fmt: skip
+    data = fill(owner_client, trip, "I paid 9 USD for a taxi for everyone")
+    assert data["fields"]["beneficiaries"] == [str(owner_p.id), str(friend.id)]
+    assert '"I" or "me" means Owner' in sent[0][0]["content"]

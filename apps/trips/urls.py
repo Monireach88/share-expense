@@ -12,6 +12,11 @@ urlpatterns = [
     path("trips/<uuid:trip_id>/", expense_views.expense_list, name="trip"),
     path("trips/<uuid:trip_id>/expenses/new/", expense_views.expense_create, name="expense_create"),
     path(
+        "trips/<uuid:trip_id>/expenses/ai-fill/",
+        expense_views.expense_ai_fill,
+        name="expense_ai_fill",
+    ),
+    path(
         "trips/<uuid:trip_id>/expenses/suggest/",
         expense_views.description_suggestion,
         name="description_suggestion",

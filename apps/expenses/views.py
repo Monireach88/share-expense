@@ -24,7 +24,7 @@ from apps.trips.pagination import DayPage
 from apps.trips.summary import named, trip_settlement
 from apps.trips.templatetags.ui import format_amount
 
-from . import suggest
+from . import ai_fill, suggest
 from .forms import CategoryForm, ExpenseForm
 from .models import DEFAULT_EMOJI, EMOJI_CHOICES, Category, Expense
 from .report import ReportFilterForm, build_report, export_rows, to_csv, to_xlsx
@@ -69,6 +69,7 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         "people_count": trip.participants.count(),
         "travelers": list(trip.participants.all()),
         "tab": "expenses",
+        "ai_enabled": suggest.enabled(),
         "q": q,
         # A search shows only part of a day, so cards can be reordered only in the full list.
         "can_reorder": not q and not trip.is_settled,
@@ -180,6 +181,22 @@ def category_delete(request: HttpRequest, trip_id, category_id) -> HttpResponse:
         return JsonResponse({"error": _("A trip needs at least one type.")}, status=409)
     category.delete()
     return HttpResponse(status=204)
+
+
+@require_POST
+def expense_ai_fill(request: HttpRequest, trip_id) -> HttpResponse:
+    """Read one sentence about an expense; answer the form values it states for certain."""
+    trip = get_membership(request, trip_id).trip
+    if trip.is_settled:
+        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    if not suggest.enabled():
+        return JsonResponse({"error": _("Adding with AI is not set up.")}, status=404)
+    if not suggest.allowed(request.user.pk):
+        return JsonResponse(
+            {"error": _("Too many requests. Try again in a few minutes.")}, status=429
+        )
+    me = trip.participants.filter(user=request.user).first()
+    return JsonResponse(ai_fill.fill(trip, request.POST.get("text", ""), me))
 
 
 @require_POST
