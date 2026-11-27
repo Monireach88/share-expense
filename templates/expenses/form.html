@@ -100,6 +100,7 @@
 <dialog class="sheet" data-ai-dialog aria-labelledby="ai-dialog-title" data-url="{% url 'expense_ai_fill' trip.id %}">
   <form method="dialog" class="stack" data-ai-ask>
     <h2 class="section-title" id="ai-dialog-title">{% icon "sparkles" %} {% translate "Add with AI" %}</h2>
+    <p class="ai-hint"><strong>{% translate "Include:" %}</strong> {% translate "who paid · for whom · what · amount · currency." %} <em>{% translate "Date: today if not given." %}</em></p>
     <textarea name="prompt" rows="3" maxlength="300" placeholder="{% translate 'e.g. Maly paid 40,000 VND for drinks for Maly and Sophorn yesterday' %}" aria-label="{% translate 'Describe the expense' %}"></textarea>
     <p class="tiny muted ai-count" data-ai-count>0 / 300</p>
     <p class="field-error" data-ai-error hidden></p>
