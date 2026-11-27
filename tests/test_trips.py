@@ -504,7 +504,7 @@ def test_owner_adds_an_account_on_its_own_page(owner_client, trip, make_user):
     make_user("friend")
     url = reverse("member_add", args=[trip.id])
     assert owner_client.get(url).status_code == 200
-    response = owner_client.post(url, {"username": "friend"})
+    response = owner_client.post(url, {"username": "friend", "traveler": "none"})
     assert response.status_code == 302
     assert trip.memberships.filter(user__username="friend").exists()
 
@@ -515,7 +515,7 @@ def test_only_the_owner_can_add_an_account(client, trip, make_user):
     make_user("other")
     client.force_login(friend)
     url = reverse("member_add", args=[trip.id])
-    assert client.post(url, {"username": "other"}).status_code == 403
+    assert client.post(url, {"username": "other", "traveler": "none"}).status_code == 403
     assert not trip.memberships.filter(user__username="other").exists()
 
 

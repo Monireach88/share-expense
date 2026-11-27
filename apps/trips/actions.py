@@ -5,7 +5,10 @@ acts, so a History entry can later be written in the same place and the same tra
 The views check the role; these functions check the rules that hold whoever calls them.
 """
 
-from django.db import transaction
+import secrets
+
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -15,7 +18,7 @@ from apps.settlement.engine import SettlementError
 
 from . import history
 from .access import lock_trip
-from .models import Trip, TripMember
+from .models import Participant, RemovedAccount, Trip, TripMember
 from .summary import trip_settlement
 
 
@@ -116,6 +119,8 @@ def remove_member(member: TripMember, *, by: TripMember) -> None:
         if traveler is not None:
             trip.participants.filter(pk=traveler.pk).update(user=None)
         history.record(trip, by, "removed", "account", object_id=member.pk, label=name)
+        # The invite link stays closed to this account until the Owner adds it again.
+        RemovedAccount.objects.get_or_create(trip=trip, user=member.user)
         if traveler is not None:
             history.record(
                 trip,
@@ -129,9 +134,120 @@ def remove_member(member: TripMember, *, by: TripMember) -> None:
         member.delete()
 
 
-def add_member(trip: Trip, user, *, by: TripMember) -> TripMember:
-    """Give an approved account access to the trip, as a Member."""
+def add_member(
+    trip: Trip,
+    user,
+    *,
+    by: TripMember,
+    traveler: Participant | None = None,
+    new_traveler: bool = False,
+) -> TripMember:
+    """Give an approved account access to the trip, as a Member (spec section 6.2).
+
+    The account is either linked to ``traveler`` (a traveler with no account), or gets a new
+    traveler with its name (``new_traveler``), or stays a "Viewer" (neither). Adding an account
+    the Owner removed earlier clears its block on the invite link.
+    """
     with transaction.atomic():
+        lock_trip(trip)
+        if new_traveler:
+            if trip.is_settled:
+                raise ActionRefused(_("This trip is settled, so its travelers are locked."))
+            if trip.participants.filter(name__iexact=user.display_name).exists():
+                raise ActionRefused(_("Someone on this trip already has this name."))
+            traveler = Participant.objects.create(trip=trip, name=user.display_name, user=user)
+            before = None
+        elif traveler is not None:
+            traveler = Participant.objects.select_for_update().get(pk=traveler.pk, trip=trip)
+            if traveler.user_id is not None:
+                raise ActionRefused(_("This traveler is already linked to an account."))
+            before = history.traveler_state(traveler)
+            traveler.user = user
+            traveler.save(update_fields=["user"])
         member = TripMember.objects.create(trip=trip, user=user)
+        RemovedAccount.objects.filter(trip=trip, user=user).delete()
+        if traveler is not None and new_traveler:
+            history.record_traveler_changes(trip, by, traveler, None)
         history.record(trip, by, "added", "account", object_id=member.pk, label=user.display_name)
+        if traveler is not None and not new_traveler:
+            history.record_traveler_changes(trip, by, traveler, before)
     return member
+
+
+# --- Invite link (spec section 6.3) ---------------------------------------------------------
+
+
+def _new_token() -> str:
+    return secrets.token_urlsafe(24)
+
+
+def set_invite_link(trip: Trip, change: str, *, by: TripMember) -> None:
+    """``change`` is "on", "off" or "renew". Turning on a link that is on does nothing."""
+    with transaction.atomic():
+        trip = lock_trip(trip)
+        if change == "on" and trip.invite_token is None:
+            trip.invite_token, action = _new_token(), "invite_on"
+        elif change == "renew" and trip.invite_token is not None:
+            trip.invite_token, action = _new_token(), "invite_renewed"
+        elif change == "off" and trip.invite_token is not None:
+            trip.invite_token, action = None, "invite_off"
+        else:
+            return
+        trip.save(update_fields=["invite_token", "updated_at"])
+        history.record(trip, by, action, "trip", object_id=trip.pk, label=trip.name)
+
+
+class JoinRefused(Exception):
+    """Joining by link failed; ``reason`` is "gone", "removed", "taken" or "invalid"."""
+
+    def __init__(self, reason: str):
+        super().__init__(reason)
+        self.reason = reason
+
+
+def join_by_link(token: str, user, traveler_id: str) -> Trip:
+    """Make ``user`` a Member of the trip behind ``token``, linked to a traveler or "none".
+
+    Runs under a lock on the trip, so a link renewed a moment ago is refused ("gone") and two
+    people picking the same traveler cannot both get it ("taken"). An account that is already on
+    the trip changes nothing.
+    """
+    trip = Trip.objects.filter(invite_token=token).first() if token else None
+    if trip is None:
+        raise JoinRefused("gone")
+    with transaction.atomic():
+        trip = lock_trip(trip)
+        if trip.invite_token != token:
+            raise JoinRefused("gone")
+        if TripMember.objects.filter(trip=trip, user=user).exists():
+            return trip
+        if RemovedAccount.objects.filter(trip=trip, user=user).exists():
+            raise JoinRefused("removed")
+        traveler = None
+        if traveler_id != "none":
+            try:
+                traveler = Participant.objects.select_for_update().get(pk=traveler_id, trip=trip)
+            except Participant.DoesNotExist, ValueError, ValidationError:
+                raise JoinRefused("invalid") from None
+            if traveler.user_id is not None:
+                raise JoinRefused("taken")
+            before = history.traveler_state(traveler)
+            traveler.user = user
+            try:
+                with transaction.atomic():
+                    traveler.save(update_fields=["user"])
+            except IntegrityError:  # The account is already linked to another traveler here.
+                raise JoinRefused("taken") from None
+        member = TripMember.objects.create(trip=trip, user=user)
+        history.record(
+            trip,
+            user,
+            "joined",
+            "account",
+            object_id=member.pk,
+            label=user.display_name,
+            values={"via": "link", "traveler": traveler.name if traveler else ""},
+        )
+        if traveler is not None:
+            history.record_traveler_changes(trip, user, traveler, before)
+    return trip

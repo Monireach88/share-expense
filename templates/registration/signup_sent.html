@@ -6,6 +6,7 @@
   <div class="empty-icon" aria-hidden="true">📨</div>
   <h1 class="page-title">{% translate "Request sent" %}</h1>
   <p>{% if google %}{% translate "The admin will approve your account. Then you can sign in with Google." %}{% else %}{% translate "The admin will approve your account. Then you can log in with your username and password." %}{% endif %}</p>
+  {% if invite %}<p>{% translate "When you log in for the first time, you will choose who you are on the trip you were invited to." %}</p>{% endif %}
   <a class="btn" href="{% url 'login' %}">{% translate "Back to log in" %}</a>
 </div>
 {% endblock %}

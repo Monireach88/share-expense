@@ -508,7 +508,7 @@ VIEWS = [
     ("participant_delete", "get", ["dan_p"], None, OWNER),
     ("participant_delete", "post", ["dan_p"], None, OWNER),
     ("member_add", "get", [], None, OWNER),
-    ("member_add", "post", [], {"username": "sam"}, OWNER),
+    ("member_add", "post", [], {"username": "sam", "traveler": "none"}, OWNER),
     ("member_edit", "get", ["cara_m"], None, OWNER),
     ("member_edit", "post", ["cara_m"], {"role": "editor"}, OWNER),
     ("member_transfer", "get", ["dan_m"], None, OWNER),

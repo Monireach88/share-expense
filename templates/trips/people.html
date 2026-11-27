@@ -38,6 +38,29 @@
     {% endfor %}
   </ul>
 </section>
+
+{% if membership.is_owner %}
+<section>
+  <h2 class="section-title">{% translate "Invite link" %}</h2>
+  <div class="card stack">
+    {% if invite_url %}
+    <p class="small muted">{% translate "Anyone with this link and an approved account can join this trip as a Member and choose who they are." %}</p>
+    <div class="field">
+      <label for="invite-url">{% translate "Invite link" %}</label>
+      <input type="text" id="invite-url" value="{{ invite_url }}" readonly>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn btn-sm" data-copy="invite-url" data-done="{% translate 'Copied' %}">{% translate "Copy" %}</button>
+      <form method="post" action="{% url 'invite_change' trip.id 'renew' %}" hx-confirm="{% translate 'Renew the link? The old link will stop working.' %}">{% csrf_token %}<button type="submit" class="btn btn-secondary btn-sm">{% translate "Renew" %}</button></form>
+      <form method="post" action="{% url 'invite_change' trip.id 'off' %}" hx-confirm="{% translate 'Turn the link off? Nobody can join with it until you turn it on again.' %}">{% csrf_token %}<button type="submit" class="btn btn-secondary btn-sm">{% translate "Turn off" %}</button></form>
+    </div>
+    {% else %}
+    <p class="small muted">{% translate "The invite link is off. Turn it on to let people with an approved account join this trip by opening a link." %}</p>
+    <form method="post" action="{% url 'invite_change' trip.id 'on' %}">{% csrf_token %}<button type="submit" class="btn btn-sm">{% translate "Turn on invite link" %}</button></form>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
 </div>
 {% endblock %}
 {% block bar %}{% if membership.is_owner %}

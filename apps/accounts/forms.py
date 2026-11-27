@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
 from django.utils.translation import gettext_lazy as _
 
 from .models import User
@@ -14,7 +14,8 @@ class SignupRequestForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["username"].help_text = _("Letters and numbers, no spaces.")
+        self.fields["username"].help_text = _("Use a–z, 0–9 and _, 3 to 30 characters.")
+        self.fields["username"].widget.attrs.update(autocapitalize="none", spellcheck="false")
         self.fields["password1"].help_text = _("At least 8 characters, not only numbers.")
         self.fields["password2"].help_text = _("Type the password again.")
 
@@ -24,6 +25,14 @@ class SignupRequestForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class LoginForm(AuthenticationForm):
+    """Sign-in accepts any letter case; the backend lowercases the name."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].widget.attrs.update(autocapitalize="none", spellcheck="false")
 
 
 class PlainPasswordChangeForm(PasswordChangeForm):

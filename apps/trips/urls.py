@@ -4,7 +4,7 @@ from apps.accounts.views import health
 from apps.disputes import views as dispute_views
 from apps.expenses import views as expense_views
 
-from . import history_views, views
+from . import history_views, join_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -97,6 +97,12 @@ urlpatterns = [
         name="participant_delete",
     ),
     path("trips/<uuid:trip_id>/members/new/", views.member_add, name="member_add"),
+    path(
+        "trips/<uuid:trip_id>/invite/<slug:change>/",
+        views.invite_change,
+        name="invite_change",
+    ),
+    path("join/<str:token>/", join_views.join, name="join"),
     path("trips/<uuid:trip_id>/members/<int:member_id>/", views.member_edit, name="member_edit"),
     path(
         "trips/<uuid:trip_id>/members/<int:member_id>/owner/",

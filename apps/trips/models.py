@@ -25,6 +25,9 @@ class Trip(models.Model):
     # Set when the owner marks the trip as settled; the expenses are then locked until the
     # owner reopens it. How people paid each other is up to them, not recorded here.
     settled_at = models.DateTimeField(_("settled on"), null=True, blank=True)
+    # The secret in the invite link (spec section 6.3). None means the link is off; renewing
+    # replaces it, which stops the old link.
+    invite_token = models.CharField(max_length=64, unique=True, null=True, blank=True, default=None)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
     )
@@ -129,6 +132,25 @@ class TripMember(models.Model):
             return True
         traveler = self.linked_traveler
         return traveler is not None and str(payer_id) == str(traveler.pk)
+
+
+class RemovedAccount(models.Model):
+    """An account the Owner removed from a trip. It cannot rejoin by invite link until the Owner
+    adds it again, which deletes this mark."""
+
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="removed_accounts")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="removed_from"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["trip", "user"], name="unique_removed_account")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user} removed from {self.trip}"
 
 
 class Participant(models.Model):
