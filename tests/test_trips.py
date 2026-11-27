@@ -224,9 +224,15 @@ def test_spending_share_follows_the_sponsor(owner_client, trip):
     friend.sponsors.set([owner_p])
     add_expense(trip, friend, [owner_p, friend], "30")
     report = owner_client.get(reverse("report", args=[trip.id]), {"person": owner_p.id}).context
-    # Owner covers Friend, so Owner's share is the whole 30, matching the Balances page.
-    assert report["report"]["share"] == Decimal("30.00")
-    assert trip_settlement(trip).people[0].responsible_for == Decimal("30.00")
+    # Owner covers Friend: Owner's own share is 15, and the 15 for Friend is a separate line,
+    # the same split as on the Balances page.
+    assert report["report"]["share"] == Decimal("15.00")
+    assert report["report"]["covers"] == [(friend, Decimal("15.00"))]
+    owner_row = trip_settlement(trip).people[0]
+    assert owner_row.own_share == Decimal("15.00") and owner_row.covers == {
+        friend.id: Decimal("15.00")
+    }
+    assert owner_row.responsible_for == Decimal("30.00")
 
 
 def test_export_keeps_the_filters(owner_client, trip):
@@ -672,12 +678,14 @@ def test_a_covered_traveler_who_paid_is_owed_and_both_pages_say_so(owner_client,
     assert row["row"].paid == Decimal("4.00") and row["row"].balance == Decimal("4.00")
     html = summary.content.decode()
     child_row = html[html.index("Person C") :].split("</li>", 1)[0]
-    assert "Paid&nbsp;4.00" in child_row and "Covered by" in child_row
+    # Paid 4.00 - Share 1.33 + Covered by 1.33 = 4.00 owed to her.
+    assert "Paid&nbsp;4.00" in child_row and "Share&nbsp;1.33" in child_row
+    assert 'Covered by Friend <span class="nowrap">+1.33' in child_row
     assert "4.00" in child_row.split("row-end", 1)[1] and "is owed" in child_row
 
     report = owner_client.get(reverse("report", args=[trip.id]), {"person": child.id})
     data = report.context["report"]
-    assert data["paid"] == Decimal("4.00") and data["share"] == Decimal("0")
+    assert data["paid"] == Decimal("4.00") and data["share"] == Decimal("1.33")  # 4 / 3
     assert data["show_share"] and data["covered_by"] == [friend]
     page = report.content.decode()
     assert "Person C’s share" in page and "Paid by Person C" in page
@@ -688,3 +696,19 @@ def test_a_covered_traveler_who_paid_is_owed_and_both_pages_say_so(owner_client,
         reverse("report", args=[trip.id]), {"person": child.id}
     ).content.decode()
     assert "Paid 4.00" in page and "of 9.00" in page and "Paid 9.00" not in page
+
+
+def test_only_travelers_who_pay_for_themselves_are_offered_as_coverers(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    kid = Participant.objects.create(trip=trip, name="Kid")
+    kid.sponsors.set([friend])
+    grandpa = Participant.objects.create(trip=trip, name="Grandpa")
+    page = owner_client.get(reverse("participant_edit", args=[trip.id, grandpa.id]))
+    offered = list(page.context["form"].fields["sponsors"].queryset)
+    assert offered == [owner_p, friend]  # Kid is covered, so cannot cover Grandpa.
+    assert "data-all" in page.content.decode()  # The "Everyone" chip.
+    owner_client.post(
+        reverse("participant_edit", args=[trip.id, grandpa.id]),
+        {"name": "Grandpa", "sponsors": [owner_p.id, friend.id]},
+    )
+    assert set(grandpa.sponsors.all()) == {owner_p, friend}

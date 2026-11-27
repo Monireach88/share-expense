@@ -8,7 +8,7 @@ It was built to replace a spreadsheet, and it gives the same numbers as that spr
 
 - **Trips** with a base currency (for example USD) and one fixed exchange rate for each other currency (for example 1 USD = 26,200 VND).
 - **Travelers are just names.** Grandma does not need an account to be part of a trip.
-- **Sponsors:** a traveler can be covered by one or more other people (a child by a parent). Their share moves to the sponsors, split equally.
+- **Covering:** a traveler can be covered by one or more travelers who pay for themselves (the **Everyone** chip ticks them all). The covered traveler's share is split equally among them. Balances and Stats show each traveler's own share, plus "Covered by … +amount" or "Covers … −amount", so every row adds up to its balance.
 - **Expenses:** date, payer, beneficiaries (everyone by default), type, description, amount and currency. The amount is split equally among the beneficiaries. Deleted expenses are kept in the database but left out of the totals.
 - **Balances:** each person's balance (is owed / owes / nothing owed), with the paid and share amounts that make it up, and a breakdown of your own balance.
 - **Mark as settled:** once the travellers have paid each other back (in whatever way they choose), the owner marks the trip as settled after a confirmation. The trip then shows **Settled** with the date, and its expenses, people and rates are locked. The owner can reopen it.

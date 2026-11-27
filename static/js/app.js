@@ -92,6 +92,34 @@
   document.addEventListener("contextmenu", (event) => {
     if (event.target.closest("ul[data-reorder]")) event.preventDefault();
   });
+  // "Everyone" chip in a list of checkboxes (who covers a traveler): ticks or clears them all,
+  // and is ticked itself exactly when every other box is.
+  function syncAll(chips) {
+    const all = chips.querySelector("[data-all] input");
+    const boxes = [...chips.querySelectorAll("label:not([data-all]) input[type=checkbox]")];
+    if (all) all.checked = boxes.length > 0 && boxes.every((box) => box.checked);
+  }
+  function initAll() {
+    for (const label of document.querySelectorAll("[data-all][hidden]")) {
+      if (label.parentElement.querySelectorAll("input[type=checkbox]").length < 3) continue;
+      label.hidden = false;
+      syncAll(label.parentElement);
+    }
+  }
+  document.addEventListener("input", (event) => {
+    const chips = event.target.closest(".chips");
+    if (!chips || !chips.querySelector("[data-all]")) return;
+    if (event.target.closest("[data-all]")) {
+      for (const box of chips.querySelectorAll("label:not([data-all]) input[type=checkbox]")) {
+        box.checked = event.target.checked;
+      }
+    } else {
+      syncAll(chips);
+    }
+  });
+  document.addEventListener("DOMContentLoaded", initAll);
+  document.addEventListener("htmx:afterSettle", initAll);
+
   window.__seInitReorder = initReorder;
   document.addEventListener("DOMContentLoaded", initReorder);
   document.addEventListener("htmx:afterSettle", initReorder);
