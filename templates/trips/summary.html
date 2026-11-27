@@ -43,8 +43,8 @@
           <span class="row-title">{{ item.person.name }}{% if item.is_me %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
           <span class="row-sub num">{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
           <span class="row-sub num">{% translate "Share" %}&nbsp;{{ item.row.own_share|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
-          {% if item.covered_by %}<span class="row-sub num">{% blocktranslate with by=item.covered_by|join:", " %}Covered by {{ by }}{% endblocktranslate %} <span class="nowrap">+{{ item.row.covered|amount:summary.currency }}&nbsp;{{ summary.currency }}</span></span>{% endif %}
-          {% for person, amount in item.covers %}<span class="row-sub num">{% blocktranslate with name=person.name %}Covers {{ name }}{% endblocktranslate %} <span class="nowrap">−{{ amount|amount:summary.currency }}&nbsp;{{ summary.currency }}</span></span>{% endfor %}
+          {% if item.covered_by %}<span class="row-sub">{% blocktranslate with by=item.covered_by|join:", " %}Covered by {{ by }}{% endblocktranslate %}</span>{% endif %}
+          {% include "trips/_covers.html" with covers=item.covers total=item.covers_total cur=summary.currency label="covers" css="row-sub" %}
         </span>
         <span class="row-end">
           <strong class="num {% if item.row.balance > 0 %}pos{% elif item.row.balance < 0 %}neg{% else %}muted{% endif %}">{{ item.row.balance|money:summary.currency }}</strong>

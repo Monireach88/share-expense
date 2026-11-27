@@ -2,6 +2,7 @@ import json
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
+from urllib.parse import quote
 
 import pytest
 from django.test import Client
@@ -680,7 +681,7 @@ def test_a_covered_traveler_who_paid_is_owed_and_both_pages_say_so(owner_client,
     child_row = html[html.index("Person C") :].split("</li>", 1)[0]
     # Paid 4.00 - Share 1.33 + Covered by 1.33 = 4.00 owed to her.
     assert "Paid&nbsp;4.00" in child_row and "Share&nbsp;1.33" in child_row
-    assert 'Covered by Friend <span class="nowrap">+1.33' in child_row
+    assert "Covered by Friend</span>" in child_row  # Covering means the whole share: no amount.
     assert "4.00" in child_row.split("row-end", 1)[1] and "is owed" in child_row
 
     report = owner_client.get(reverse("report", args=[trip.id]), {"person": child.id})
@@ -712,3 +713,59 @@ def test_only_travelers_who_pay_for_themselves_are_offered_as_coverers(owner_cli
         {"name": "Grandpa", "sponsors": [owner_p.id, friend.id]},
     )
     assert set(grandpa.sponsors.all()) == {owner_p, friend}
+
+
+def test_stats_paid_by_filter_shows_what_one_traveler_paid_for_another(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, friend, [owner_p, friend], "30")  # Friend paid; Owner's part is 15.
+    add_expense(trip, owner_p, [owner_p, friend], "10")  # Owner paid for themself.
+    url = reverse("report", args=[trip.id])
+    response = owner_client.get(url, {"person": owner_p.id, "payer": friend.id})
+    report = response.context["report"]
+    assert [r.base_amount for r in report["rows"]] == [Decimal("30.00")]
+    assert report["share"] == Decimal("15.00")
+    page = response.content.decode()
+    assert "Owner’s share paid by Friend" in page and "is-filtered" in page
+    assert response.context["filter_summary"] == ["Owner", "paid by Friend"]
+    alone = owner_client.get(url, {"payer": friend.id})
+    assert alone.context["report"]["total"] == Decimal("30.00")
+    assert "Total paid by Friend" in alone.content.decode()
+
+
+def test_an_expense_opened_on_stats_returns_to_stats_with_its_filters(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    expense = add_expense(trip, owner_p, [owner_p, friend], "30")
+    stats = owner_client.get(reverse("report", args=[trip.id]), {"person": friend.id, "page": 1})
+    back = f"/trips/{trip.id}/report/?person={friend.id}"
+    assert f"?next={quote(back, safe='/')}" in stats.content.decode()
+    edit_url = reverse("expense_edit", args=[trip.id, expense.id])
+    page = owner_client.get(edit_url, {"next": back})
+    assert page.context["back_url"] == back
+    data = {
+        "next": back,
+        "amount": "31",
+        "currency": "USD",
+        "payer": owner_p.id,
+        "beneficiaries": [owner_p.id, friend.id],
+        "category": cat(trip).id,
+        "date": "2026-06-01",
+    }
+    assert owner_client.post(edit_url, data)["Location"] == back
+    # An address outside this trip is ignored, so the link cannot send anyone elsewhere.
+    assert owner_client.get(edit_url, {"next": "https://evil.example/"}).context["back_url"] == (
+        reverse("trip", args=[trip.id])
+    )
+
+
+def test_someone_covering_several_travelers_gets_one_short_line(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    kids = [Participant.objects.create(trip=trip, name=f"Kid {i}") for i in range(3)]
+    for kid in kids:
+        kid.sponsors.set([friend])
+    add_expense(trip, owner_p, [owner_p, friend, *kids], "50")
+    html = owner_client.get(reverse("summary", args=[trip.id])).content.decode()
+    friend_row = html[html.index(">Friend<") :].split("</details>", 1)[0]
+    assert "Covers 3 travelers" in friend_row and "−30.00" in friend_row
+    assert friend_row.count("Kid ") == 3  # Listed inside the line that opens.
+    kid_row = html[html.index('row-title">Kid 0') :].split("</li>", 1)[0]
+    assert "Covered by Friend" in kid_row and "+" not in kid_row.split("Covered by", 1)[1][:40]
