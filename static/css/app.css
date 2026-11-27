@@ -150,6 +150,7 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
 }
 .tab-icon { display: grid; place-items: center; width: 56px; height: 28px; border-radius: 999px; }
 .tabbar a[aria-current="page"] { color: var(--accent); }
+.icon-btn[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
 .tabbar a[aria-current="page"] .tab-icon { background: var(--accent-soft); }
 @media (min-width: 720px) {
   .tabbar { padding-inline: calc((100vw - 640px) / 2); }

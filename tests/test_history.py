@@ -52,9 +52,9 @@ def test_every_expense_change_is_recorded_with_old_and_new_values(crew):
     crew.client("ben").post(crew.url("expense_create"), crew.form("dan", "40", "Dinner"))
     dinner = crew.trip.expenses.get(description="Dinner")
     crew.client("ben").post(crew.url("expense_edit", dinner.id), crew.form("dan", "4", "Dinner"))
-    assert last_line(crew) == "Ben changed Dinner: amount 40 USD → 4 USD"
+    assert last_line(crew) == "Ben changed “Dinner”: amount 40.00 USD → 4.00 USD"
     page = crew.client("cara").get(crew.url("history")).content.decode()
-    assert "Ben changed Dinner: amount 40 USD → 4 USD" in page
+    assert "Ben changed “Dinner”: amount 40.00 USD → 4.00 USD" in page
 
 
 def test_history_cannot_be_changed(crew):
@@ -91,7 +91,7 @@ def test_a_member_restores_her_own_deleted_expense(crew):
     taxi.refresh_from_db()
     assert taxi.deleted_at is None and taxi.amount == Decimal("12")
     assert crew.trip.expenses.filter(pk=taxi.pk).exists()
-    assert last_line(crew).startswith("Cara restored Taxi")
+    assert last_line(crew).startswith("Cara restored “Taxi”")
 
 
 def test_a_member_cannot_restore_someone_elses_expense(crew):
@@ -110,7 +110,7 @@ def test_restore_is_refused_when_a_rate_is_missing(crew):
     delete(crew, "ben", noodles)
     rate.delete()
     response = restore(crew, "ben", noodles)
-    assert "Add the VND rate first." in response.content.decode()
+    assert "Not restored. Add these first: the VND rate." in response.content.decode()
     noodles.refresh_from_db()
     assert noodles.deleted_at is not None
     ExchangeRate.objects.create(trip=crew.trip, currency="VND", rate=Decimal("25000"))
@@ -135,7 +135,7 @@ def test_entries_survive_a_renamed_traveler(crew):
         crew.url("participant_edit", crew.travelers["dan"].id), {"name": "Daniel"}
     )
     all_lines = lines(crew)
-    assert "Ann added Dinner: 60 USD, paid by Dan" in all_lines[0]
+    assert "Ann added “Dinner”: 60.00 USD, paid by Dan" in all_lines[0]
     assert all_lines[1] == "Ann renamed traveler Dan → Daniel"
     assert "paid by Dan" in crew.client("cara").get(crew.url("history")).content.decode()
 
@@ -272,10 +272,10 @@ def _trip_renamed(crew):
 
 
 ACTIONS = [
-    (_expense_added, "Ann added Drinks: 10 USD, paid by Ann"),
-    (_expense_changed, "Ben changed Taxi: amount 20 USD → 25 USD"),
-    (_expense_deleted, "Ben deleted Taxi: 20 USD, paid by Dan"),
-    (_expense_restored, "Ben restored Taxi: 20 USD, paid by Dan"),
+    (_expense_added, "Ann added “Drinks”: 10.00 USD, paid by Ann"),
+    (_expense_changed, "Ben changed “Taxi”: amount 20.00 USD → 25.00 USD"),
+    (_expense_deleted, "Ben deleted “Taxi”: 20.00 USD, paid by Dan"),
+    (_expense_restored, "Ben restored “Taxi”: 20.00 USD, paid by Dan"),
     (_traveler_added, "Ann added traveler Fay"),
     (_traveler_renamed, "Ann renamed traveler Dan → D"),
     (_traveler_covered, "Ann changed who covers Dan: nobody → Ann"),
@@ -285,10 +285,10 @@ ACTIONS = [
     (_account_added, "Ann added Sam's account"),
     (_account_role, "Ann changed Cara's role: Member → Editor"),
     (_account_removed, "Ann removed Cara's account"),
-    (_account_owner, "Ann made Ben the owner"),
-    (_rate_added, "Ann added the VND rate: 25,000"),
-    (_rate_changed, "Ann changed the VND rate: 25,000 → 26,000"),
-    (_rate_removed, "Ann removed the VND rate"),
+    (_account_owner, "Ann made Ben the Owner"),
+    (_rate_added, "Ann added the VND rate: 1 USD = 25,000 VND"),
+    (_rate_changed, "Ann changed the VND rate: 1 USD = 25,000 VND → 1 USD = 26,000 VND"),
+    (_rate_removed, "Ann removed the VND rate: 1 USD = 25,000 VND"),
     (_type_added, "Ben added type Tips"),
     (_type_renamed, "Ben renamed type Food & drink → Meals"),
     (_type_removed, "Ben removed type Translation"),
@@ -472,7 +472,7 @@ def test_restore_is_refused_when_the_type_was_removed_until_it_is_added_again(cr
     delete(crew, "ben", taxi)
     crew.client("ben").post(crew.url("category_delete", transport.id))
     response = restore(crew, "ben", taxi)
-    assert "The type Transport was removed." in response.content.decode()
+    assert "Not restored. Add these first: type Transport." in response.content.decode()
     taxi.refresh_from_db()
     assert taxi.deleted_at is not None
     Category.objects.create(trip=crew.trip, name="Transport", emoji="🚕")
@@ -490,7 +490,7 @@ def test_restore_is_refused_when_a_for_traveler_was_removed(crew):
     crew.client("ann").post(crew.url("participant_delete", crew.travelers["ben"].id))
     assert not crew.trip.participants.filter(name="Ben").exists()
     response = restore(crew, "ann", lunch)
-    assert "Traveler Ben was removed." in response.content.decode()
+    assert "Not restored. Add these first: traveler Ben." in response.content.decode()
     lunch.refresh_from_db()
     assert lunch.deleted_at is not None
 
@@ -504,7 +504,10 @@ def test_an_expense_erased_with_its_payer_can_no_longer_be_restored(crew):
     page = crew.client("ann").get(crew.url("expense_edit", lunch.id))
     assert page.status_code == 200
     html = page.content.decode()
-    assert "This expense can no longer be restored." in html and "Restore expense" not in html
+    assert (
+        "Ben was removed from the trip, so this expense cannot be restored." in html
+        and "Restore expense" not in html
+    )
     assert "Lunch" in html and "Ben" in html
     assert crew.client("ann").post(crew.url("expense_restore", lunch.id)).status_code == 302
     assert crew.client("ann").get(crew.url("history")).status_code == 200
@@ -565,7 +568,7 @@ def test_entries_keep_the_actors_name_when_the_account_is_deleted(crew):
     crew.users["ben"].delete()
     entry = crew.trip.history.get()
     assert entry.actor is None and entry.actor_name == "Ben"
-    assert "Ben added Bus" in history.describe(entry)
+    assert "Ben added “Bus”" in history.describe(entry)
 
 
 def test_deleting_the_trip_deletes_its_history(crew):
@@ -574,3 +577,87 @@ def test_deleting_the_trip_deletes_its_history(crew):
     crew.client("ann").post(crew.url("trip_delete"))
     assert not Trip.objects.filter(pk=crew.trip.pk).exists()
     assert HistoryEntry.objects.count() == 0
+
+
+# --- Wording and links (UI review) ---------------------------------------------------------------
+
+
+def test_the_trip_settings_line_uses_the_form_labels_and_readable_values(crew):
+    crew.client("ann").post(
+        crew.url("trip_settings"),
+        {
+            "name": "Crew trip",
+            "country": "KH",
+            "start_date": "2026-06-01",
+            "end_date": "2026-06-05",
+            "base_currency": "USD",
+        },
+    )
+    crew.client("ann").post(
+        crew.url("trip_settings"),
+        {
+            "name": "Crew trip",
+            "country": "KH",
+            "start_date": "2026-06-02",
+            "end_date": "2026-06-05",
+            "base_currency": "USD",
+        },
+    )
+    assert last_line(crew) == "Ann changed the trip settings: start date 1 Jun 2026 → 2 Jun 2026"
+    assert lines(crew)[0] == (
+        "Ann changed the trip settings: country – → Cambodia; "
+        "end date – → 5 Jun 2026; start date – → 1 Jun 2026"
+    )
+
+
+def test_split_between_says_everyone_when_the_list_is_all_travelers(crew):
+    taxi = crew.taxi
+    two = [crew.travelers["ann"].id, crew.travelers["cara"].id]
+    crew.client("ben").post(
+        crew.url("expense_edit", taxi.id), {**crew.form("dan", "20", "Taxi"), "beneficiaries": two}
+    )
+    crew.client("ben").post(crew.url("expense_edit", taxi.id), crew.form("dan", "20", "Taxi"))
+    assert lines(crew) == [
+        "Ben changed “Taxi”: split between Ann, Ben, Cara, Dan → Ann, Cara".replace(
+            "Ann, Ben, Cara, Dan", "everyone"
+        ),
+        "Ben changed “Taxi”: split between Ann, Cara → everyone",
+    ]
+
+
+def test_the_deleted_page_reads_like_the_expense_page(crew):
+    ExchangeRate.objects.create(trip=crew.trip, currency="VND", rate=Decimal("25000"))
+    noodles = crew.expense("dan", "Noodles", "100000", currency="VND")
+    delete(crew, "ben", noodles)
+    html = crew.client("ben").get(crew.url("expense_edit", noodles.id)).content.decode()
+    assert "Ben deleted this expense on" in html and "last values" not in html
+    assert "🍜 Noodles" in html and "≈" in html
+    assert "Everyone (4 travelers)" in html and "25,000 VND each" in html
+    # Someone who may not restore sees who may, in the same words as the expense page.
+    html = crew.client("cara").get(crew.url("expense_edit", noodles.id)).content.decode()
+    assert "Only Dan, the Owner or an Editor can restore this expense." in html
+
+
+def test_everyone_compares_travelers_not_counts(crew):
+    lunch = crew.expense("dan", "Lunch", "30")
+    lunch.beneficiaries.set(list(crew.travelers.values())[:3])
+    delete(crew, "ben", lunch)
+    crew.client("ann").post(crew.url("participant_create"), {"name": "Fay"})
+    lunch.beneficiaries.set([])  # The row no longer matters: the page reads History.
+    html = crew.client("ben").get(crew.url("expense_edit", lunch.id)).content.decode()
+    assert "Everyone (" not in html
+
+
+def test_history_links_carry_the_search_back_and_the_header_points_to_expenses(crew):
+    crew.client("ann").post(crew.url("expense_create"), crew.form("ann", "5", "Bus"))
+    bus = crew.trip.expenses.get(description="Bus")
+    cara = crew.client("cara")
+    html = cara.get(crew.url("history"), {"q": "bus"}).content.decode()
+    assert "?next=" in html and "q%3Dbus" in html
+    assert f'class="back" href="{crew.url("trip")}"' in html
+    assert 'aria-current="page"' in html
+    back = cara.get(crew.url("expense_edit", bus.id), {"next": crew.url("history") + "?q=bus"})
+    assert f'href="{crew.url("history")}?q=bus"' in back.content.decode()
+    delete(crew, "ann", bus)
+    gone = cara.get(crew.url("expense_edit", bus.id), {"next": crew.url("history") + "?q=bus"})
+    assert f'href="{crew.url("history")}?q=bus"' in gone.content.decode()

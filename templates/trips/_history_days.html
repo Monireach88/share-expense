@@ -10,7 +10,7 @@ every day (search results). An expense entry opens its expense page; the others 
     {% icon "chevron-down" "chev" %}
   </summary>
   <ul class="list">
-    {% for e in items %}<li>{% if e.object_type == "expense" %}<a class="row" href="{% url 'expense_edit' trip.id e.object_id %}"><span class="row-main"><span class="row-title history-line">{{ e.created_at|time:"H:i" }} · {{ e.text }}</span></span>{% icon "chevron-right" "chev" %}</a>{% else %}<div class="row"><span class="row-main"><span class="row-title history-line">{{ e.created_at|time:"H:i" }} · {{ e.text }}</span></span></div>{% endif %}</li>{% endfor %}
+    {% for e in items %}<li>{% if e.object_type == "expense" %}<a class="row" href="{% url 'expense_edit' trip.id e.object_id %}?next={{ request.get_full_path|urlencode }}"><span class="row-main"><span class="row-title history-line">{{ e.created_at|time:"H:i" }} · {{ e.text }}</span></span>{% icon "chevron-right" "chev" %}</a>{% else %}<div class="row"><span class="row-main"><span class="row-title history-line">{{ e.created_at|time:"H:i" }} · {{ e.text }}</span></span></div>{% endif %}</li>{% endfor %}
   </ul>
 </details>
 {% endwith %}{% endfor %}

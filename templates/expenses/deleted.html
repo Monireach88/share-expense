@@ -3,17 +3,9 @@
 {% block title %}{{ title }} · {{ trip.name }}{% endblock %}
 {% block back %}<a class="back" href="{{ back_url }}">{% icon "chevron-left" %}<span>{{ trip.name }}</span></a>{% endblock %}
 {% block content %}
-<h1 class="page-title">{{ title }}</h1>
-<div class="note" style="margin-top: 16px">{% icon "triangle-alert" %}<div>{% if deleted %}{% blocktranslate with who=deleted.actor_name when=deleted.created_at|date:"j M Y H:i" %}Deleted by {{ who }} on {{ when }}. These are its last values.{% endblocktranslate %}{% else %}{% translate "This expense was deleted. These are its last values." %}{% endif %}</div></div>
-<div class="card hero" style="margin-top: 16px">
-  <p class="big num">{{ amount|money:values.currency }}</p>
-  <dl class="facts">
-    <dt>{% translate "Paid by" %}</dt><dd>{{ values.payer }}</dd>
-    <dt>{% translate "Split between" %}</dt><dd>{% if everyone %}{% blocktranslate count n=values.for|length %}Everyone ({{ n }} traveler){% plural %}Everyone ({{ n }} travelers){% endblocktranslate %}{% else %}{% for name in values.for %}<span class="name">{{ name }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</dd>
-    <dt>{% translate "Type" %}</dt><dd>{{ values.type|default:"–" }}</dd>
-    <dt>{% translate "Date" %}</dt><dd>{{ day|date:"D j M Y" }}</dd>
-  </dl>
-</div>
+<h1 class="page-title">{{ emoji }} {{ title }}</h1>
+<div class="note" style="margin-top: 16px">{% icon "triangle-alert" %}<div>{% if deleted %}{% blocktranslate with who=deleted.actor_name day=deleted.created_at|date:"j M Y" time=deleted.created_at|time:"H:i" %}{{ who }} deleted this expense on {{ day }} at {{ time }}.{% endblocktranslate %}{% else %}{% translate "This expense was deleted." %}{% endif %}</div></div>
+{% include "expenses/_facts.html" with currency=values.currency payer=values.payer type_name=values.type %}
 {% if reason %}<div class="note" style="margin-top: 16px">{% icon "lock" %}<div>{{ reason }}</div></div>{% endif %}
 {% endblock %}
 {% block bar %}{% if can_restore %}

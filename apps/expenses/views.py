@@ -446,6 +446,30 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     )
 
 
+def _money_facts(trip, amount, currency, count: int, everyone: bool) -> dict:
+    """The lines under an expense's amount: its value in the base currency (when a rate exists)
+    and each traveler's share. Shared by the read-only page and the deleted-expense page."""
+    share = (amount / count).quantize(Decimal("0.01")) if count else Decimal(0)
+    base_amount = None
+    with suppress(SettlementError):
+        base_amount = to_base(amount, currency, trip.base_currency, trip.rate_map())
+    # "Everyone (5 travelers)" already gives the count, so the line under it gives only the share.
+    if everyone:
+        template = _("%(share)s %(currency)s each")
+    else:
+        template = ngettext(
+            "%(n)d traveler · %(share)s %(currency)s each",
+            "%(n)d travelers · %(share)s %(currency)s each",
+            count,
+        )
+    split_line = template % {
+        "n": count,
+        "share": format_amount(share, currency),
+        "currency": currency,
+    }
+    return {"base_amount": base_amount, "split_line": split_line}
+
+
 def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
     """The expense page read-only: the same values as the form, with no Save or Delete."""
     trip = membership.trip
@@ -459,12 +483,8 @@ def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
     else:
         reason = _who_may_change(expense.payer)
     beneficiaries = list(expense.beneficiaries.all())
-    count = len(beneficiaries)
-    share = (expense.amount / count).quantize(Decimal("0.01")) if count else None
-    base_amount = None
-    with suppress(SettlementError):
-        base_amount = to_base(expense.amount, expense.currency, trip.base_currency, trip.rate_map())
-    everyone = count == trip.participants.count()
+    everyone = {p.pk for p in beneficiaries} == {p.pk for p in trip.participants.all()}
+    facts = _money_facts(trip, expense.amount, expense.currency, len(beneficiaries), everyone)
     return render(
         request,
         "expenses/detail.html",
@@ -473,23 +493,9 @@ def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
             "membership": membership,
             "expense": expense,
             "beneficiaries": beneficiaries,
+            "names": [p.name for p in beneficiaries],
             "everyone": everyone,
-            # "Everyone (5 travelers)" already gives the count, so the line under it gives only the share.
-            "split_line": (
-                _("%(share)s %(currency)s each")
-                if everyone
-                else ngettext(
-                    "%(n)d traveler · %(share)s %(currency)s each",
-                    "%(n)d travelers · %(share)s %(currency)s each",
-                    count,
-                )
-            )
-            % {
-                "n": count,
-                "share": format_amount(share, expense.currency),
-                "currency": expense.currency,
-            },
-            "base_amount": base_amount,
+            **facts,
             "reason": reason,
             "back_url": _back_url(request, trip.id),
         },
@@ -512,14 +518,19 @@ def _deleted_expense_view(request: HttpRequest, membership, expense_id, row) -> 
     )
     can_restore = row is not None and membership.can_edit_expense(row)
     if row is None:
-        reason = _("This expense can no longer be restored.")
+        reason = _("%(name)s was removed from the trip, so this expense cannot be restored.") % {
+            "name": values["payer"]
+        }
     elif trip.is_settled:
         reason = _("This trip is settled, so its expenses are locked.")
     elif not can_restore:
-        reason = _("Only the Owner, an Editor or the traveler who paid can restore this expense.")
+        reason = _who_may_change(row.payer, restore=True)
     else:
         reason = ""
-    everyone = len(values["for_ids"]) == trip.participants.count()
+    everyone = set(values["for_ids"]) == {str(p.pk) for p in trip.participants.all()}
+    category = trip.categories.filter(pk=values["type_id"]).first() if values["type_id"] else None
+    amount = Decimal(values["amount"])
+    facts = _money_facts(trip, amount, values["currency"], len(values["for_ids"]), everyone)
     return render(
         request,
         "expenses/deleted.html",
@@ -529,7 +540,10 @@ def _deleted_expense_view(request: HttpRequest, membership, expense_id, row) -> 
             "expense_id": expense_id,
             "values": values,
             "title": values["description"] or values["type"],
-            "amount": Decimal(values["amount"]),
+            "emoji": category.emoji if category else "📦",
+            "names": values["for"],
+            "amount": amount,
+            **facts,
             "day": date.fromisoformat(values["date"]),
             "everyone": everyone,
             "deleted": deleted,
@@ -570,12 +584,17 @@ def expense_restore(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     return redirect("expense_edit", trip_id=trip.id, expense_id=expense_id)
 
 
-def _who_may_change(payer) -> str:
-    """The read-only notice for a Member: who besides the Owner and Editors may change it."""
+def _who_may_change(payer, *, restore: bool = False) -> str:
+    """The read-only notice for a Member: who besides the Owner and Editors may change (or
+    restore) it."""
     if payer.user is None:
+        if restore:
+            return _("Only the Owner or an Editor can restore this expense.")
         return _("Only the Owner or an Editor can change this expense.")
     account = payer.user.display_name
     name = account if account == payer.name else f"{account} ({payer.name})"
+    if restore:
+        return _("Only %(name)s, the Owner or an Editor can restore this expense.") % {"name": name}
     return _("Only %(name)s, the Owner or an Editor can change this expense.") % {"name": name}
 
 

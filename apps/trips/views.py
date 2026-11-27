@@ -89,7 +89,11 @@ def _record_trip_changes(trip: Trip, membership: TripMember, form: TripForm) -> 
     for field in ("country", "start_date", "end_date", "base_currency"):
         if field in form.changed_data:
             old, new = form.initial.get(field), form.cleaned_data.get(field)
-            others[field] = history.change(str(old or ""), str(new or ""))
+            others[field] = history.change(
+                history.setting_text(field, old),
+                history.setting_text(field, new),
+                label=str(form[field].label).lower(),
+            )
     if others:
         history.record(
             trip, membership, "changed", "trip", object_id=trip.pk, label=trip.name, changes=others
@@ -103,14 +107,15 @@ def rate_save(request: HttpRequest, trip_id) -> HttpResponse:
         return response
     trip = membership.trip
     existing = trip.rates.filter(currency=request.POST.get("currency")).first()
-    old = history.rate_text(existing.rate) if existing else ""  # The form edits it in place.
+    # The form edits ``existing`` in place, so its old rate is read first.
+    old = history.rate_line(trip, existing.currency, existing.rate) if existing else ""
     form = ExchangeRateForm(request.POST, instance=existing, trip=trip)
     if form.is_valid():
         rate = form.save(commit=False)
         rate.trip = trip
         with transaction.atomic():
             rate.save()
-            new = history.rate_text(rate.rate)
+            new = history.rate_line(trip, rate.currency, rate.rate)
             if existing is None:
                 action = "added"
             elif old != new:
@@ -157,7 +162,11 @@ def rate_delete(request: HttpRequest, trip_id, rate_id) -> HttpResponse:
                 "rate",
                 object_id=rate.pk,
                 label=rate.currency,
-                changes={"rate": history.change(history.rate_text(rate.rate), "")},
+                changes={
+                    "rate": history.change(
+                        history.rate_line(membership.trip, rate.currency, rate.rate), ""
+                    )
+                },
             )
             rate.delete()
         messages.success(request, _("Exchange rate deleted."))

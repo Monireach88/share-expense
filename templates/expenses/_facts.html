@@ -1,0 +1,14 @@
+{% load i18n ui %}{% comment %}
+The values card of the read-only expense page and of the deleted-expense page, so both read the same.
+Needs: amount, currency, base_amount (or None), payer (name), names (the split-between names), everyone,
+split_line, type_name, day.
+{% endcomment %}<div class="card hero" style="margin-top: 16px">
+  <p class="big num">{{ amount|money:currency }}</p>
+  {% if currency != trip.base_currency and base_amount is not None %}<p class="row-sub num">≈ {{ base_amount|money:trip.base_currency }}</p>{% endif %}
+  <dl class="facts">
+    <dt>{% translate "Paid by" %}</dt><dd>{{ payer }}</dd>
+    <dt>{% translate "Split between" %}</dt><dd>{% if everyone %}{% blocktranslate count n=names|length %}Everyone ({{ n }} traveler){% plural %}Everyone ({{ n }} travelers){% endblocktranslate %}{% else %}{% for name in names %}<span class="name">{{ name }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}<span class="help num facts-split">{{ split_line }}</span></dd>
+    <dt>{% translate "Type" %}</dt><dd>{{ type_name|default:"–" }}</dd>
+    <dt>{% translate "Date" %}</dt><dd>{{ day|date:"D j M Y" }}</dd>
+  </dl>
+</div>

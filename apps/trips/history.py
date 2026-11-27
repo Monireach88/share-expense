@@ -9,8 +9,10 @@ from decimal import Decimal
 
 from django.db import transaction
 from django.utils.translation import gettext as _
+from django_countries.fields import Country
 
 from apps.expenses.models import Expense
+from apps.trips.templatetags.ui import format_amount
 
 from .access import lock_trip
 from .models import HistoryEntry, Participant, Trip
@@ -99,10 +101,8 @@ def _day_text(day: date) -> str:
 
 
 def _amount_text(values: dict) -> str:
-    """ "40 USD" (whole amounts without cents, as a person writes them), "12.50 USD"."""
-    amount = Decimal(values["amount"])
-    number = f"{amount:,.0f}" if amount == amount.to_integral_value() else f"{amount:,.2f}"
-    return f"{number} {values['currency']}"
+    """The amount as the app writes money everywhere: "4.00 USD", "10,000 KHR"."""
+    return f"{format_amount(Decimal(values['amount']), values['currency'])} {values['currency']}"
 
 
 def expense_snapshot(expense: Expense) -> dict:
@@ -123,8 +123,13 @@ def expense_snapshot(expense: Expense) -> dict:
     }
 
 
-def expense_changes(before: dict, after: dict) -> dict:
-    """Per changed field: its old and new value as display text (and ids for people and type)."""
+def _people_text(names: list[str], ids: list[str], everyone: set[str] | None) -> str:
+    return _("everyone") if everyone is not None and set(ids) == everyone else ", ".join(names)
+
+
+def expense_changes(before: dict, after: dict, everyone: set[str] | None = None) -> dict:
+    """Per changed field: its old and new value as display text (and ids for people and type).
+    ``everyone`` holds the ids of all travelers now; a "For" list equal to it reads "everyone"."""
     changes: dict = {}
     if before["date"] != after["date"]:
         changes["date"] = {
@@ -140,8 +145,8 @@ def expense_changes(before: dict, after: dict) -> dict:
         }
     if set(before["for_ids"]) != set(after["for_ids"]):
         changes["for"] = {
-            "old": ", ".join(before["for"]),
-            "new": ", ".join(after["for"]),
+            "old": _people_text(before["for"], before["for_ids"], everyone),
+            "new": _people_text(after["for"], after["for_ids"], everyone),
             "old_ids": before["for_ids"],
             "new_ids": after["for_ids"],
         }
@@ -178,7 +183,8 @@ def record_expense(trip, by, action, expense, *, before: dict | None = None) -> 
     """Write the entry of an expense action; ``before`` is the snapshot taken before a change.
     A save that changes nothing writes no entry."""
     after = expense_snapshot(expense)
-    changes = expense_changes(before, after) if action == "changed" and before else {}
+    everyone = {str(pk) for pk in trip.participants.values_list("pk", flat=True)}
+    changes = expense_changes(before, after, everyone) if action == "changed" and before else {}
     if action == "changed" and not changes:
         return None
     return record(
@@ -222,7 +228,7 @@ def _resolve(values: dict, trip: Trip):
         found = people.get(str(pk)) or by_name.get(name.casefold())
         if found is None and name not in missing:
             missing.add(name)
-            problems.append(_("Traveler %(name)s was removed.") % {"name": name})
+            problems.append(_("traveler %(name)s") % {"name": name})
         return found
 
     payer = person(values["payer_id"], values["payer"])
@@ -235,9 +241,9 @@ def _resolve(values: dict, trip: Trip):
             trip.categories.filter(name__iexact=values["type"]).first()
         )
         if category is None:
-            problems.append(_("The type %(name)s was removed.") % {"name": values["type"]})
+            problems.append(_("type %(name)s") % {"name": values["type"]})
     if values["currency"] not in trip.currencies():
-        problems.append(_("Add the %(currency)s rate first.") % {"currency": values["currency"]})
+        problems.append(_("the %(currency)s rate") % {"currency": values["currency"]})
     return payer, [b for b in beneficiaries if b], category, problems
 
 
@@ -258,7 +264,10 @@ def restore_expense(trip: Trip, expense_id, *, by) -> bool:
         values = last_expense_values(trip, expense_id, expense)
         payer, beneficiaries, category, problems = _resolve(values, trip)
         if problems:
-            raise RestoreRefused(_("Not restored. %(problems)s") % {"problems": " ".join(problems)})
+            raise RestoreRefused(
+                _("Not restored. Add these first: %(problems)s.")
+                % {"problems": ", ".join(problems)}
+            )
         expense.date = date.fromisoformat(values["date"])
         expense.payer = payer
         expense.category = category
@@ -280,7 +289,7 @@ def changes_text(changes: dict) -> str:
     labels = {
         "date": _("date"),
         "payer": _("paid by"),
-        "for": _("for"),
+        "for": _("split between"),
         "type": _("type"),
         "description": _("description"),
         "amount": _("amount"),
@@ -298,6 +307,8 @@ def describe(entry: HistoryEntry) -> str:
     who = entry.actor_name or _("Someone")
     label = entry.object_label
     kind, action, changes = entry.object_type, entry.action, entry.changes
+    if kind == "expense":
+        label = f"“{label}”"
     old = new = ""
     if changes:
         first = next(iter(changes.values()))
@@ -332,10 +343,10 @@ def describe(entry: HistoryEntry) -> str:
         ("account", "added"): _("%(who)s added %(label)s's account"),
         ("account", "role_changed"): _("%(who)s changed %(label)s's role: %(old)s → %(new)s"),
         ("account", "removed"): _("%(who)s removed %(label)s's account"),
-        ("account", "became_owner"): _("%(who)s made %(label)s the owner"),
+        ("account", "became_owner"): _("%(who)s made %(label)s the Owner"),
         ("rate", "added"): _("%(who)s added the %(label)s rate: %(new)s"),
         ("rate", "changed"): _("%(who)s changed the %(label)s rate: %(old)s → %(new)s"),
-        ("rate", "removed"): _("%(who)s removed the %(label)s rate"),
+        ("rate", "removed"): _("%(who)s removed the %(label)s rate: %(old)s"),
         ("type", "added"): _("%(who)s added type %(label)s"),
         ("type", "renamed"): _("%(who)s renamed type %(old)s → %(new)s"),
         ("type", "changed"): _("%(who)s changed type %(label)s: icon %(old)s → %(new)s"),
@@ -350,7 +361,7 @@ def describe(entry: HistoryEntry) -> str:
         return _("%(who)s changed the trip settings: %(changes)s") % {
             **data,
             "changes": "; ".join(
-                f"{field} {c.get('old') or '–'} → {c.get('new') or '–'}"
+                f"{c.get('label', field)} {c.get('old') or '–'} → {c.get('new') or '–'}"
                 for field, c in changes.items()
             ),
         }
@@ -362,6 +373,22 @@ def describe(entry: HistoryEntry) -> str:
 
 def change(old, new, **ids) -> dict:
     return {"old": old, "new": new, **ids}
+
+
+def rate_line(trip: Trip, currency: str, rate: Decimal) -> str:
+    """The rate with its units, as the Settings page shows it: "1 USD = 4,100 KHR"."""
+    return f"1 {trip.base_currency} = {rate_text(rate)} {currency}"
+
+
+def setting_text(field: str, value) -> str:
+    """A trip setting as text: country name, date as "1 Jun 2026", else the value."""
+    if not value:
+        return ""
+    if field == "country":
+        return Country(str(value)).name
+    if isinstance(value, date):
+        return _day_text(value)
+    return str(value)
 
 
 def rate_text(rate: Decimal) -> str:
