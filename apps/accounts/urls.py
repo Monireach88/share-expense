@@ -6,7 +6,7 @@ from django.urls import include, path
 from . import views
 from .forms import PlainPasswordChangeForm
 
-login_view = auth_views.LoginView.as_view(redirect_authenticated_user=True)
+login_view = views.LoginView.as_view()
 
 urlpatterns = [
     path("signup/", views.signup, name="signup"),

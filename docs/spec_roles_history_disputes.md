@@ -303,30 +303,30 @@ Scenario: A Viewer cannot open a dispute
 
 ### 6.1 Usernames
 
-- Allowed: a–z, 0–9 and `_`; 3 to 30 characters; stored in lowercase. Sign-in accepts any letter case.
+- Allowed: a–z, 0–9 and `_`; 3 to 30 characters; stored in lowercase. Sign-in accepts any letter case. Error for bad characters or length: "Use only the characters listed above." (the field help lists them); a clash: "This username is taken."
 - Unique across the whole app, enforced by the database (unique index on the lowercase name).
 - Accounts created by Google sign-in get a username built from the email name that follows these rules (plus a number when taken).
 - Before the migration: list production usernames that break the rules or clash in lowercase; the owner decides each rename. The migration must not fail on existing data.
 
 ### 6.2 Adding an account by username (Owner)
 
-The "Add account" form has the username and a required choice "This account is…":
+The "Add account" form has the username and a required choice "Traveler for this account":
 
 - an existing traveler with no account yet (the one whose name matches the account's name is pre-selected);
 - a new traveler with the account's name (a form error if that name is taken);
-- not a traveler ("Viewer").
+- no traveler ("Viewer"; the form says "No traveler (view only)").
 
 The new membership is a Member. History: "Ann added Cara's account". Adding a previously removed account clears its block on the invite link.
 
 ### 6.3 Invite link (Owner)
 
 - On the Travelers page, Accounts section: the Owner turns the link on, copies it, renews it (the old link stops working) or turns it off. Off by default.
-- A signed-in approved account opening a working link sees the trip name and the question "Which traveler are you?", listing the travelers with no account, plus "None of them (only view)".
-- After the choice, the account joins as a Member, linked to the chosen traveler. History: "Cara joined by link as Cara".
+- A signed-in approved account opening a working link sees the trip name and the question "Which traveler are you?", listing the travelers with no account, plus "None of them (view only)".
+- After the choice, the account joins as a Member, linked to the chosen traveler. History: one line, "Cara joined by link as Cara" (or "Cara joined by link (view only)"); no separate "linked" line.
 - **Without an account:** the link sends the visitor to sign in, or to request an account. The request form keeps the link: after the admin approves the account, its first sign-in lands on "Which traveler are you?". A link that was renewed or turned off in between shows "This link no longer works".
 - An account already on the trip is taken straight to the trip.
-- An account the Owner removed sees "You were removed from this trip. Ask the owner to add you again."
-- Two people choosing the same traveler at the same moment: the second gets "Already taken, choose again".
+- An account the Owner removed sees "You were removed from this trip. Ask the Owner to add you again."
+- Two people choosing the same traveler at the same moment: the second gets "Another account has just chosen this traveler. Choose again.".
 - Risk accepted: someone could choose another person's name. History shows it, and the Owner can unlink or remove the account.
 
 ### Acceptance criteria

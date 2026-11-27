@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{{ trip.name }}{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<div class="card empty" style="margin-top: 24px">
+  <h1 class="page-title">{{ trip.name }}</h1>
+  <p>{% translate "You were removed from this trip. Ask the Owner to add you again." %}</p>
+  <a class="btn" href="{% url 'home' %}">{% translate "Go to my trips" %}</a>
+</div>
+{% endblock %}

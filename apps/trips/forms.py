@@ -129,21 +129,84 @@ class ParticipantForm(forms.ModelForm):
 
 
 class MemberAddForm(forms.Form):
+    """Add an account by username and say what it is: a traveler with no account, a new traveler
+    with the account's name, or not a traveler (spec section 6.2)."""
+
+    NEW = "new"
+    NONE = "none"
+
     username = forms.CharField(label=_("Username"), max_length=150)
+    traveler = forms.ChoiceField(
+        label=_("Traveler for this account"), widget=forms.RadioSelect, choices=[], required=True
+    )
 
     def __init__(self, *args, trip: Trip, **kwargs):
         super().__init__(*args, **kwargs)
         self.trip = trip
+        self.user = None
+        self.participant = None
+        free = list(trip.participants.filter(user__isnull=True))
+        choices = [(str(p.pk), p.name) for p in free]
+        if not trip.is_settled:
+            choices.append((self.NEW, _("New traveler with the account's name")))
+        choices.append((self.NONE, _("No traveler (view only)")))
+        self.fields["traveler"].choices = choices
+        self._free = {str(p.pk): p for p in free}
+        self.fields["username"].widget.attrs.update(autocapitalize="none", spellcheck="false")
+
+    def preselect(self, username: str) -> None:
+        """Pick the traveler whose name is the account's name, when the form is first shown."""
+        user = self._find_user(username)
+        if user is None:
+            return
+        self._name_new_traveler(user)
+        for key, person in self._free.items():
+            if person.name.lower() == user.display_name.lower():
+                self.initial["traveler"] = key
+                return
+
+    def _name_new_traveler(self, user) -> None:
+        """Once the account is known, the "new traveler" choice shows the name it would get."""
+        label = _("New traveler: %(name)s") % {"name": user.display_name}
+        choices = [(k, label if k == self.NEW else v) for k, v in self.fields["traveler"].choices]
+        self.fields["traveler"].choices = choices
+
+    def _find_user(self, username: str):
+        return (
+            get_user_model()
+            .objects.filter(username=username.strip().lower(), is_active=True)
+            .first()
+        )
 
     def clean_username(self):
-        username = self.cleaned_data["username"].strip()
-        user = get_user_model().objects.filter(username__iexact=username, is_active=True).first()
+        username = self.cleaned_data["username"].strip().lower()
+        user = self._find_user(username)
         if user is None:
             raise forms.ValidationError(_("No approved account has this username."))
         if TripMember.objects.filter(trip=self.trip, user=user).exists():
             raise forms.ValidationError(_("This account is already on the trip."))
         self.user = user
+        self._name_new_traveler(user)
         return username
+
+    def clean_traveler(self):
+        choice = self.cleaned_data["traveler"]
+        self.participant = self._free.get(choice)
+        return choice
+
+    def clean(self):
+        cleaned = super().clean()
+        name_taken = (
+            self.user is not None
+            and self.trip.participants.filter(name__iexact=self.user.display_name).exists()
+        )
+        if cleaned.get("traveler") == self.NEW and name_taken:
+            self.add_error("traveler", _("Someone on this trip already has this name."))
+        return cleaned
+
+    @property
+    def new_traveler(self) -> bool:
+        return self.cleaned_data.get("traveler") == self.NEW
 
 
 class MemberRoleForm(forms.Form):

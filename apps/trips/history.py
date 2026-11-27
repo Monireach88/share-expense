@@ -32,6 +32,10 @@ ACTION_WORDS = {
     "became_owner": "became owner",
     "settled": "settled",
     "reopened": "reopened",
+    "joined": "joined",
+    "invite_on": "invite link turned on",
+    "invite_off": "invite link turned off",
+    "invite_renewed": "invite link renewed",
     "opened": "opened dispute",
     "message": "wrote dispute message",
     "resolved": "resolved dispute",
@@ -357,8 +361,15 @@ def describe(entry: HistoryEntry) -> str:
         ("type", "removed"): _("%(who)s removed type %(label)s"),
         ("trip", "settled"): _("%(who)s settled the trip"),
         ("trip", "reopened"): _("%(who)s reopened the trip"),
+        ("trip", "invite_on"): _("%(who)s turned the invite link on"),
+        ("trip", "invite_off"): _("%(who)s turned the invite link off"),
+        ("trip", "invite_renewed"): _("%(who)s renewed the invite link"),
         ("trip", "renamed"): _("%(who)s renamed the trip: %(old)s → %(new)s"),
     }
+    if (kind, action) == ("account", "joined"):
+        if traveler := entry.values.get("traveler"):
+            return _("%(who)s joined by link as %(traveler)s") % {**data, "traveler": traveler}
+        return _("%(who)s joined by link (view only)") % data
     if (kind, action) in texts:
         return texts[(kind, action)] % data
     if kind == "dispute":

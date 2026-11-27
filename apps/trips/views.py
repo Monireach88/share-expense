@@ -3,7 +3,7 @@ from contextlib import suppress
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, Q
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -219,12 +219,16 @@ def trip_delete(request: HttpRequest, trip_id) -> HttpResponse:
 def people(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
-    return render(
+    invite_url = ""
+    if membership.is_owner and trip.invite_token:
+        invite_url = request.build_absolute_uri(reverse("join", args=[trip.invite_token]))
+    response = render(
         request,
         "trips/people.html",
         {
             "trip": trip,
             "membership": membership,
+            "invite_url": invite_url,
             "participants": paginate(
                 request, trip.participants.select_related("user").prefetch_related("sponsors")
             ),
@@ -232,6 +236,9 @@ def people(request: HttpRequest, trip_id) -> HttpResponse:
             "tab": "people",
         },
     )
+    if invite_url:
+        response.no_sw_cache = True  # The secret link is not kept by the browser.
+    return response
 
 
 ROLE_ORDER = [TripMember.Role.OWNER, TripMember.Role.EDITOR, TripMember.Role.MEMBER]
@@ -350,13 +357,43 @@ def member_add(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id, owner_only=True)
     trip = membership.trip
     form = MemberAddForm(request.POST or None, trip=trip)
+    if request.method == "GET" and request.GET.get("username"):
+        # The page asks again when the username changes, to pre-select the matching traveler.
+        form = MemberAddForm(trip=trip, initial={"username": request.GET["username"]})
+        form.preselect(request.GET["username"])
     if request.method == "POST" and form.is_valid():
-        actions.add_member(trip, form.user, by=membership)
-        messages.success(
-            request, _("%(name)s can now open this trip.") % {"name": form.user.display_name}
-        )
-        return redirect("people", trip_id=trip.id)
+        try:
+            actions.add_member(
+                trip,
+                form.user,
+                by=membership,
+                traveler=form.participant,
+                new_traveler=form.new_traveler,
+            )
+        except actions.ActionRefused as refused:
+            form.add_error("traveler", str(refused))
+        else:
+            messages.success(
+                request, _("%(name)s can now open this trip.") % {"name": form.user.display_name}
+            )
+            return redirect("people", trip_id=trip.id)
     return render(request, "trips/member_form.html", {"trip": trip, "form": form})
+
+
+@require_POST
+def invite_change(request: HttpRequest, trip_id, change: str) -> HttpResponse:
+    """Owner: turn the invite link on or off, or renew it (the old link stops working)."""
+    membership = get_membership(request, trip_id, owner_only=True)
+    if change not in ("on", "off", "renew"):
+        raise Http404
+    actions.set_invite_link(membership.trip, change, by=membership)
+    text = {
+        "on": _("The invite link is on."),
+        "off": _("The invite link is off."),
+        "renew": _("The invite link is renewed. The old link no longer works."),
+    }[change]
+    messages.success(request, text)
+    return redirect("people", trip_id=trip_id)
 
 
 @require_POST
