@@ -1,6 +1,7 @@
 """Bridge between the database and the pure settlement engine."""
 
-from apps.expenses.models import Expense
+from decimal import Decimal
+
 from apps.settlement.engine import ExpenseInput, SettlementResult, settle
 
 from .models import Trip
@@ -17,7 +18,7 @@ def trip_settlement(trip: Trip) -> SettlementResult:
                 beneficiaries=[b.id for b in e.beneficiaries.all()],
                 amount=e.amount,
                 currency=e.currency,
-                category=e.category,
+                category=str(e.category_id),
             )
             for e in expenses
         ],
@@ -35,24 +36,18 @@ def trip_status(trip: Trip, result: SettlementResult | None) -> str:
 
 
 def _order(row: dict) -> tuple:
-    """Owed (largest first), then owing (largest first), then settled, then covered people."""
+    """Owed (largest first), then owing (largest first), then everyone whose balance is zero."""
     balance = row["row"].balance
     if balance > 0:
         return (0, -balance)
     if balance < 0:
         return (1, balance)
-    return (3, 0) if row["covered_by"] else (2, 0)
+    return (2, 0)
 
 
 def named(trip: Trip, result: SettlementResult, user=None) -> dict:
-    """Replace participant IDs with participants and category codes with labels, for templates."""
+    """Replace participant IDs with participants, for templates."""
     people = {p.id: p for p in trip.participants.prefetch_related("sponsors")}
-    labels = dict(Expense._meta.get_field("category").choices)
-    largest = max(result.by_category.values(), default=0)
-    covers = {pid: [] for pid in people}
-    for person in people.values():
-        for sponsor in person.sponsors.all():
-            covers[sponsor.id].append(person)
     rows = []
     for s in result.people:
         person = people[s.participant]
@@ -61,12 +56,10 @@ def named(trip: Trip, result: SettlementResult, user=None) -> dict:
                 "person": person,
                 "row": s,
                 "is_me": bool(user) and person.user_id == user.id,
-                "covers": covers[person.id],
                 "covered_by": list(person.sponsors.all()),
-                "for_others": s.paid - s.paid_for_self,
-                # Taken from the balance, not from responsible_for, so the lines of the
-                # breakdown always add up to exactly the balance shown after rounding.
-                "from_others": s.paid - s.paid_for_self - s.balance,
+                # (person, amount) for each traveler whose share this one pays.
+                "covers": [(people[x], amount) for x, amount in s.covers.items()],
+                "covers_total": sum(s.covers.values(), Decimal(0)),
             }
         )
     rows.sort(key=_order)
@@ -75,14 +68,7 @@ def named(trip: Trip, result: SettlementResult, user=None) -> dict:
         "total": result.total,
         "currency": result.base_currency,
         "me": me,
+        # The Balances page shows the viewer's own balance in its top card, so the list skips them.
+        "others": [r for r in rows if not r["is_me"]] if me and result.total else rows,
         "rows": rows,
-        "by_category": [
-            {
-                "code": code,
-                "label": labels.get(code, code),
-                "amount": amount,
-                "percent": round(amount * 100 / largest) if largest else 0,
-            }
-            for code, amount in sorted(result.by_category.items(), key=lambda kv: -kv[1])
-        ],
     }

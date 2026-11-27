@@ -7,13 +7,16 @@ It was built to replace a spreadsheet, and it gives the same numbers as that spr
 ## Features
 
 - **Trips** with a base currency (for example USD) and one fixed exchange rate for each other currency (for example 1 USD = 26,200 VND).
-- **Participants are just names.** Grandma does not need an account to be part of a trip.
-- **Sponsors:** a participant can be covered by one or more other people (a child by a parent). Their share moves to the sponsors, split equally.
+- **Travelers are just names.** Grandma does not need an account to be part of a trip.
+- **Covering:** a traveler can be covered by one or more travelers who pay for themselves (the **Everyone** chip ticks them all). The covered traveler's share is split equally among them. Balances and Stats show each traveler's own share, plus "Covered by … +amount" or "Covers … −amount", so every row adds up to its balance.
 - **Expenses:** date, payer, beneficiaries (everyone by default), type, description, amount and currency. The amount is split equally among the beneficiaries. Deleted expenses are kept in the database but left out of the totals.
 - **Balances:** each person's balance (is owed / owes / nothing owed), with the paid and share amounts that make it up, and a breakdown of your own balance.
 - **Mark as settled:** once the travellers have paid each other back (in whatever way they choose), the owner marks the trip as settled after a confirmation. The trip then shows **Settled** with the date, and its expenses, people and rates are locked. The owner can reopen it.
-- **Spending:** a page with filters (person, type, date range), totals by type and by day, a person's share of each expense, and a download of the filtered list as CSV or Excel.
-- **Mobile navigation:** a fixed bottom tab bar (Expenses, Balances, Spending, People) and one floating button for the main action of the tab.
+- **AI (DeepSeek, optional):** **Add expense → Add with AI** fills the form from one sentence ("Maly paid 40,000 VND for drinks for Maly and Sophorn yesterday"). It fills only what the sentence states, matches each name to exactly one traveler, and lists what is still missing; nothing is saved until you press Save. The ✨ button in the Description box suggests a better wording, in the style of the trip's other descriptions. Sent to DeepSeek: that sentence or description, the trip's traveler and type names, and up to 20 earlier descriptions. Without `DEEPSEEK_API_KEY` both are off.
+- **Types:** every trip starts with 8 types (Transport, Food & drink, ...). Travelers add their own with **+ Add type** on the expense form and pick an icon; a long press on a type shows a minus badge to remove it (only when no expense uses it) and lets you rename it.
+- **Expenses list:** days fold into one line each (date, count, total), with the newest day open; a search box finds expenses by description, payer, type or amount; a long press on a card lets you drag it up or down within its day.
+- **Stats:** a page with filters (traveler, type, date range), totals by type and by day, a traveler's share of each expense in its own currency, and a download of the filtered list as CSV or Excel.
+- **Mobile navigation:** a fixed bottom tab bar (Expenses, Balances, Stats, Travelers) and one floating button for the main action of the tab.
 - **Fast repeat visits:** a service worker shows the last copy of a page at once, then fetches the fresh copy and swaps it in if anything changed. Any save, delete, login or logout clears the stored pages, and pages with a one-time message are never stored. Static files have content-hashed names and are cached for a year.
 - **Long lists** show about 25 rows, then a "Load more" button; a page never splits a day, so day totals match their rows.
 - **Exact money:** amounts are stored as decimals, shares are kept as exact fractions, and balances are rounded once so they always add up to exactly zero.
@@ -60,7 +63,9 @@ Open http://share-expense.local and log in.
 
 1. A new user opens **Request an account**, then waits.
 2. The admin opens `/admin/` → Users, ticks the request, and chooses **Approve selected sign-up requests**.
-3. The user can now log in. The trip owner adds them to a trip on the trip's **People** page.
+3. The user can now log in. The trip owner adds them to a trip on the trip's **Travelers** page, with the **+** button → **Add account**.
+
+**Sign in with Google.** With `GOOGLE_CLIENT_ID` set, the login page shows **Continue with Google**. An approved account whose email matches the Google email signs in; anyone else's first Google sign-in creates an account that waits for the admin's approval, like a request from the sign-up page. A signed-in user can connect Google from the account menu (**Google sign-in**) and from then on sign in without the password.
 
 ## Self-hosting
 

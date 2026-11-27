@@ -11,17 +11,6 @@ register = template.Library()
 # Currencies people pay in whole units. Cents still show if an amount has them.
 WHOLE_UNIT_CURRENCIES = {"VND", "KHR", "JPY", "KRW", "IDR", "LAK"}
 
-TYPE_EMOJI = {
-    "transport": "🚕",
-    "accommodation": "🏨",
-    "food": "🍜",
-    "medical": "💊",
-    "translation": "💬",
-    "shopping": "🛍️",
-    "activities": "🎟️",
-    "other": "📦",
-}
-
 
 def format_amount(amount, currency: str = "") -> str:
     """600000 VND -> "600,000"; 42.5 USD -> "42.50"."""
@@ -60,8 +49,19 @@ def icon(name: str, css: str = "icon"):
 
 
 @register.filter
-def type_emoji(category: str) -> str:
-    return TYPE_EMOJI.get(category, "📦")
+def initial(name: str) -> str:
+    """The avatar letter: the first letter of the given name, which is the last word in names
+    written family name first ("HENG MALY" -> "M") and in "Person A" -> "A"."""
+    words = str(name).split()
+    return words[-1][0].upper() if words else ""
+
+
+@register.filter
+def left_out(expense, travelers) -> str:
+    """The travelers an expense is not for ("For everyone except ..."), from the page's list."""
+    ids = {b.id for b in expense.beneficiaries.all()}
+    names = [p.name for p in travelers if p.id not in ids]
+    return ", ".join(names)
 
 
 @register.filter

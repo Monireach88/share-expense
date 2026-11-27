@@ -1,15 +1,21 @@
 from contextlib import suppress
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 from itertools import groupby
+from urllib.parse import quote
 
 from django.contrib import messages
-from django.http import Http404, HttpRequest, HttpResponse
+from django.db.models import Max
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.formats import date_format
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
+from django.views.decorators.http import require_POST
 
 from apps.settlement.engine import SettlementError, to_base
 from apps.trips.access import get_membership, locked
@@ -18,8 +24,9 @@ from apps.trips.pagination import DayPage
 from apps.trips.summary import named, trip_settlement
 from apps.trips.templatetags.ui import format_amount
 
-from .forms import ExpenseForm
-from .models import Expense
+from . import ai_fill, suggest
+from .forms import CategoryForm, ExpenseForm
+from .models import DEFAULT_EMOJI, EMOJI_CHOICES, Category, Expense
 from .report import ReportFilterForm, build_report, export_rows, to_csv, to_xlsx
 
 MAX_DAY_CHIPS = 14
@@ -29,7 +36,12 @@ MAX_DAY_CHIPS = 14
 def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
-    expenses = list(trip.expenses.select_related("payer").prefetch_related("beneficiaries"))
+    expenses = list(
+        trip.expenses.select_related("payer", "category").prefetch_related("beneficiaries")
+    )
+    q = request.GET.get("q", "").strip()[:100]
+    if q:
+        expenses = [e for e in expenses if _matches(e, q)]
     rates = trip.rate_map()
     day_totals: dict = {}
     for e in expenses:
@@ -55,7 +67,12 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         "days": page.days,
         "multi_year": len({e.date.year for e in expenses}) > 1,
         "people_count": trip.participants.count(),
+        "travelers": list(trip.participants.all()),
         "tab": "expenses",
+        "ai_enabled": suggest.enabled(),
+        "q": q,
+        # A search shows only part of a day, so cards can be reordered only in the full list.
+        "can_reorder": not q and not trip.is_settled,
     }
     try:
         context["summary"] = named(trip, trip_settlement(trip), request.user)
@@ -66,6 +83,131 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         if trip.start_date and _in_trip(trip, today):
             context["today_total"] = day_totals.get(today) or Decimal(0)
     return render(request, "expenses/list.html", context)
+
+
+def _matches(expense: Expense, query: str) -> bool:
+    """True when every word of the search appears in the expense's description, payer,
+    travelers, type or amount ("12000", "12,000" and "12000 KHR" all find 12,000 KHR)."""
+    text = " ".join(
+        [
+            expense.description,
+            expense.payer.name,
+            *(b.name for b in expense.beneficiaries.all()),
+            expense.category.name if expense.category else "",
+            f"{expense.amount:f}".rstrip("0").rstrip("."),
+            format_amount(expense.amount, expense.currency),
+            expense.currency,
+        ]
+    ).casefold()
+    return all(word in text for word in query.casefold().split())
+
+
+@require_POST
+def expense_reorder(request: HttpRequest, trip_id) -> HttpResponse:
+    """Save the order of one day's cards after a drag: ``ids`` lists the whole day, in order."""
+    membership = get_membership(request, trip_id)
+    trip = membership.trip
+    if trip.is_settled:
+        return HttpResponse(status=409)
+    ids = request.POST.getlist("ids")
+    try:
+        day = date.fromisoformat(request.POST.get("day", ""))
+        expenses = {str(e.id): e for e in trip.expenses.filter(date=day)}
+    except ValueError:
+        return HttpResponse(status=400)
+    if sorted(ids) != sorted(expenses):
+        return HttpResponse(status=409)  # The day changed in the meantime; the page reloads.
+    for position, expense_id in enumerate(ids):
+        expenses[expense_id].position = position
+    Expense.objects.bulk_update(expenses.values(), ["position"])
+    return HttpResponse(status=204)
+
+
+def _category_json(category: Category, status: int = 200) -> JsonResponse:
+    return JsonResponse(
+        {"id": category.pk, "name": category.name, "emoji": category.emoji}, status=status
+    )
+
+
+def _form_error(form) -> JsonResponse:
+    errors = [e for field in form.errors.values() for e in field]
+    return JsonResponse({"error": errors[0] if errors else _("Check the name.")}, status=400)
+
+
+@require_POST
+def category_create(request: HttpRequest, trip_id) -> HttpResponse:
+    """Add a type from the expense form; answers JSON so the form keeps what was typed."""
+    trip = get_membership(request, trip_id).trip
+    if trip.is_settled:
+        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    form = CategoryForm(request.POST, trip=trip)
+    if not form.is_valid():
+        return _form_error(form)
+    category = form.save(commit=False)
+    category.trip = trip
+    category.position = (trip.categories.aggregate(m=Max("position"))["m"] or 0) + 1
+    category.save()
+    return _category_json(category, status=201)
+
+
+@require_POST
+def category_edit(request: HttpRequest, trip_id, category_id) -> HttpResponse:
+    trip = get_membership(request, trip_id).trip
+    category = get_object_or_404(Category, pk=category_id, trip=trip)
+    if trip.is_settled:
+        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    form = CategoryForm(request.POST, instance=category, trip=trip)
+    if not form.is_valid():
+        return _form_error(form)
+    return _category_json(form.save())
+
+
+@require_POST
+def category_delete(request: HttpRequest, trip_id, category_id) -> HttpResponse:
+    """Remove a type no expense uses. Deleted expenses that had it simply lose their type."""
+    trip = get_membership(request, trip_id).trip
+    category = get_object_or_404(Category, pk=category_id, trip=trip)
+    if trip.is_settled:
+        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    used = trip.expenses.filter(category=category).count()
+    if used:
+        message = ngettext(
+            "“%(name)s” is used by %(n)d expense, so it cannot be removed.",
+            "“%(name)s” is used by %(n)d expenses, so it cannot be removed.",
+            used,
+        ) % {"name": category.name, "n": used}
+        return JsonResponse({"error": message}, status=409)
+    if trip.categories.count() == 1:
+        return JsonResponse({"error": _("A trip needs at least one type.")}, status=409)
+    category.delete()
+    return HttpResponse(status=204)
+
+
+@require_POST
+def expense_ai_fill(request: HttpRequest, trip_id) -> HttpResponse:
+    """Read one sentence about an expense; answer the form values it states for certain."""
+    trip = get_membership(request, trip_id).trip
+    if trip.is_settled:
+        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    if not suggest.enabled():
+        return JsonResponse({"error": _("Adding with AI is not set up.")}, status=404)
+    if not suggest.allowed(request.user.pk):
+        return JsonResponse(
+            {"error": _("Too many requests. Try again in a few minutes.")}, status=429
+        )
+    me = trip.participants.filter(user=request.user).first()
+    return JsonResponse(ai_fill.fill(trip, request.POST.get("text", ""), me))
+
+
+@require_POST
+def description_suggestion(request: HttpRequest, trip_id) -> HttpResponse:
+    """A better wording of the description being typed, as JSON {"suggestion": "..."}."""
+    trip = get_membership(request, trip_id).trip
+    if not suggest.enabled():
+        return JsonResponse({"suggestion": ""})
+    if not suggest.allowed(request.user.pk):
+        return JsonResponse({"suggestion": ""}, status=429)
+    return JsonResponse({"suggestion": suggest.suggest(trip, request.POST.get("text", ""))})
 
 
 def _in_trip(trip, day) -> bool:
@@ -84,6 +226,9 @@ def _initial(request: HttpRequest, trip) -> dict:
         "payer": me or (last.payer if last else None),
         "beneficiaries": list(trip.participants.all()),
         "currency": last.currency if last else trip.base_currency,
+        # Food is the most common type on a trip; a trip without it starts on its first type.
+        "category": trip.categories.filter(name__iexact="Food & drink").first()
+        or trip.categories.first(),
     }
 
 
@@ -109,6 +254,9 @@ def _form_context(trip, membership, form, expense=None) -> dict:
         "trip_day_isos": [d.isoformat() for d in days],
         "rates": {code: str(rate) for code, rate in trip.rate_map().items()},
         "sponsored": [(p, list(p.sponsors.all())) for p in participants if p.sponsors.all()],
+        "suggestions": suggest.enabled(),
+        "emoji_choices": EMOJI_CHOICES,
+        "default_emoji": DEFAULT_EMOJI,
     }
 
 
@@ -142,6 +290,16 @@ def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
     return render(request, "expenses/form.html", _form_context(trip, membership, form))
 
 
+def _back_url(request: HttpRequest, trip_id) -> str:
+    """Where an expense page returns to: the trip page it was opened from (``next``), so an
+    expense opened on Stats goes back to Stats with its filters; otherwise the Expenses page."""
+    target = request.POST.get("next") or request.GET.get("next") or ""
+    inside_trip = target.startswith(f"/trips/{trip_id}/")
+    if inside_trip and url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}):
+        return target
+    return reverse("trip", args=[trip_id])
+
+
 def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     if response := locked(request, membership.trip):
@@ -154,10 +312,10 @@ def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
         expense.save()
         form.save_m2m()
         messages.success(request, _("Saved: %(expense)s") % {"expense": _saved_text(expense)})
-        return redirect("trip", trip_id=trip_id)
-    return render(
-        request, "expenses/form.html", _form_context(membership.trip, membership, form, expense)
-    )
+        return redirect(_back_url(request, trip_id))
+    context = _form_context(membership.trip, membership, form, expense)
+    context["back_url"] = _back_url(request, trip_id)
+    return render(request, "expenses/form.html", context)
 
 
 def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
@@ -170,7 +328,7 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
         expense.updated_by = request.user
         expense.save(update_fields=["deleted_at", "updated_by", "updated_at"])
         messages.success(request, _("Deleted: %(expense)s") % {"expense": _saved_text(expense)})
-        return redirect("trip", trip_id=trip_id)
+        return redirect(_back_url(request, trip_id))
     return render(
         request,
         "trips/confirm_delete.html",
@@ -181,9 +339,30 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
             "object": str(expense),
             "warning": _("It will be left out of all totals."),
             "button": _("Delete expense"),
-            "back": reverse("expense_edit", args=[trip_id, expense.id]),
+            "back": reverse("expense_edit", args=[trip_id, expense.id])
+            + (f"?next={quote(_back_url(request, trip_id))}" if request.GET.get("next") else ""),
+            "next": _back_url(request, trip_id),
         },
     )
+
+
+def _filter_summary(filters: dict) -> list[str]:
+    """The active filters in a few words, for the collapsed filter card: "Person A · Food"."""
+    parts = []
+    if filters.get("person"):
+        parts.append(filters["person"].name)
+    if filters.get("payer"):
+        parts.append(_("paid by %(name)s") % {"name": filters["payer"].name})
+    if filters.get("category"):
+        parts.append(filters["category"].name)
+    start, end = filters.get("start"), filters.get("end")
+    if start and end:
+        parts.append(f"{date_format(start, 'j M')}–{date_format(end, 'j M')}")
+    elif start:
+        parts.append(_("from %(day)s") % {"day": date_format(start, "j M")})
+    elif end:
+        parts.append(_("until %(day)s") % {"day": date_format(end, "j M")})
+    return parts
 
 
 @cacheable_page
@@ -197,6 +376,7 @@ def report(request: HttpRequest, trip_id) -> HttpResponse:
     except SettlementError as error:
         context["error"] = str(error)
     data = build_report(trip, form.filters() if request.GET else {})
+    # Day lines carry no total here: the "By day" chart above already shows each day's amount.
     page = DayPage(
         request,
         [
@@ -210,9 +390,13 @@ def report(request: HttpRequest, trip_id) -> HttpResponse:
         report=data,
         page=page,
         filtered=any(form.filters().values()) if request.GET else False,
+        filter_summary=_filter_summary(form.filters()) if request.GET else [],
         export_query=query.urlencode(),
+        # Expenses opened from this page come back here, with the same filters.
+        return_to=request.path + (f"?{query.urlencode()}" if query else ""),
         multi_year=len({r.expense.date.year for r in data["rows"]}) > 1,
         people_count=trip.participants.count(),
+        travelers=list(trip.participants.all()),
     )
     return render(request, "expenses/report.html", context)
 

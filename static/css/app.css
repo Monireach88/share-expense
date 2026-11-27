@@ -126,7 +126,7 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
 .menu-item {
   display: flex; align-items: center; gap: var(--s3); width: 100%; min-height: 44px;
   padding: 0 var(--s3); border: 0; border-radius: var(--r-field); background: none;
-  color: var(--fg); font: inherit; text-decoration: none; cursor: pointer; text-align: left;
+  color: var(--fg); font: inherit; text-decoration: none; cursor: pointer; text-align: left; white-space: nowrap;
 }
 .menu-item:hover { background: var(--bg); }
 
@@ -167,6 +167,22 @@ button.fab { border: 0; font: inherit; font-weight: 600; cursor: pointer; }
 @media (min-width: 720px) {
   .fab { right: calc((100vw - 640px) / 2 + 16px); }
 }
+/* "+" that opens a small menu of add actions (Travelers page). */
+.fab-menu > summary { list-style: none; padding: 0; width: 56px; justify-content: center; cursor: pointer; }
+.fab-menu > summary::-webkit-details-marker { display: none; }
+.fab-menu > summary .icon { width: 26px; height: 26px; transition: transform 0.15s; }
+.fab-menu[open] > summary .icon { transform: rotate(45deg); }
+.fab-options {
+  position: fixed; z-index: 16; right: max(16px, env(safe-area-inset-right));
+  bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 16px + 56px + var(--s2));
+  display: grid; min-width: 200px; padding: var(--s1); border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 24px rgb(16 24 40 / 0.18);
+}
+.fab-options a { display: flex; align-items: center; gap: var(--s3); min-height: 48px; padding: 0 var(--s4); border-radius: 12px; color: var(--fg); text-decoration: none; font-weight: 600; }
+.fab-options a:active, .fab-options a:hover { background: var(--accent-soft); }
+@media (min-width: 720px) {
+  .fab-options { right: calc((100vw - 640px) / 2 + 16px); }
+}
 main.has-tabbar { padding-bottom: calc(var(--tab-h) + 56px + var(--s6) + env(safe-area-inset-bottom)); }
 body:has(.fab-solo) main.container { padding-bottom: calc(56px + var(--s6) + env(safe-area-inset-bottom)); }
 
@@ -201,11 +217,11 @@ body:has(.fab-solo) main.container { padding-bottom: calc(56px + var(--s6) + env
   padding: var(--s3) 0 calc(var(--s3) + env(safe-area-inset-bottom));
 }
 .bottom-bar .container { display: flex; gap: var(--s2); }
-.bottom-bar .btn { flex: 1; min-width: 0; padding: 0 var(--s3); }
+.bottom-bar .btn { flex: 1; min-width: 0; padding: 0 var(--s3); white-space: nowrap; }
 .bottom-bar .btn-secondary, .bottom-bar .btn-text { flex: 0 1 auto; }
-/* Two labelled buttons share the width equally, so neither label is cut off. */
-.bottom-bar .btn[name="add_another"] { flex: 1 1 0; white-space: normal; line-height: 1.2; }
-.bottom-bar .btn[name="add_another"] + .btn { flex: 1 1 0; }
+/* "Save and add another" keeps its label on one line; "Save" takes the rest of the width. */
+.bottom-bar .btn[name="add_another"] { flex: 0 0 auto; }
+.bottom-bar .btn[name="add_another"] + .btn { flex: 1 1 auto; }
 
 /* ---------- Cards and lists ---------- */
 .card {
@@ -250,6 +266,31 @@ a.row:hover { background: var(--bg); }
   margin: var(--s5) 0 var(--s2); padding-inline: var(--s1);
   font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
 }
+/* Expense lists: one tappable line per day (date, count, total) that opens to show its cards. */
+.paged > .day:first-child, .search + .paged > .day:first-child { margin-top: var(--s4); }
+.day + .day { margin-top: var(--s2); }
+.day > summary.day-head {
+  list-style: none; cursor: pointer; align-items: center; justify-content: flex-start; gap: var(--s2);
+  min-height: 48px; margin: 0; padding: 0 var(--s3); border-radius: var(--r-card);
+  background: var(--surface); border: 1px solid var(--line); -webkit-tap-highlight-color: transparent;
+}
+.day > summary::-webkit-details-marker { display: none; }
+.day-date { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.day-count, .day-total { white-space: nowrap; }
+.day-count { font-weight: 400; letter-spacing: 0; text-transform: none; }
+.day-total { margin-left: auto; color: var(--fg); letter-spacing: 0; text-transform: none; }
+.day > summary .chev { margin-left: auto; transition: transform 0.15s; }
+.day-total + .chev { margin-left: 0; }
+.day[open] > summary .chev { transform: rotate(180deg); }
+.day[open] > summary { margin-bottom: var(--s2); }
+/* Cards that can be dragged: a long press starts the drag instead of the phone's link menu. */
+ul[data-reorder] .row { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+ul[data-reorder] li.chosen { box-shadow: 0 8px 24px rgb(16 24 40 / 0.18); position: relative; z-index: 1; }
+ul[data-reorder] li.ghost { opacity: 0.35; }
+.search { position: relative; margin-top: var(--s4); }
+.search .icon { position: absolute; left: var(--s3); top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search input[type="search"] { padding-left: 40px; }
+.search-empty { margin-top: var(--s4); text-align: center; }
 .tag {
   display: inline-block; font-size: 13px; line-height: 1.6; padding: 0 var(--s2);
   border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted);
@@ -280,6 +321,17 @@ a.row:hover { background: var(--bg); }
 .downloads > span { margin-right: auto; }
 .pager { margin-top: var(--s3); text-align: center; }
 .pager p { margin-top: var(--s2); }
+details.filters { padding-block: 0; }
+.filters > summary { display: flex; align-items: center; gap: var(--s3); min-height: 56px; list-style: none; cursor: pointer; font-weight: 600; }
+.filters > summary::-webkit-details-marker { display: none; }
+.filters > summary .chev { margin-left: auto; transition: transform 0.15s; }
+.filters[open] > summary .chev { transform: rotate(180deg); }
+.filters-title { display: grid; }
+.filters-active { font-size: 13px; font-weight: 500; color: var(--accent); }
+.filters-form { padding-top: var(--s2); border-top: 1px solid var(--line); }
+.filters .downloads { margin-bottom: var(--s4); }
+.filters .downloads > span { flex-basis: 100%; }
+.filters-form:last-child { padding-bottom: var(--s4); }
 .filters .two { row-gap: var(--s3); }
 .filters .two > .field + .field { margin-top: 0; }
 .filter-actions { margin-top: var(--s3); }
@@ -325,7 +377,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 legend { padding: 0; margin-bottom: 6px; float: left; width: 100%; }
 legend + * { clear: both; }
 .help { font-size: 13px; color: var(--muted); }
-input[type="text"], input[type="password"], input[type="email"], input[type="number"],
+input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="search"],
 input[type="date"], input:not([type]), select, textarea {
   width: 100%; min-width: 0; min-height: 48px; padding: 0 var(--s3);
   border: 1px solid var(--field); border-radius: var(--r-field);
@@ -348,11 +400,21 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .two > * { min-width: 0; }
 
 /* Amount: a big input with the currency beside it. */
+/* A field with fixed text in front of the box: "1 USD = [ 4,100 ]". */
+.prefixed { display: flex; align-items: center; gap: var(--s2); }
+.prefixed > span { white-space: nowrap; color: var(--muted); font-weight: 600; }
+.prefixed input { flex: 1; min-width: 0; }
 .amount-row { display: flex; gap: var(--s2); align-items: stretch; }
 .amount-row input { font-size: 28px; font-weight: 700; min-height: 60px; flex: 1; min-width: 0; font-variant-numeric: tabular-nums; }
 .amount-row .chips { flex-wrap: nowrap; }
+/* Three or more currencies: the buttons get their own row, so the amount box keeps its width. */
+.amount-row-wrap { flex-wrap: wrap; }
+.amount-row-wrap input { flex-basis: 100%; }
+.amount-row-wrap .chips { flex-wrap: wrap; }
+textarea[rows="1"] { resize: none; overflow: hidden; field-sizing: content; padding-block: 11px; }
 .amount-row .only-cur { display: grid; place-items: center; padding: 0 var(--s3); font-weight: 600; color: var(--muted); }
-.preview { font-size: 15px; color: var(--muted); min-height: 1.5em; }
+.preview { font-size: 15px; color: var(--muted); }
+.preview:empty { display: none; }
 
 /* Chip pickers: the real radio or checkbox stays in the label, hidden but focusable. */
 .chips { display: flex; flex-wrap: wrap; gap: var(--s2); }
@@ -414,3 +476,123 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* ---------- Expense types in the expense form ---------- */
+.types-legend { display: flex; align-items: center; justify-content: space-between; }
+.types-done { font-size: 15px; font-weight: 600; min-height: 32px; }
+.type-chips label { position: relative; }
+.type-remove {
+  display: none; position: absolute; top: -8px; left: -6px; width: 24px; height: 24px; padding: 0;
+  border: 2px solid var(--surface); border-radius: 999px; background: var(--neg); color: var(--on-neg, #fff);
+  font: 700 18px/1 var(--font); cursor: pointer; place-items: center;
+}
+.editing .type-remove { display: grid; }
+.editing .type-chips label { animation: wiggle 0.3s ease-in-out infinite alternate; }
+.editing .type-chips label::before { content: none !important; }
+@keyframes wiggle { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
+@media (prefers-reduced-motion: reduce) { .editing .type-chips label { animation: none; } }
+.chip-add { border-style: dashed; color: var(--accent); background: transparent; font: inherit; font-weight: 600; }
+.chip-add .icon { width: 18px; height: 18px; }
+
+dialog.sheet {
+  width: min(100vw - 32px, 420px); max-height: calc(100vh - 32px); padding: var(--s5); border: 0;
+  border-radius: 20px; background: var(--surface); color: var(--fg); box-shadow: 0 16px 48px rgb(16 24 40 / 0.3);
+}
+dialog.sheet::backdrop { background: rgb(16 24 40 / 0.45); }
+.type-edit { display: flex; gap: var(--s2); }
+.emoji-btn {
+  flex: none; width: 56px; min-height: 48px; font-size: 26px; border-radius: var(--r-field);
+  border: 1px solid var(--field); background: var(--bg); cursor: pointer;
+}
+.emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: var(--s1); }
+.emoji-grid button { min-height: 44px; font-size: 22px; border: 0; border-radius: 10px; background: var(--bg); cursor: pointer; }
+.emoji-grid button:hover, .emoji-grid button:focus-visible { background: var(--accent-soft); }
+.dialog-actions { display: flex; gap: var(--s2); }
+.dialog-actions .btn { flex: 1; }
+
+/* Writing suggestion under the expense description. */
+.suggestion {
+  display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; margin-top: var(--s2);
+  padding: var(--s2) var(--s3); border-radius: var(--r-field); background: var(--accent-soft);
+}
+.suggestion-label { font-size: 13px; font-weight: 600; color: var(--accent); flex-basis: 100%; }
+.suggestion-text { flex: 1; min-width: 0; }
+
+/* Google sign-in */
+.or { display: flex; align-items: center; gap: var(--s3); margin: var(--s4) 0; color: var(--muted); font-size: 14px; }
+.or::before, .or::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+.btn-google .icon { width: 20px; height: 20px; }
+
+/* ---------- Loading indicators (static/js/app.js) ---------- */
+/* A thin bar at the top while the app waits for the server; shown only after 150 ms. */
+.progress {
+  position: fixed; inset: 0 0 auto 0; z-index: 100; height: 3px; pointer-events: none;
+  background: var(--accent); transform: scaleX(0); transform-origin: left; opacity: 0;
+  transition: opacity 0.2s;
+}
+.progress.on { opacity: 1; animation: progress 10s cubic-bezier(0.08, 0.7, 0.2, 1) forwards; }
+@keyframes progress { from { transform: scaleX(0.05); } to { transform: scaleX(0.92); } }
+@media (prefers-reduced-motion: reduce) { .progress.on { animation: none; transform: scaleX(1); } }
+
+/* The pressed button keeps its place, look and label; a small spinner in the label's color
+   takes the place of its icon (or comes before the text), and it cannot be pressed again. */
+.is-loading { pointer-events: none; opacity: 0.85; }
+.is-loading > .icon { display: none; }
+.is-loading::before, .spinner {
+  content: ""; flex: none; width: 16px; height: 16px; border-radius: 999px;
+  border: 2px solid currentColor; border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+.spinner { border-color: var(--accent); border-right-color: transparent; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .is-loading::before, .spinner { animation-duration: 1.6s; } }
+
+/* Small spinners at the end of a field: live search, writing suggestion. */
+.search .spinner, .busy-field .spinner {
+  position: absolute; right: var(--s3); top: 50%; margin-top: -9px; display: none;
+}
+.search .spinner { right: auto; left: var(--s3); }
+.search.is-busy .spinner, .busy-field.is-busy .spinner { display: block; }
+.search.is-busy .icon { visibility: hidden; }
+.busy-field { position: relative; }
+.busy-field .spinner { top: auto; bottom: 15px; margin-top: 0; }
+/* A type being removed fades until the server answers. */
+.type-chips label.is-removing { opacity: 0.45; pointer-events: none; }
+
+.hero-note { margin-top: var(--s1); color: var(--muted); font-size: 15px; }
+
+/* ---------- AI: add an expense from a sentence, and the description suggestion ---------- */
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
+.title-row .btn .icon, .ai-btn .icon { width: 18px; height: 18px; }
+dialog[data-ai-dialog] .section-title { display: flex; align-items: center; gap: var(--s2); }
+.ai-hint { margin: 0; font-size: 15px; color: var(--muted); }
+.ai-hint strong { color: var(--fg); }
+dialog[data-ai-dialog] textarea { min-height: 96px; resize: vertical; padding-block: var(--s2); }
+.ai-count { text-align: right; margin-top: calc(-1 * var(--s2)); }
+.ai-missing { margin: 0; padding-left: var(--s5); }
+.ai-missing li + li { margin-top: var(--s1); }
+/* The ✨ button inside the description box asks for a better wording. */
+.desc-box { position: relative; }
+.desc-box textarea { display: block; padding-right: 44px; }
+/* A plain icon inside the box, at its bottom right corner (one line: centered on it). */
+.ai-btn {
+  position: absolute; right: 6px; bottom: 6px; width: 34px; height: 34px; display: grid; place-items: center;
+  border: 0; border-radius: 8px; background: none; color: var(--accent); cursor: pointer; padding: 0;
+}
+.ai-btn:hover, .ai-btn:focus-visible { background: var(--accent-soft); }
+.ai-btn .icon { width: 20px; height: 20px; }
+
+/* "Covers 3 travelers -x USD": one line that opens to list each traveler and amount. */
+details.covers > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+details.covers > summary::-webkit-details-marker { display: none; }
+details.covers > summary .chev { width: 16px; height: 16px; transition: transform 0.15s; }
+details.covers[open] > summary .chev { transform: rotate(180deg); }
+details.covers ul { list-style: none; margin: var(--s1) 0 0; padding: 0 0 0 var(--s3); border-left: 2px solid var(--line); }
+details.covers li { display: flex; justify-content: space-between; gap: var(--s3); }
+
+/* While filters are on, the closed filter card stays under the header when scrolling, so every
+   section below is read as filtered. */
+details.filters.is-filtered:not([open]) {
+  position: sticky; top: 64px; z-index: 15; box-shadow: 0 4px 12px rgb(16 24 40 / 0.12);
+}
+.filters .two > .field:nth-child(5) { grid-column: 1 / -1; }

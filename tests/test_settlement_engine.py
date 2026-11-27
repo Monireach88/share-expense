@@ -180,3 +180,26 @@ def test_every_row_adds_up_and_shares_add_up_to_the_total(path):
     for p in result.people:
         assert p.paid - p.responsible_for == p.balance
     assert sum(p.responsible_for for p in result.people) == result.total
+
+
+def test_several_sponsors_split_a_share_and_every_row_adds_up():
+    """A grandparent covered by 3 travelers, two of whom also cover their own child."""
+    people = ["Grandpa", "A", "B", "C", "KidA", "KidB"]
+    sponsors = {"Grandpa": ["A", "B", "C"], "KidA": ["A"], "KidB": ["B"]}
+    expenses = [
+        ExpenseInput("A", people, D("100.00"), "USD"),
+        ExpenseInput("Grandpa", ["Grandpa", "C"], D("10.00"), "USD"),
+        ExpenseInput("C", ["Grandpa"], D("0.01"), "USD"),
+    ]
+    result = settle(people, expenses, base_currency="USD", sponsors=sponsors)
+    rows = {p.participant: p for p in result.people}
+    grandpa = rows["Grandpa"]
+    assert grandpa.covered == grandpa.own_share == D("21.68")  # 100/6 + 10/2 + 0.01
+    assert sorted(rows[s].covers["Grandpa"] for s in "ABC") == [D("7.22"), D("7.23"), D("7.23")]
+    assert sum(rows[s].covers["Grandpa"] for s in "ABC") == grandpa.covered
+    assert rows["A"].covers["KidA"] == rows["KidA"].own_share
+    for row in result.people:
+        assert row.paid - row.own_share + row.covered - sum(row.covers.values()) == row.balance
+    assert sum(r.own_share for r in result.people) == result.total
+    assert sum(r.balance for r in result.people) == 0
+    assert grandpa.balance == grandpa.paid  # Sponsors pay all of his share.

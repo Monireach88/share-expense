@@ -17,5 +17,11 @@ def signup(request: HttpRequest) -> HttpResponse:
 
 
 @login_not_required
+def pending(request: HttpRequest) -> HttpResponse:
+    """After a first Google sign-in: the new account waits for the admin's approval."""
+    return render(request, "registration/signup_sent.html", {"google": True})
+
+
+@login_not_required
 def health(request: HttpRequest) -> HttpResponse:
     return HttpResponse("ok", content_type="text/plain")

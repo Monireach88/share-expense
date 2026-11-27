@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% comment %}django-allauth's few remaining pages (sign-in cancelled, sign-in error) use the app's layout.{% endcomment %}
+{% block title %}{% block head_title %}{% endblock %}{% endblock %}
+{% block main_class %}narrow{% endblock %}

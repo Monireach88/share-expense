@@ -2,8 +2,10 @@ import json
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
+from urllib.parse import quote
 
 import pytest
+from django.test import Client
 from django.urls import reverse
 
 from apps.expenses.models import Expense
@@ -15,8 +17,17 @@ pytestmark = pytest.mark.django_db
 SHEET = Path(__file__).parent / "fixtures" / "sheets" / "vn_20260531.json"
 
 
+OLD_TYPE_NAMES = {"food": "Food & drink", "transport": "Transport", "other": "Other"}
+
+
+def cat(trip, code="food"):
+    """The trip's type that replaced an old fixed type code."""
+    return trip.categories.get(name=OLD_TYPE_NAMES[code])
+
+
 def add_expense(trip, payer, beneficiaries, amount, currency="USD", **extra):
     extra.setdefault("date", date(2026, 6, 1))
+    extra["category"] = cat(trip, extra.get("category", "food"))
     expense = Expense.objects.create(
         trip=trip,
         payer=payer,
@@ -88,7 +99,7 @@ def test_member_can_record_expenses_but_not_manage_the_trip(client, trip, make_u
         {
             "amount": "12.50",
             "currency": "USD",
-            "category": "food",
+            "category": cat(trip, "food").id,
             "payer": payer.id,
             "beneficiaries": [p.id for p in trip.participants.all()],
             "date": "2026-06-01",
@@ -113,7 +124,7 @@ def test_expense_cannot_use_a_person_from_another_trip(owner_client, owner, trip
         {
             "amount": "5",
             "currency": "USD",
-            "category": "food",
+            "category": cat(trip, "food").id,
             "payer": outsider.id,
             "beneficiaries": [outsider.id],
             "date": "2026-06-01",
@@ -127,7 +138,7 @@ def test_currency_needs_an_exchange_rate(owner_client, trip):
     payload = {
         "amount": "74000",
         "currency": "VND",
-        "category": "transport",
+        "category": cat(trip, "transport").id,
         "payer": trip.participants.first().id,
         "beneficiaries": [p.id for p in trip.participants.all()],
         "date": "2026-06-01",
@@ -154,10 +165,10 @@ def test_balances_page_shows_amounts_not_who_pays_whom(owner_client, trip):
         (owner_p, Decimal("15.00")),
         (friend, Decimal("-15.00")),
     ]
+    # The viewer's own balance is in the top card, so the list below shows only the others.
+    assert response.context["summary"]["others"] == [rows[1]]
     html = response.content.decode()
-    assert "You are owed" in html
-    assert "is owed" in html and "owes" in html
-    assert "is owed" in html and "owes" in html
+    assert "You are owed" in html and "Others" in html and "owes" in html
     for old in ("Pays Owner", "pays you", "get back"):
         assert old not in html
 
@@ -205,7 +216,7 @@ def test_spending_filters_by_person_and_shows_their_share(owner_client, trip):
     assert len(friend_view["rows"]) == 1
     assert friend_view["share"] == Decimal("15.00")
     assert friend_view["by_category"][0]["amount"] == Decimal("15.00")
-    food = owner_client.get(url, {"category": "food"}).context["report"]
+    food = owner_client.get(url, {"category": cat(trip).id}).context["report"]
     assert food["total"] == Decimal("30.00")
 
 
@@ -214,9 +225,15 @@ def test_spending_share_follows_the_sponsor(owner_client, trip):
     friend.sponsors.set([owner_p])
     add_expense(trip, friend, [owner_p, friend], "30")
     report = owner_client.get(reverse("report", args=[trip.id]), {"person": owner_p.id}).context
-    # Owner covers Friend, so Owner's share is the whole 30, matching the Balances page.
-    assert report["report"]["share"] == Decimal("30.00")
-    assert trip_settlement(trip).people[0].responsible_for == Decimal("30.00")
+    # Owner covers Friend: Owner's own share is 15, and the 15 for Friend is a separate line,
+    # the same split as on the Balances page.
+    assert report["report"]["share"] == Decimal("15.00")
+    assert report["report"]["covers"] == [(friend, Decimal("15.00"))]
+    owner_row = trip_settlement(trip).people[0]
+    assert owner_row.own_share == Decimal("15.00") and owner_row.covers == {
+        friend.id: Decimal("15.00")
+    }
+    assert owner_row.responsible_for == Decimal("30.00")
 
 
 def test_export_keeps_the_filters(owner_client, trip):
@@ -224,7 +241,9 @@ def test_export_keeps_the_filters(owner_client, trip):
     add_expense(trip, owner_p, [owner_p, friend], "30", description="Taxi", category="transport")
     add_expense(trip, owner_p, [owner_p], "12", description="Lunch", category="food")
     url = reverse("report_export", args=[trip.id, "csv"])
-    csv_text = owner_client.get(url, {"category": "transport"}).content.decode("utf-8-sig")
+    csv_text = owner_client.get(url, {"category": cat(trip, "transport").id}).content.decode(
+        "utf-8-sig"
+    )
     assert "Taxi" in csv_text and "Lunch" not in csv_text
     lines = csv_text.strip().splitlines()
     assert lines[0].startswith("Date,Description,Type,Paid by")
@@ -234,23 +253,14 @@ def test_export_keeps_the_filters(owner_client, trip):
     assert owner_client.get(reverse("report_export", args=[trip.id, "pdf"])).status_code == 404
 
 
-def test_long_lists_load_more_and_never_split_a_day(owner_client, trip):
+def test_long_days_are_never_split_across_pages(owner_client, trip):
     owner_p, friend = trip.participants.all()
     for i in range(30):
         add_expense(trip, owner_p, [owner_p, friend], str(i + 1), date=date(2026, 6, 1 + i // 10))
-    url = reverse("trip", args=[trip.id])
-    first = owner_client.get(url)
-    page = first.context["page"]
-    # Days of 10 rows: a page takes whole days until it has 25 rows, so 30 rows on page 1.
+    page = owner_client.get(reverse("trip", args=[trip.id])).context["page"]
+    # Pages hold whole days, however many expenses a day has.
     assert [len(items) for _day, items, _total in page.days] == [10, 10, 10]
     assert not page.has_next()
-    for _ in range(30):
-        add_expense(trip, owner_p, [owner_p], "1", date=date(2026, 7, 1))
-    page = owner_client.get(url).context["page"]
-    assert page.has_next() and page.end_index == 30
-    assert "Load more" in owner_client.get(url).content.decode()
-    second = owner_client.get(url, {"page": 2}).context["page"]
-    assert second.end_index == 60
 
 
 def test_today_is_hidden_outside_the_trip_dates(owner_client, trip):
@@ -314,7 +324,7 @@ def expense_payload(trip, **extra):
     return {
         "amount": "10",
         "currency": "USD",
-        "category": "food",
+        "category": cat(trip, "food").id,
         "payer": trip.participants.first().id,
         "beneficiaries": [p.id for p in trip.participants.all()],
         "date": "2026-06-01",
@@ -363,7 +373,7 @@ def test_page_with_a_one_time_message_is_not_stored(owner_client, trip):
         {
             "amount": "10",
             "currency": "USD",
-            "category": "food",
+            "category": cat(trip, "food").id,
             "payer": owner_p.id,
             "beneficiaries": [owner_p.id, friend.id],
             "date": "2026-06-01",
@@ -431,7 +441,8 @@ def test_owner_marks_a_trip_settled_and_reopens_it(owner_client, trip):
     assert trip.is_settled
     page = owner_client.get(reverse("summary", args=[trip.id])).content.decode()
     assert "Settled on" in page and "Reopen trip" in page and "Mark as settled" not in page
-    assert "You were owed" in page and "was owed" in page and "You are owed" not in page
+    assert "You were owed" in page and "You are owed" not in page
+    assert ">owed<" in page and ">owes<" not in page
     assert " by " not in page.split("Settled on", 1)[1].split("<", 1)[0]
     # The balances stay as a record; settling records no payment.
     assert trip_settlement(trip).people[0].balance == Decimal("15.00")
@@ -477,3 +488,293 @@ def test_only_the_owner_settles_or_reopens(client, trip, make_user):
     client.force_login(member)
     assert client.post(reverse("trip_settle", args=[trip.id])).status_code == 403
     assert "Mark as settled" not in client.get(reverse("summary", args=[trip.id])).content.decode()
+
+
+def test_owner_adds_an_account_on_its_own_page(owner_client, trip, make_user):
+    make_user("friend")
+    url = reverse("member_add", args=[trip.id])
+    assert owner_client.get(url).status_code == 200
+    response = owner_client.post(url, {"username": "friend"})
+    assert response.status_code == 302
+    assert trip.memberships.filter(user__username="friend").exists()
+
+
+def test_only_the_owner_can_add_an_account(client, trip, make_user):
+    friend = make_user("friend")
+    TripMember.objects.create(trip=trip, user=friend)
+    make_user("other")
+    client.force_login(friend)
+    url = reverse("member_add", args=[trip.id])
+    assert client.post(url, {"username": "other"}).status_code == 403
+    assert not trip.memberships.filter(user__username="other").exists()
+
+
+def test_description_line_breaks_become_spaces(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    owner_client.post(
+        reverse("expense_create", args=[trip.id]),
+        {
+            "amount": "10",
+            "currency": trip.base_currency,
+            "description": "Taxi\nfrom  the airport",
+            "payer": owner_p.id,
+            "beneficiaries": [owner_p.id, friend.id],
+            "category": cat(trip, "transport").id,
+            "date": "2026-01-02",
+        },
+    )
+    assert trip.expenses.get().description == "Taxi from the airport"
+
+
+def test_stats_rows_show_the_share_in_the_expense_currency(owner_client, trip):
+    ExchangeRate.objects.create(trip=trip, currency="KHR", rate=Decimal("4000"))
+    owner_p, friend = trip.participants.all()
+    third = Participant.objects.create(trip=trip, name="Person C")
+    add_expense(trip, owner_p, [owner_p, friend, third], "10000", currency="KHR")
+    url = reverse("report", args=[trip.id])
+    response = owner_client.get(url, {"person": friend.id})
+    (row,) = response.context["report"]["rows"]
+    assert row.share_local == Decimal("3333")  # KHR has no cents.
+    assert row.share == Decimal("0.83")  # The base-currency share still feeds the totals.
+    html = response.content.decode()
+    assert "3,333" in html and "of 10,000" in html
+    assert response.context["filter_summary"] == [friend.name]
+
+
+def test_dragging_saves_the_order_within_a_day(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    first = add_expense(trip, owner_p, [owner_p], "1", description="First")
+    second = add_expense(trip, owner_p, [owner_p], "2", description="Second")
+    url = reverse("expense_reorder", args=[trip.id])
+    # Newest comes first until the day is reordered.
+    assert list(trip.expenses.values_list("description", flat=True)) == ["Second", "First"]
+    response = owner_client.post(url, {"day": "2026-06-01", "ids": [first.id, second.id]})
+    assert response.status_code == 204
+    assert list(trip.expenses.values_list("description", flat=True)) == ["First", "Second"]
+    # A list that is not the whole day is refused, so a stale page cannot scramble the order.
+    assert owner_client.post(url, {"day": "2026-06-01", "ids": [first.id]}).status_code == 409
+    assert owner_client.post(url, {"day": "junk", "ids": [first.id]}).status_code == 400
+
+
+def test_reorder_is_locked_on_a_settled_trip_and_hidden_from_outsiders(
+    owner_client, trip, make_user
+):
+    owner_p, _friend = trip.participants.all()
+    only = add_expense(trip, owner_p, [owner_p], "1")
+    url = reverse("expense_reorder", args=[trip.id])
+    stranger = Client()
+    stranger.force_login(make_user("stranger"))
+    assert stranger.post(url, {"day": "2026-06-01", "ids": [only.id]}).status_code == 404
+    owner_client.post(reverse("trip_settle", args=[trip.id]))
+    assert owner_client.post(url, {"day": "2026-06-01", "ids": [only.id]}).status_code == 409
+
+
+def test_search_finds_description_payer_type_and_amount(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p], "12000", description="Tuk-tuk", category="transport")
+    add_expense(trip, friend, [friend], "5", description="Coffee", category="food")
+    url = reverse("trip", args=[trip.id])
+
+    def found(q):
+        days = owner_client.get(url, {"q": q}).context["days"]
+        return sorted(e.description for _day, items, _t in days for e in items)
+
+    assert found("tuk") == ["Tuk-tuk"]
+    assert found(friend.name.lower()) == ["Coffee"]
+    assert found("food") == ["Coffee"]
+    assert found("12,000") == ["Tuk-tuk"] and found("12000") == ["Tuk-tuk"]
+    assert found("nothing-like-this") == []
+    page = owner_client.get(url, {"q": "tuk"}).content.decode()
+    assert "data-reorder" not in page  # A search shows part of a day, so no dragging.
+
+
+def test_expense_list_loads_ten_days_at_a_time(owner_client, trip):
+    owner_p, _friend = trip.participants.all()
+    for day in range(1, 13):
+        add_expense(trip, owner_p, [owner_p], "1", date=date(2026, 6, day))
+    url = reverse("trip", args=[trip.id])
+    first = owner_client.get(url).context["page"]
+    assert len(first.days) == 10 and first.count == 12 and first.has_next()
+    assert len(owner_client.get(url, {"page": 2}).context["page"].days) == 2
+    assert "10 of 12 days shown" in owner_client.get(url).content.decode()
+
+
+def test_a_new_trip_starts_with_the_default_types(trip):
+    assert [c.name for c in trip.categories.all()][:3] == [
+        "Transport",
+        "Accommodation",
+        "Food & drink",
+    ]
+    assert trip.categories.count() == 8
+
+
+def test_travelers_add_rename_and_remove_their_own_types(owner_client, trip):
+    url = reverse("category_create", args=[trip.id])
+    response = owner_client.post(url, {"name": "  Visa   fees ", "emoji": "🧾"})
+    assert response.status_code == 201
+    created = response.json()
+    assert created["name"] == "Visa fees" and created["emoji"] == "🧾"
+    # Names are unique in a trip, whatever the letter case.
+    duplicate = owner_client.post(url, {"name": "visa FEES", "emoji": "🧾"})
+    assert duplicate.status_code == 400 and "already" in duplicate.json()["error"]
+    assert owner_client.post(url, {"name": "Tips", "emoji": "X"}).status_code == 400
+    edit = reverse("category_edit", args=[trip.id, created["id"]])
+    assert owner_client.post(edit, {"name": "Visas", "emoji": "💵"}).json()["name"] == "Visas"
+    delete = reverse("category_delete", args=[trip.id, created["id"]])
+    assert owner_client.post(delete).status_code == 204
+    assert not trip.categories.filter(name="Visas").exists()
+
+
+def test_a_type_in_use_cannot_be_removed(owner_client, trip):
+    owner_p, _friend = trip.participants.all()
+    add_expense(trip, owner_p, [owner_p], "5", category="food")
+    response = owner_client.post(reverse("category_delete", args=[trip.id, cat(trip).id]))
+    assert response.status_code == 409
+    assert "used by 1 expense" in response.json()["error"]
+    assert trip.categories.filter(pk=cat(trip).pk).exists()
+
+
+def test_removing_a_type_used_only_by_deleted_expenses_keeps_them_typeless(owner_client, trip):
+    owner_p, _friend = trip.participants.all()
+    expense = add_expense(trip, owner_p, [owner_p], "5", category="other")
+    owner_client.post(reverse("expense_delete", args=[trip.id, expense.id]))
+    assert (
+        owner_client.post(
+            reverse("category_delete", args=[trip.id, cat(trip, "other").id])
+        ).status_code
+        == 204
+    )
+    assert Expense.all_objects.get(pk=expense.pk).category is None
+
+
+def test_types_of_another_trip_cannot_be_used_or_changed(owner_client, trip, make_trip, make_user):
+    other = make_trip(make_user("someone"))
+    foreign = other.categories.first()
+    edit = reverse("category_edit", args=[trip.id, foreign.id])
+    assert owner_client.post(edit, {"name": "Mine", "emoji": "🧾"}).status_code == 404
+    owner_p, friend = trip.participants.all()
+    response = owner_client.post(
+        reverse("expense_create", args=[trip.id]),
+        {
+            "amount": "10",
+            "currency": "USD",
+            "payer": owner_p.id,
+            "beneficiaries": [owner_p.id],
+            "category": foreign.id,
+            "date": "2026-06-01",
+        },
+    )
+    assert response.status_code == 200 and not trip.expenses.exists()
+
+
+def test_a_covered_traveler_who_paid_is_owed_and_both_pages_say_so(owner_client, trip):
+    """A cover moves only the share; what a covered traveler paid is still owed back to them."""
+    owner_p, friend = trip.participants.all()
+    child = Participant.objects.create(trip=trip, name="Person C")
+    child.sponsors.set([friend])
+    add_expense(trip, child, [owner_p, friend, child], "4")
+
+    summary = owner_client.get(reverse("summary", args=[trip.id]))
+    row = next(r for r in summary.context["summary"]["rows"] if r["person"] == child)
+    assert row["row"].paid == Decimal("4.00") and row["row"].balance == Decimal("4.00")
+    html = summary.content.decode()
+    child_row = html[html.index("Person C") :].split("</li>", 1)[0]
+    # Paid 4.00 - Share 1.33 + Covered by 1.33 = 4.00 owed to her.
+    assert "Paid&nbsp;4.00" in child_row and "Share&nbsp;1.33" in child_row
+    assert "Covered by Friend</span>" in child_row  # Covering means the whole share: no amount.
+    assert "4.00" in child_row.split("row-end", 1)[1] and "is owed" in child_row
+
+    report = owner_client.get(reverse("report", args=[trip.id]), {"person": child.id})
+    data = report.context["report"]
+    assert data["paid"] == Decimal("4.00") and data["share"] == Decimal("1.33")  # 4 / 3
+    assert data["show_share"] and data["covered_by"] == [friend]
+    page = report.content.decode()
+    assert "Person C’s share" in page and "Paid by Person C" in page
+    assert "Person C is covered by" in page
+    # "Paid" only on the card the chosen traveler paid; the others say "of <amount>".
+    add_expense(trip, friend, [owner_p, child], "9")
+    page = owner_client.get(
+        reverse("report", args=[trip.id]), {"person": child.id}
+    ).content.decode()
+    assert "Paid 4.00" in page and "of 9.00" in page and "Paid 9.00" not in page
+
+
+def test_only_travelers_who_pay_for_themselves_are_offered_as_coverers(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    kid = Participant.objects.create(trip=trip, name="Kid")
+    kid.sponsors.set([friend])
+    grandpa = Participant.objects.create(trip=trip, name="Grandpa")
+    page = owner_client.get(reverse("participant_edit", args=[trip.id, grandpa.id]))
+    offered = list(page.context["form"].fields["sponsors"].queryset)
+    assert offered == [owner_p, friend]  # Kid is covered, so cannot cover Grandpa.
+    assert "data-all" in page.content.decode()  # The "Everyone" chip.
+    owner_client.post(
+        reverse("participant_edit", args=[trip.id, grandpa.id]),
+        {"name": "Grandpa", "sponsors": [owner_p.id, friend.id]},
+    )
+    assert set(grandpa.sponsors.all()) == {owner_p, friend}
+
+
+def test_stats_paid_by_filter_shows_what_one_traveler_paid_for_another(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    add_expense(trip, friend, [owner_p, friend], "30")  # Friend paid; Owner's part is 15.
+    add_expense(trip, owner_p, [owner_p, friend], "10")  # Owner paid for themself.
+    url = reverse("report", args=[trip.id])
+    response = owner_client.get(url, {"person": owner_p.id, "payer": friend.id})
+    report = response.context["report"]
+    assert [r.base_amount for r in report["rows"]] == [Decimal("30.00")]
+    assert report["share"] == Decimal("15.00")
+    page = response.content.decode()
+    assert "Owner’s share paid by Friend" in page and "is-filtered" in page
+    assert response.context["filter_summary"] == ["Owner", "paid by Friend"]
+    alone = owner_client.get(url, {"payer": friend.id})
+    assert alone.context["report"]["total"] == Decimal("30.00")
+    assert "Total paid by Friend" in alone.content.decode()
+
+
+def test_an_expense_opened_on_stats_returns_to_stats_with_its_filters(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    expense = add_expense(trip, owner_p, [owner_p, friend], "30")
+    stats = owner_client.get(reverse("report", args=[trip.id]), {"person": friend.id, "page": 1})
+    back = f"/trips/{trip.id}/report/?person={friend.id}"
+    assert f"?next={quote(back, safe='/')}" in stats.content.decode()
+    edit_url = reverse("expense_edit", args=[trip.id, expense.id])
+    page = owner_client.get(edit_url, {"next": back})
+    assert page.context["back_url"] == back
+    data = {
+        "next": back,
+        "amount": "31",
+        "currency": "USD",
+        "payer": owner_p.id,
+        "beneficiaries": [owner_p.id, friend.id],
+        "category": cat(trip).id,
+        "date": "2026-06-01",
+    }
+    assert owner_client.post(edit_url, data)["Location"] == back
+    # An address outside this trip is ignored, so the link cannot send anyone elsewhere.
+    assert owner_client.get(edit_url, {"next": "https://evil.example/"}).context["back_url"] == (
+        reverse("trip", args=[trip.id])
+    )
+
+
+def test_someone_covering_several_travelers_gets_one_short_line(owner_client, trip):
+    owner_p, friend = trip.participants.all()
+    kids = [Participant.objects.create(trip=trip, name=f"Kid {i}") for i in range(3)]
+    for kid in kids:
+        kid.sponsors.set([friend])
+    add_expense(trip, owner_p, [owner_p, friend, *kids], "50")
+    html = owner_client.get(reverse("summary", args=[trip.id])).content.decode()
+    friend_row = html[html.index(">Friend<") :].split("</details>", 1)[0]
+    assert "Covers 3 travelers" in friend_row and "−30.00" in friend_row
+    assert friend_row.count("Kid ") == 3  # Listed inside the line that opens.
+    kid_row = html[html.index('row-title">Kid 0') :].split("</li>", 1)[0]
+    assert "Covered by Friend" in kid_row and "+" not in kid_row.split("Covered by", 1)[1][:40]
+
+
+def test_avatar_letter_comes_from_the_given_name():
+    from apps.trips.templatetags.ui import initial
+
+    assert initial("HENG MALY") == "M"
+    assert initial("Person A") == "A"
+    assert initial("dara") == "D"
+    assert initial("") == ""

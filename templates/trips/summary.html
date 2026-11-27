@@ -3,7 +3,7 @@
 {% block content %}
 <div class="stack-lg">
 {% if error %}
-  <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Ask the trip owner to add the rate." %}{% endif %}</div></div>
+  <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Only the trip owner can add exchange rates." %}{% endif %}</div></div>
 {% else %}
   {% if trip.is_settled %}
   <section class="card settled" aria-label="{% translate 'Trip status' %}">
@@ -24,7 +24,9 @@
       <summary>{% translate "Breakdown" %}{% icon "chevron-right" "chev" %}</summary>
       <dl class="num">
         <dt>{% translate "You paid" %}</dt><dd>{{ me.row.paid|amount:cur }}</dd>
-        <dt>{% translate "Your share" %}</dt><dd>−{{ me.row.responsible_for|amount:cur }}</dd>
+        <dt>{% translate "Your share" %}</dt><dd>−{{ me.row.own_share|amount:cur }}</dd>
+        {% if me.covered_by %}<dt>{% blocktranslate with by=me.covered_by|join:", " %}Covered by {{ by }}{% endblocktranslate %}</dt><dd>+{{ me.row.covered|amount:cur }}</dd>{% endif %}
+        {% for person, amount in me.covers %}<dt>{% blocktranslate with name=person.name %}You cover {{ name }}{% endblocktranslate %}</dt><dd>−{{ amount|amount:cur }}</dd>{% endfor %}
         <dt class="why-total">{% translate "Balance" %}</dt><dd class="why-total">{{ me.row.balance|signed:cur }} <span class="cur">{{ cur }}</span></dd>
       </dl>
     </details>
@@ -32,18 +34,21 @@
   {% endif %}{% endwith %}
 
   <section>
-    <h2 class="section-title">{% translate "Everyone" %}</h2>
+    <h2 class="section-title">{% if summary.others|length < summary.rows|length %}{% translate "Others" %}{% else %}{% translate "Everyone" %}{% endif %}</h2>
     <ul class="list">
-      {% for item in summary.rows %}
+      {% for item in summary.others %}
       <li><div class="row">
-        <span class="avatar" aria-hidden="true">{{ item.person.name|first|upper }}</span>
+        <span class="avatar" aria-hidden="true">{{ item.person.name|initial }}</span>
         <span class="row-main">
           <span class="row-title">{{ item.person.name }}{% if item.is_me %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
-          <span class="row-sub num">{% if item.covered_by %}{% translate "Covered by" %} {{ item.covered_by|join:", " }}{% else %}{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }} · {% translate "Share" %}&nbsp;{{ item.row.responsible_for|amount:summary.currency }}&nbsp;{{ summary.currency }}{% endif %}</span>
+          <span class="row-sub num">{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
+          <span class="row-sub num">{% translate "Share" %}&nbsp;{{ item.row.own_share|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
+          {% if item.covered_by %}<span class="row-sub">{% blocktranslate with by=item.covered_by|join:", " %}Covered by {{ by }}{% endblocktranslate %}</span>{% endif %}
+          {% include "trips/_covers.html" with covers=item.covers total=item.covers_total cur=summary.currency label="covers" css="row-sub" %}
         </span>
         <span class="row-end">
           <strong class="num {% if item.row.balance > 0 %}pos{% elif item.row.balance < 0 %}neg{% else %}muted{% endif %}">{{ item.row.balance|money:summary.currency }}</strong>
-          <span class="row-sub">{% if trip.is_settled and item.row.balance > 0 %}{% translate "was owed" %}{% elif trip.is_settled and item.row.balance < 0 %}{% translate "owed" %}{% elif item.row.balance > 0 %}{% translate "is owed" %}{% elif item.row.balance < 0 %}{% translate "owes" %}{% elif not item.covered_by and summary.total %}{% translate "nothing owed" %}{% endif %}</span>
+          <span class="row-sub">{% if trip.is_settled and item.row.balance > 0 %}{% translate "was owed" %}{% elif trip.is_settled and item.row.balance < 0 %}{% translate "owed" %}{% elif item.row.balance > 0 %}{% translate "is owed" %}{% elif item.row.balance < 0 %}{% translate "owes" %}{% elif summary.total %}{% translate "nothing owed" %}{% endif %}</span>
         </span>
       </div>
       </li>

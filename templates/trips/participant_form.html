@@ -1,15 +1,15 @@
 {% extends "base.html" %}{% load i18n ui %}
-{% block title %}{% if participant %}{{ participant.name }}{% else %}{% translate "Add participant" %}{% endif %}{% endblock %}
-{% block back %}<a class="back" href="{% url 'people' trip.id %}">{% icon "chevron-left" %}<span>{% translate "People" %}</span></a>{% endblock %}
+{% block title %}{% if participant %}{{ participant.name }}{% else %}{% translate "Add traveler" %}{% endif %}{% endblock %}
+{% block back %}<a class="back" href="{% url 'people' trip.id %}">{% icon "chevron-left" %}<span>{% translate "Travelers" %}</span></a>{% endblock %}
 {% block content %}
-<h1 class="page-title">{% if participant %}{% translate "Edit participant" %}{% else %}{% translate "Add participant" %}{% endif %}</h1>
+<h1 class="page-title">{% if participant %}{% translate "Edit traveler" %}{% else %}{% translate "Add traveler" %}{% endif %}</h1>
 <form method="post" id="participant-form" style="margin-top: 16px">{% csrf_token %}
   {% include "_form_errors.html" %}
   {% include "_field.html" with field=form.name %}
-  {% if form.fields.sponsors.queryset %}<div style="margin-top: 24px">{% include "_checks.html" with field=form.sponsors %}</div>{% endif %}
+  {% if form.fields.sponsors.queryset %}<div style="margin-top: 24px">{% include "_checks.html" with field=form.sponsors everyone=True %}</div>{% endif %}
   <div style="margin-top: 24px">{% include "_field.html" with field=form.user %}</div>
   {% if participant %}
-  <div class="form-foot"><a class="link-danger" href="{% url 'participant_delete' trip.id participant.id %}">{% translate "Remove participant" %}</a></div>
+  <div class="form-foot"><a class="link-danger" href="{% url 'participant_delete' trip.id participant.id %}">{% translate "Remove traveler" %}</a></div>
   {% endif %}
 </form>
 {% endblock %}
@@ -20,7 +20,7 @@
     <button type="submit" form="participant-form" class="btn">{% translate "Save changes" %}</button>
   {% else %}
     <button type="submit" form="participant-form" name="add_another" class="btn btn-secondary">{% translate "Save and add another" %}</button>
-    <button type="submit" form="participant-form" class="btn">{% translate "Add participant" %}</button>
+    <button type="submit" form="participant-form" class="btn">{% translate "Save" %}</button>
   {% endif %}
 </div></div>
 {% endblock %}

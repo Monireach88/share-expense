@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% load i18n %}
+{% extends "base.html" %}{% load i18n socialaccount %}
 {% block title %}{% translate "Log in" %}{% endblock %}
 {% block main_class %}narrow{% endblock %}
 {% block content %}
@@ -14,5 +14,12 @@
   <input type="hidden" name="next" value="{{ next }}">
   <button type="submit" class="btn btn-block">{% translate "Log in" %}</button>
 </form>
+{% if google_signin %}
+<div class="or" role="separator"><span>{% translate "or" %}</span></div>
+{# A normal form post (no hx-boost): the browser must follow the redirect to Google's own page. #}
+<form method="post" action="{% provider_login_url 'google' %}" hx-boost="false">{% csrf_token %}
+  <button type="submit" class="btn btn-secondary btn-block btn-google">{% include "_google_logo.html" %}{% translate "Continue with Google" %}</button>
+</form>
+{% endif %}
 <p class="auth-alt">{% translate "No account yet?" %} <a href="{% url 'signup' %}">{% translate "Request one" %}</a></p>
 {% endblock %}

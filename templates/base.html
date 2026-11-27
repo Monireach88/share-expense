@@ -10,6 +10,7 @@
   <title>{% block title %}{% translate "Share Expense" %}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'vendor/sortable.min.js' %}" defer></script>
   <script src="{% static 'js/app.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
@@ -21,11 +22,12 @@
       {% endblock %}
       {% block header_end %}{% if user.is_authenticated %}
       <details class="menu">
-        <summary aria-label="{% translate 'Account menu' %}"><span class="avatar" aria-hidden="true">{{ user.display_name|first|upper }}</span></summary>
+        <summary aria-label="{% translate 'Account menu' %}"><span class="avatar" aria-hidden="true">{{ user.display_name|initial }}</span></summary>
         <div class="menu-panel">
           <div class="who"><strong>{{ user.display_name }}</strong><div class="tiny muted">{{ user.username }}</div></div>
           <a class="menu-item" href="{% url 'home' %}">{% translate "Trips" %}</a>
           <a class="menu-item" href="{% url 'password_change' %}">{% icon "key-round" %}{% translate "Change password" %}</a>
+          {% if google_signin %}<a class="menu-item" href="{% url 'socialaccount_connections' %}">{% include "_google_logo.html" %}{% translate "Google sign-in" %}</a>{% endif %}
           {% if user.is_staff %}<a class="menu-item" href="{% url 'admin:index' %}" hx-boost="false">{% icon "shield" %}{% translate "Admin" %}</a>{% endif %}
           <form method="post" action="{% url 'logout' %}">{% csrf_token %}
             <button type="submit" class="menu-item">{% icon "log-out" %}{% translate "Log out" %}</button>

@@ -45,9 +45,6 @@ class ExchangeRateForm(forms.ModelForm):
         self.trip = trip
         currency = self.fields["currency"]
         currency.choices = [("", _("Choose")), *list(currency.choices)[1:]]
-        self.fields["rate"].help_text = _("How many units of this currency make 1 %(base)s.") % {
-            "base": trip.base_currency
-        }
 
     def clean_currency(self):
         currency = self.cleaned_data["currency"]
@@ -71,10 +68,11 @@ class ParticipantForm(forms.ModelForm):
     def __init__(self, *args, trip: Trip, **kwargs):
         super().__init__(*args, **kwargs)
         self.trip = trip
-        others = trip.participants.all()
+        # Only travelers who pay for themselves can cover someone, so only they are offered.
+        others = trip.participants.filter(sponsors__isnull=True)
         if self.instance.pk:
             others = others.exclude(pk=self.instance.pk)
-        self.fields["sponsors"].queryset = others
+        self.fields["sponsors"].queryset = others.distinct()
         self.fields["user"].queryset = get_user_model().objects.filter(memberships__trip=trip)
         self.fields["user"].label_from_instance = lambda u: f"{u.display_name} ({u.username})"
         self.fields["user"].empty_label = _("No account")
@@ -83,7 +81,7 @@ class ParticipantForm(forms.ModelForm):
         )
         self.fields["sponsors"].label = _("Covered by")
         self.fields["sponsors"].help_text = _(
-            "People who pay this person's share. Empty means they pay their own."
+            "Travelers who pay this traveler's share. Empty means they pay their own."
         )
 
     def clean_name(self):

@@ -1,13 +1,14 @@
-{% load i18n ui %}{% if trip.is_settled %}<div class="row">{% else %}<a class="row" href="{% url 'expense_edit' trip.id e.id %}">{% endif %}
-  <span class="type-icon" aria-hidden="true">{{ e.category|type_emoji }}</span>
+{% load i18n ui %}{% if trip.is_settled %}<div class="row">{% else %}<a class="row" href="{% url 'expense_edit' trip.id e.id %}{% if return_to %}?next={{ return_to|urlencode }}{% endif %}">{% endif %}
+  <span class="type-icon" aria-hidden="true">{{ e.category.emoji|default:"📦" }}</span>
   <span class="row-main">
-    {% if e.description %}<span class="row-title">{{ e.description|keep_hyphens }}</span>{% else %}<span class="row-title placeholder">{{ e.get_category_display }}</span>{% endif %}
+    {% if e.description %}<span class="row-title">{{ e.description|keep_hyphens }}</span>{% else %}<span class="row-title placeholder">{{ e.category.name }}</span>{% endif %}
     <span class="row-sub">{% blocktranslate with payer=e.payer.name %}Paid by {{ payer }}{% endblocktranslate %}</span>
-    <span class="row-sub row-for">{% with n=e.beneficiaries.all|length %}{% if n == people_count %}{% translate "For everyone" %}{% else %}{% blocktranslate with names=e.beneficiaries.all|join:", " %}For {{ names }}{% endblocktranslate %}{% endif %}{% endwith %}</span>
+    <span class="row-sub row-for">{% with n=e.beneficiaries.all|length %}{% if n == travelers|length %}{% translate "For everyone" %}{% elif n == travelers|length|add:"-1" and n > 1 %}{% blocktranslate with name=e|left_out:travelers %}For everyone except {{ name }}{% endblocktranslate %}{% else %}{% blocktranslate with names=e.beneficiaries.all|join:", " %}For {{ names }}{% endblocktranslate %}{% endif %}{% endwith %}</span>
   </span>
   <span class="row-end">
-    <span class="num">{{ e.amount|money:e.currency }}</span>
-    {% if show_share %}<span class="row-sub num">{% translate "Share" %} {{ share|money:trip.base_currency }}</span>
-    {% elif e.currency != trip.base_currency and e.base_amount is not None %}<span class="row-sub num">≈ {{ e.base_amount|money:trip.base_currency }}</span>{% endif %}
+    {% if show_share %}<span class="num">{{ share|money:e.currency }}</span>
+    <span class="row-sub num">{% if e.payer_id == report.person.id %}{% blocktranslate with total=e.amount|money:e.currency %}Paid {{ total }}{% endblocktranslate %}{% else %}{% blocktranslate with total=e.amount|money:e.currency %}of {{ total }}{% endblocktranslate %}{% endif %}</span>
+    {% else %}<span class="num">{{ e.amount|money:e.currency }}</span>
+    {% if e.currency != trip.base_currency and e.base_amount is not None %}<span class="row-sub num">≈ {{ e.base_amount|money:trip.base_currency }}</span>{% endif %}{% endif %}
   </span>
 {% if trip.is_settled %}</div>{% else %}</a>{% endif %}

@@ -12,6 +12,21 @@ urlpatterns = [
     path("trips/<uuid:trip_id>/", expense_views.expense_list, name="trip"),
     path("trips/<uuid:trip_id>/expenses/new/", expense_views.expense_create, name="expense_create"),
     path(
+        "trips/<uuid:trip_id>/expenses/ai-fill/",
+        expense_views.expense_ai_fill,
+        name="expense_ai_fill",
+    ),
+    path(
+        "trips/<uuid:trip_id>/expenses/suggest/",
+        expense_views.description_suggestion,
+        name="description_suggestion",
+    ),
+    path(
+        "trips/<uuid:trip_id>/expenses/reorder/",
+        expense_views.expense_reorder,
+        name="expense_reorder",
+    ),
+    path(
         "trips/<uuid:trip_id>/expenses/<uuid:expense_id>/",
         expense_views.expense_edit,
         name="expense_edit",
@@ -20,6 +35,17 @@ urlpatterns = [
         "trips/<uuid:trip_id>/expenses/<uuid:expense_id>/delete/",
         expense_views.expense_delete,
         name="expense_delete",
+    ),
+    path("trips/<uuid:trip_id>/types/", expense_views.category_create, name="category_create"),
+    path(
+        "trips/<uuid:trip_id>/types/<int:category_id>/",
+        expense_views.category_edit,
+        name="category_edit",
+    ),
+    path(
+        "trips/<uuid:trip_id>/types/<int:category_id>/delete/",
+        expense_views.category_delete,
+        name="category_delete",
     ),
     path("trips/<uuid:trip_id>/summary/", views.summary, name="summary"),
     path("trips/<uuid:trip_id>/settle/", views.trip_settle, name="trip_settle"),
@@ -42,6 +68,7 @@ urlpatterns = [
         views.participant_delete,
         name="participant_delete",
     ),
+    path("trips/<uuid:trip_id>/members/new/", views.member_add, name="member_add"),
     path(
         "trips/<uuid:trip_id>/members/<int:member_id>/remove/",
         views.member_remove,
