@@ -5,7 +5,7 @@
 <h1 class="page-title">{% if participant %}{% translate "Edit traveler" %}{% else %}{% translate "Add traveler" %}{% endif %}</h1>
 <form method="post" id="participant-form" style="margin-top: 16px">{% csrf_token %}
   {% include "_form_errors.html" %}
-  {% if trip.is_settled %}<div class="note" style="margin-bottom: 16px">{% icon "circle-check" %}<div>{% translate "This trip is settled. Only the linked account can be changed." %}</div></div>{% endif %}
+  {% if trip.is_settled %}<div class="note" style="margin-bottom: 16px">{% icon "lock" %}<div>{% translate "This trip is settled. You can change only the linked account." %}</div></div>{% endif %}
   {% include "_field.html" with field=form.name %}
   {% if form.fields.sponsors.queryset %}<div style="margin-top: 24px">{% include "_checks.html" with field=form.sponsors everyone=True %}</div>{% endif %}
   <div style="margin-top: 24px">{% include "_field.html" with field=form.user %}</div>

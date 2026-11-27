@@ -297,24 +297,42 @@ def member_edit(request: HttpRequest, trip_id, member_id) -> HttpResponse:
     """One account on the trip: its role, make it the owner, or remove it. Owner only."""
     membership = get_membership(request, trip_id, owner_only=True)
     member = _other_member(membership, member_id)
-    form = MemberRoleForm(request.POST or None, initial={"role": member.role})
+    form = MemberRoleForm(
+        request.POST or None, initial={"role": member.role}, traveler=member.linked_traveler
+    )
     if request.method == "POST" and form.is_valid():
         try:
             actions.change_role(member, form.cleaned_data["role"], by=membership)
         except actions.ActionRefused as refused:
             messages.error(request, str(refused))
         else:
-            messages.success(
-                request,
-                _("%(name)s is now %(role)s.")
-                % {"name": member.user.display_name, "role": member.get_role_display()},
-            )
+            if member.is_editor:
+                text = _("%(name)s is now an Editor.")
+            else:
+                text = _("%(name)s is now a Member.")
+            messages.success(request, text % {"name": member.user.display_name})
         return redirect("people", trip_id=trip_id)
     return render(
         request,
         "trips/member_edit.html",
-        {"trip": membership.trip, "membership": membership, "member": member, "form": form},
+        {
+            "trip": membership.trip,
+            "membership": membership,
+            "member": member,
+            "form": form,
+            "remove_question": _remove_question(member),
+        },
     )
+
+
+def _remove_question(member: TripMember) -> str:
+    name = member.user.display_name
+    if traveler := member.linked_traveler:
+        return _(
+            "Remove %(name)s from this trip? %(name)s loses access at once and is no longer "
+            "linked to %(traveler)s."
+        ) % {"name": name, "traveler": traveler.name}
+    return _("Remove %(name)s from this trip? %(name)s loses access at once.") % {"name": name}
 
 
 def member_transfer(request: HttpRequest, trip_id, member_id) -> HttpResponse:
@@ -329,7 +347,7 @@ def member_transfer(request: HttpRequest, trip_id, member_id) -> HttpResponse:
             messages.error(request, str(refused))
         else:
             messages.success(
-                request, _("%(name)s is now the owner.") % {"name": member.user.display_name}
+                request, _("%(name)s is now the Owner.") % {"name": member.user.display_name}
             )
         return redirect("people", trip_id=trip_id)
     return render(
@@ -339,14 +357,14 @@ def member_transfer(request: HttpRequest, trip_id, member_id) -> HttpResponse:
             "trip": membership.trip,
             "membership": membership,
             "object": member.user.display_name,
-            "title": _("Make %(name)s the owner?") % {"name": member.user.display_name},
+            "title": _("Make %(name)s the Owner?") % {"name": member.user.display_name},
             "warning": _(
-                "%(name)s gets every right on this trip. You become an Editor "
-                "and cannot undo this yourself."
+                "%(name)s will have full control of this trip. You will become an Editor and "
+                "cannot undo this yourself; only %(name)s can make you the Owner again."
             )
             % {"name": member.user.display_name},
             "blocked": blocked,
-            "button": _("Make owner"),
+            "button": _("Make %(name)s the Owner") % {"name": member.user.display_name},
             "button_class": "btn",
             "back": reverse("member_edit", args=[trip_id, member.id]),
         },

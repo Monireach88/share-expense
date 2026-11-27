@@ -47,7 +47,7 @@ def reopen(trip: Trip, *, by: TripMember) -> None:
 def change_role(member: TripMember, role: str, *, by: TripMember) -> None:
     """Make an account a Member or an Editor. The Owner's own role changes only by transfer."""
     if member.is_owner:
-        raise ActionRefused(_("The owner's role changes only by making someone else the owner."))
+        raise ActionRefused(_("The Owner's role changes only by making someone else the Owner."))
     if role not in (TripMember.Role.MEMBER, TripMember.Role.EDITOR):
         raise ActionRefused(_("Choose Member or Editor."))
     if member.role == role:
@@ -60,7 +60,7 @@ def change_role(member: TripMember, role: str, *, by: TripMember) -> None:
 def transfer_ownership(new_owner: TripMember, *, by: TripMember) -> None:
     """Make another approved account on the trip the Owner; the old Owner becomes an Editor."""
     if not by.is_owner:
-        raise ActionRefused(_("Only the owner can do this."))
+        raise ActionRefused(_("Only the Owner can do this."))
     if new_owner.pk == by.pk or new_owner.trip_id != by.trip_id:
         raise ActionRefused(_("Choose another account on this trip."))
     if not new_owner.user.is_active:
@@ -77,7 +77,7 @@ def transfer_ownership(new_owner: TripMember, *, by: TripMember) -> None:
 def remove_member(member: TripMember, *, by: TripMember) -> None:
     """Take an account off the trip: it loses access at once and its traveler is unlinked."""
     if member.is_owner:
-        raise ActionRefused(_("The owner cannot be removed."))
+        raise ActionRefused(_("The Owner cannot be removed."))
     with transaction.atomic():
         member.trip.participants.filter(user_id=member.user_id).update(user=None)
         member.delete()

@@ -120,7 +120,7 @@ def test_a_member_cannot_record_another_traveler_as_payer(crew):
 def test_a_members_form_shows_the_payer_fixed_to_her_own_traveler(crew):
     page = crew.client("cara").get(crew.url("expense_create"))
     assert list(page.context["form"].fields["payer"].queryset) == [crew.travelers["cara"]]
-    assert "You can record only what you paid yourself." in page.content.decode()
+    assert "Your account can add and change only expenses paid by Cara." in page.content.decode()
     # Owner and Editors choose any payer.
     page = crew.client("ben").get(crew.url("expense_create"))
     assert page.context["form"].fields["payer"].queryset.count() == 4
@@ -133,6 +133,9 @@ def test_a_member_sees_someone_elses_expense_read_only(crew):
     assert page.templates[0].name == "expenses/detail.html"
     html = page.content.decode()
     assert "Taxi" in html and "Dan" in html and "20.00" in html
+    assert "Only Dan, the Owner or an Editor can change this expense." in html
+    assert "Everyone (4 travelers)" in html and "4 travelers · 5.00 USD each" in html
+    assert "Added by Ben on" in html
     assert "Save changes" not in html and "Delete this expense" not in html
     assert 'name="amount"' not in html
     # The server refuses a change or a delete as well.
@@ -190,7 +193,8 @@ def test_ownership_transfer(crew):
     ann = crew.client("ann")
     ben_member = crew.members["ben"]
     confirm = ann.get(crew.url("member_transfer", ben_member.id)).content.decode()
-    assert "Make Ben the owner?" in confirm
+    assert "Make Ben the Owner?" in confirm
+    assert "only Ben can make you the Owner again" in confirm
     assert ann.post(crew.url("member_transfer", ben_member.id)).status_code == 302
     roles = dict(crew.trip.memberships.values_list("user__username", "role"))
     assert roles["ben"] == TripMember.Role.OWNER and roles["ann"] == TripMember.Role.EDITOR
@@ -379,7 +383,7 @@ def test_the_admin_refuses_to_delete_a_trip_owner(crew):
     client.force_login(admin)
     url = reverse("admin:accounts_user_delete", args=[crew.users["ann"].id])
     page = client.get(url).content.decode()
-    assert "Crew trip" in page and "make someone else its owner first" in page
+    assert "Crew trip" in page and "make someone else its Owner first" in page
     client.post(url, {"post": "yes"})
     assert get_user_model().objects.filter(pk=crew.users["ann"].pk).exists()
     # The same through the "delete selected" action.
@@ -540,3 +544,50 @@ def test_every_trip_view_answers_each_role(crew, ai_reply, who, view, method, ar
         assert response.status_code < 400, response.content[:300]
     else:
         assert response.status_code == expected[who]
+
+
+def test_read_only_notices_and_split_name_the_right_people(crew):
+    cara = crew.client("cara")
+    # A payer whose account name differs from the traveler name shows both.
+    dan = crew.users["dan"]
+    dan.first_name = "Daniel"
+    dan.save()
+    html = cara.get(crew.url("expense_edit", crew.taxi.id)).content.decode()
+    assert "Only Daniel (Dan), the Owner or an Editor can change this expense." in html
+    # A payer with no account: only the Owner or an Editor.
+    kid = Participant.objects.create(trip=crew.trip, name="Kid")
+    snack = Expense.objects.create(
+        trip=crew.trip, payer=kid, amount=Decimal("9"), currency="USD",
+        date=date(2026, 6, 1), category=crew.food,
+    )  # fmt: skip
+    snack.beneficiaries.set([kid, crew.travelers["ann"]])
+    html = cara.get(crew.url("expense_edit", snack.id)).content.decode()
+    assert "Only the Owner or an Editor can change this expense." in html
+    assert '<span class="name">Ann</span>, <span class="name">Kid</span>' in html
+    assert "2 travelers · 4.50 USD each" in html
+    assert "Added on " in html and "Added by" not in html  # No recorded creator.
+    # A Viewer is told why.
+    html = crew.client("eve").get(crew.url("expense_edit", snack.id)).content.decode()
+    assert "Your account is not linked to a traveler" in html
+
+
+def test_account_page_wording(crew):
+    ann = crew.client("ann")
+    page = ann.get(crew.url("member_edit", crew.members["cara"].id)).content.decode()
+    assert "Traveler: Cara" in page and "cara ·" not in page  # Username equals the name.
+    assert "A Member can change only the expenses that Cara paid." in page
+    assert "Make Cara the Owner" in page
+    assert "no longer linked to Cara." in page
+    page = ann.get(crew.url("member_edit", crew.members["eve"].id)).content.decode()
+    assert "so as a Member it can only view the trip" in page
+    assert "no longer linked" not in page
+    response = ann.post(
+        crew.url("member_edit", crew.members["cara"].id), {"role": "editor"}, follow=True
+    )
+    assert "Cara is now an Editor." in response.content.decode()
+    response = ann.post(
+        crew.url("member_edit", crew.members["cara"].id), {"role": "member"}, follow=True
+    )
+    assert "Cara is now a Member." in response.content.decode()
+    accounts = ann.get(crew.url("people")).content.decode().split(">Accounts<")[1]
+    assert "traveler Cara" not in accounts

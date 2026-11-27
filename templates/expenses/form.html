@@ -78,7 +78,7 @@
   {% if expense %}
   <div class="form-foot">
     <a class="link-danger" href="{% url 'expense_delete' trip.id expense.id %}?next={{ back_url|urlencode }}">{% translate "Delete this expense" %}</a>
-    <p class="tiny muted">{% blocktranslate with who=expense.created_by.display_name|default:"?" when=expense.created_at|date:"j M Y H:i" %}Added by {{ who }} on {{ when }}.{% endblocktranslate %}{% if expense.updated_by and expense.updated_at|date:"U" != expense.created_at|date:"U" %} {% blocktranslate with who=expense.updated_by.display_name when=expense.updated_at|date:"j M Y H:i" %}Last changed by {{ who }} on {{ when }}.{% endblocktranslate %}{% endif %}</p>
+    <p class="tiny muted">{% include "expenses/_added.html" %}</p>
   </div>
   {% endif %}
 </form>

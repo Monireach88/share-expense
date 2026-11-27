@@ -9,11 +9,11 @@
   {% if expense.currency != trip.base_currency and base_amount is not None %}<p class="row-sub num">≈ {{ base_amount|money:trip.base_currency }}</p>{% endif %}
   <dl class="facts">
     <dt>{% translate "Paid by" %}</dt><dd>{{ expense.payer.name }}</dd>
-    <dt>{% translate "Split between" %}</dt><dd>{{ beneficiaries|join:", " }}</dd>
+    <dt>{% translate "Split between" %}</dt><dd>{% if everyone %}{% blocktranslate count n=beneficiaries|length %}Everyone ({{ n }} traveler){% plural %}Everyone ({{ n }} travelers){% endblocktranslate %}{% else %}{% for p in beneficiaries %}<span class="name">{{ p.name }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}<span class="help num facts-split">{{ split_line }}</span></dd>
     <dt>{% translate "Type" %}</dt><dd>{{ expense.category.name|default:"–" }}</dd>
     <dt>{% translate "Date" %}</dt><dd>{{ expense.date|date:"D j M Y" }}</dd>
   </dl>
 </div>
-<div class="note" style="margin-top: 16px">{% icon "circle-check" %}<div>{{ reason }}</div></div>
-<p class="tiny muted" style="margin-top: 16px">{% blocktranslate with who=expense.created_by.display_name|default:"?" when=expense.created_at|date:"j M Y H:i" %}Added by {{ who }} on {{ when }}.{% endblocktranslate %}{% if expense.updated_by and expense.updated_at|date:"U" != expense.created_at|date:"U" %} {% blocktranslate with who=expense.updated_by.display_name when=expense.updated_at|date:"j M Y H:i" %}Last changed by {{ who }} on {{ when }}.{% endblocktranslate %}{% endif %}</p>
+<div class="note" style="margin-top: 16px">{% icon "lock" %}<div>{{ reason }}</div></div>
+<p class="tiny muted" style="margin-top: 16px">{% include "expenses/_added.html" %}</p>
 {% endblock %}

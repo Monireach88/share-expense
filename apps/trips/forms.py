@@ -81,7 +81,8 @@ class ParticipantForm(forms.ModelForm):
         self.fields["user"].label_from_instance = lambda u: f"{u.display_name} ({u.username})"
         self.fields["user"].empty_label = _("No account")
         self.fields["user"].help_text = _(
-            "Optional. Link the person's own account so the app can show them their balance."
+            "Optional. The linked account sees this traveler's balance and can add the "
+            "expenses this traveler paid."
         )
         self.fields["sponsors"].label = _("Covered by")
         self.fields["sponsors"].help_text = _(
@@ -155,8 +156,12 @@ class MemberRoleForm(forms.Form):
             (TripMember.Role.EDITOR, _("Editor")),
         ],
         widget=forms.RadioSelect,
-        help_text=_(
-            "A Member changes only expenses their own traveler paid. "
-            "An Editor changes every expense and can settle the trip."
-        ),
     )
+
+    def __init__(self, *args, traveler=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if traveler is not None:
+            self.fields["role"].help_text = _(
+                "A Member can change only the expenses that %(name)s paid. An Editor can "
+                "change every expense and mark the trip as settled."
+            ) % {"name": traveler.name}

@@ -25,7 +25,7 @@ class AppUserAdmin(UserAdmin):
             user__in=list(objs), role=TripMember.Role.OWNER
         ).select_related("trip", "user")
         protected = list(protected) + [
-            _("Trip “%(trip)s”, owned by %(user)s: make someone else its owner first.")
+            _("Trip “%(trip)s”, owned by %(user)s: make someone else its Owner first.")
             % {"trip": m.trip.name, "user": m.user.username}
             for m in owned
         ]

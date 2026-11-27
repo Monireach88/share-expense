@@ -69,7 +69,9 @@ class ExpenseForm(forms.ModelForm):
         )
         self.fields["payer"].empty_label = None
         if payer_only:
-            self.fields["payer"].help_text = _("You can record only what you paid yourself.")
+            self.fields["payer"].help_text = _(
+                "Your account can add and change only expenses paid by %(name)s."
+            ) % {"name": payer_only.name}
         self.fields["beneficiaries"].queryset = participants
         self.fields["currency"].choices = [(c, c) for c in trip.currencies()]
         self.fields["category"].queryset = trip.categories.all()

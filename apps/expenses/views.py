@@ -342,7 +342,7 @@ def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     trip = membership.trip
     expense = get_object_or_404(
-        Expense.objects.select_related("payer", "category", "created_by", "updated_by"),
+        Expense.objects.select_related("payer__user", "category", "created_by", "updated_by"),
         pk=expense_id,
         trip=trip,
     )
@@ -411,11 +411,15 @@ def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
     if trip.is_settled:
         reason = _("This trip is settled, so its expenses are locked.")
     elif membership.is_viewer:
-        reason = _("You can view this trip but not change it.")
+        reason = _(
+            "Your account is not linked to a traveler, so you can view expenses but not "
+            "change them. The trip Owner can link it."
+        )
     else:
-        reason = _("Only %(name)s, the owner and editors can change this expense.") % {
-            "name": expense.payer.name
-        }
+        reason = _who_may_change(expense.payer)
+    beneficiaries = list(expense.beneficiaries.all())
+    count = len(beneficiaries)
+    share = (expense.amount / count).quantize(Decimal("0.01")) if count else None
     base_amount = None
     with suppress(SettlementError):
         base_amount = to_base(expense.amount, expense.currency, trip.base_currency, trip.rate_map())
@@ -426,12 +430,32 @@ def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
             "trip": trip,
             "membership": membership,
             "expense": expense,
-            "beneficiaries": list(expense.beneficiaries.all()),
+            "beneficiaries": beneficiaries,
+            "everyone": count == trip.participants.count(),
+            "split_line": ngettext(
+                "%(n)d traveler · %(share)s %(currency)s each",
+                "%(n)d travelers · %(share)s %(currency)s each",
+                count,
+            )
+            % {
+                "n": count,
+                "share": format_amount(share, expense.currency),
+                "currency": expense.currency,
+            },
             "base_amount": base_amount,
             "reason": reason,
             "back_url": _back_url(request, trip.id),
         },
     )
+
+
+def _who_may_change(payer) -> str:
+    """The read-only notice for a Member: who besides the Owner and Editors may change it."""
+    if payer.user is None:
+        return _("Only the Owner or an Editor can change this expense.")
+    account = payer.user.display_name
+    name = account if account == payer.name else f"{account} ({payer.name})"
+    return _("Only %(name)s, the Owner or an Editor can change this expense.") % {"name": name}
 
 
 def _filter_summary(filters: dict) -> list[str]:

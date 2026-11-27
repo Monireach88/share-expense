@@ -31,7 +31,7 @@
       {% if membership.is_owner and not m.is_owner %}<a class="row" href="{% url 'member_edit' trip.id m.id %}">{% else %}<div class="row">{% endif %}
       <span class="row-main">
         <span class="row-title">{{ m.user.display_name }}{% if m.user_id == user.id %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
-        <span class="row-sub">{% if m.user.username|lower != m.user.display_name|lower %}{{ m.user.username }} · {% endif %}{{ m.role_label }}{% if m.linked_traveler %} · {% blocktranslate with name=m.linked_traveler.name %}traveler {{ name }}{% endblocktranslate %}{% endif %}</span>
+        <span class="row-sub">{% if m.user.username|lower != m.user.display_name|lower %}{{ m.user.username }} · {% endif %}{{ m.role_label }}</span>
       </span>
       {% if membership.is_owner and not m.is_owner %}{% icon "chevron-right" "chev" %}</a>{% else %}</div>{% endif %}
     </li>
