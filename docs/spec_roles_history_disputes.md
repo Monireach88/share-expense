@@ -223,20 +223,20 @@ An account may open a dispute on an expense when its linked traveler is, or **wa
 ### 5.2 Who is notified and who fixes
 
 - **Opened:** the account that created the expense and the payer's account (if different), never the opener.
-- **Message written:** everyone in the dispute — the opener, the creator, the payer's account, and the Owner if the Owner has written in it — except the writer.
+- **Message written:** everyone in the dispute — the opener, the creator, the payer's account, and the Owner or any Editor who has written in it — except the writer.
 - **Resolved or closed:** the same people, except the one who did it.
 - An account that is no longer on the trip is skipped. If nobody but the opener would be notified, the Owner is notified instead, so every dispute reaches someone.
 - Anyone who may edit the expense may fix it (§2). The fix is a normal edit (recorded in History).
-- The opener, the creator, the payer's account and the Owner may write messages. The opener keeps these rights even after becoming a Viewer.
+- The opener, the creator, the payer's account, the Owner and the Editors may write messages. Editors may fix any expense, so they can write "Fixed". The opener keeps these rights even after becoming a Viewer.
 
 ### 5.3 States
 
 ```
-open ──(opener taps Resolved)───────────────▶ resolved
+open ──(opener taps Mark as resolved)───────▶ resolved
 open ──(Owner closes, with a written reason)─▶ closed
 ```
 
-- Only the opener can tap **Resolved**.
+- Only the opener can tap **Mark as resolved**.
 - The Owner can **close** any open dispute, with a required written reason. Reason: one absent person must not block settling forever, and only the Owner can always act. When the Owner closes a dispute about an expense the Owner paid, every account on the trip is notified, so the decision is in the open.
 - If the opener's account is removed, their open disputes stay open until the Owner closes them.
 - If the disputed expense is deleted, the dispute stays open until the opener resolves it (the deletion may be the fix).
@@ -246,14 +246,14 @@ open ──(Owner closes, with a written reason)─▶ closed
 
 There is no separate dispute page. The dispute is a section at the bottom of the expense page:
 
-- A "Dispute" button for people allowed to open one (§5.1). It opens a box for the reason.
-- When disputes exist: each dispute shows its state, its messages (name, time, text), a box to write, and the **Resolved** (opener) or **Close** (Owner, asks for the reason) button.
+- A "Dispute this expense" button for people allowed to open one (§5.1). It opens a box for the reason.
+- When disputes exist: each dispute shows its state, its messages (name, time, text), a box to write, and the **Mark as resolved** (opener) or **Close dispute** (Owner, asks for the reason) button.
 - Saving a fix on the expense page returns to the same expense page, so the fixer sees the dispute and can write "Fixed".
 - An expense with an open dispute shows a small "Disputed" mark on its card in Expenses.
 
 ### 5.5 Settling
 
-The trip cannot be settled while any dispute is open. On Balances, the Settle button is replaced by "N open disputes", which opens the Expenses list filtered to disputed expenses.
+The trip cannot be settled while any dispute is open. On Balances, the Settle button is replaced by "1 open dispute blocks settling" (or "N open disputes block settling"), which opens the Expenses list filtered to disputed expenses.
 
 ### Acceptance criteria
 
@@ -264,13 +264,13 @@ Scenario: The full dispute flow
   Then Dan gets a notification
   When Dan removes Cara from "For", saves, and writes "Sorry, fixed"
   Then Cara gets a notification
-  When Cara taps Resolved
+  When Cara taps Mark as resolved
   Then the dispute is resolved and Dan gets a notification
   And History shows opened, the change, the message and resolved
 
 Scenario: Only the opener can resolve
   Given Cara opened a dispute
-  Then Dan sees no Resolved button
+  Then Dan sees no Mark as resolved button
   And a request to resolve it from Dan answers 403
 
 Scenario: A traveler disputes a payment moved away from him
@@ -280,7 +280,7 @@ Scenario: A traveler disputes a payment moved away from him
 
 Scenario: An open dispute blocks settling
   Given one dispute is open
-  Then Balances shows "1 open dispute" instead of Settle
+  Then Balances shows "1 open dispute blocks settling" instead of Settle
   And a request to settle answers 400 with that reason
 
 Scenario: The Owner closes a stuck dispute
@@ -296,7 +296,7 @@ Scenario: The Owner closes a dispute about her own expense in the open
 
 Scenario: A Viewer cannot open a dispute
   Given Eve has no linked traveler
-  Then Eve sees no Dispute button on any expense
+  Then Eve sees no "Dispute this expense" button on any expense
 ```
 
 ## 6. Accounts

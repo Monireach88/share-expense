@@ -30,6 +30,9 @@ class Dispute(models.Model):
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
     )
     opened_by_name = models.CharField(max_length=150)
+    # The opener's linked traveler when the dispute was opened, so the heading still reads
+    # "Dispute by Friend (Person B)" after an unlink or rename.
+    opened_as = models.CharField(max_length=80, blank=True)
     reason = models.TextField(_("reason"), max_length=500)
     state = models.CharField(max_length=10, choices=State.choices, default=State.OPEN)
     close_reason = models.TextField(_("reason for closing"), max_length=500, blank=True)
@@ -57,6 +60,13 @@ class Dispute(models.Model):
     @property
     def is_open(self) -> bool:
         return self.state == self.State.OPEN
+
+    @property
+    def opener_label(self) -> str:
+        """ "Friend (Person B)"; the name once when account and traveler share it."""
+        if not self.opened_as or self.opened_as == self.opened_by_name:
+            return self.opened_by_name
+        return f"{self.opened_by_name} ({self.opened_as})"
 
 
 class DisputeMessage(models.Model):
@@ -104,6 +114,7 @@ class Notification(models.Model):
     actor_name = models.CharField(max_length=150)
     label = models.CharField(max_length=200, blank=True)
     detail = models.CharField(max_length=200, blank=True)
+    opener_name = models.CharField(max_length=150, blank=True)  # For "closed Cara’s dispute".
     link = models.CharField(max_length=300)
     created_at = models.DateTimeField(auto_now_add=True)
     read_at = models.DateTimeField(null=True, blank=True)

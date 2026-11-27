@@ -7,6 +7,7 @@ a Member with no traveler. "Taxi" is Dan's expense, recorded by Ben, for Ann, Be
 from decimal import Decimal
 
 import pytest
+from django.utils import timezone
 
 from apps.disputes.models import Dispute, DisputeMessage, Notification
 from apps.trips import actions, history
@@ -127,12 +128,12 @@ def test_an_open_dispute_blocks_settling(crew):
     open_dispute(crew, "cara", crew.taxi)
     ben = crew.client("ben")
     balances = ben.get(crew.url("summary")).content.decode()
-    assert "1 open dispute" in balances
+    assert "1 open dispute blocks settling" in balances
     assert "Mark as settled" not in balances
     assert crew.url("trip") + "?disputed=1" in balances
     response = ben.post(crew.url("trip_settle"))
     assert response.status_code == 400
-    assert "1 open dispute" in response.content.decode()
+    assert response.content.decode() == "The trip cannot be settled: 1 open dispute."
     crew.trip.refresh_from_db()
     assert not crew.trip.is_settled
 
@@ -148,7 +149,7 @@ def test_the_owner_closes_a_stuck_dispute(crew):
     assert "cara" in notified(crew)
     assert (
         lines(crew)[-1]
-        == "Ann, the Owner, closed Cara's dispute on “Taxi”: Photo shows Cara at dinner"
+        == "Ann, the Owner, closed Cara’s dispute on “Taxi”: Photo shows Cara at dinner"
     )
     assert "Photo shows Cara at dinner" in page(crew, "cara", crew.taxi)
 
@@ -299,12 +300,21 @@ def test_who_may_write_in_a_dispute(crew, who, allowed):
         assert crew.url("dispute_write", dispute.id) not in page(crew, who, crew.taxi)
 
 
-def test_an_editor_who_is_not_creator_or_payer_cannot_write(crew):
+def test_an_editor_writes_in_any_dispute_and_then_is_in_it(crew):
     lunch = crew.expense("dan", "Lunch", "30")
     lunch.created_by = crew.users["dan"]
     lunch.save()
     open_dispute(crew, "cara", lunch)
-    assert write(crew, "ben", Dispute.objects.get()).status_code == 403
+    dispute = Dispute.objects.get()
+    assert notified(crew) == {"dan"}  # Ben neither recorded nor paid it.
+    assert crew.url("dispute_write", dispute.id) in page(crew, "ben", lunch)
+    write(crew, "ben", dispute, "Fixed")
+    assert DisputeMessage.objects.get().author == crew.users["ben"]
+    assert notified(crew) == {"cara", "dan"}
+    write(crew, "dan", dispute)
+    assert notified(crew) == {"cara", "ben"}  # Ben has written, so he is in the dispute now.
+    resolve(crew, "cara", dispute)
+    assert notified(crew) == {"dan", "ben"}
 
 
 def test_the_opener_keeps_her_rights_after_becoming_a_viewer(crew):
@@ -326,7 +336,7 @@ def test_only_the_owner_closes_and_needs_a_reason(crew):
     response = crew.client("ann").post(
         crew.url("dispute_close", dispute.id), {"reason": " "}, follow=True
     )
-    assert "Write why you close this dispute." in response.content.decode()
+    assert "Write the reason for closing this dispute." in response.content.decode()
     dispute.refresh_from_db()
     assert dispute.is_open
     assert crew.url("dispute_close", dispute.id) in page(crew, "ann", crew.taxi)
@@ -402,7 +412,7 @@ def test_every_dispute_event_writes_a_history_entry(crew):
     assert lines(crew) == [
         "Cara opened a dispute on “Taxi”: Not my taxi",
         "Dan wrote in the dispute on “Taxi”: It was",
-        "Ann, the Owner, closed Cara's dispute on “Taxi”: Receipt checked",
+        "Ann, the Owner, closed Cara’s dispute on “Taxi”: Receipt checked",
     ]
     entries = crew.trip.history.filter(object_type="dispute")
     assert {e.values["expense_id"] for e in entries} == {str(crew.taxi.id)}
@@ -516,3 +526,47 @@ def test_the_disputed_filter_links_deleted_expenses_with_an_open_dispute(crew):
     filtered = crew.client("ben").get(crew.url("trip") + "?disputed=1").content.decode()
     assert "Deleted expenses with an open dispute:" in filtered
     assert crew.url("expense_edit", crew.taxi.id) + "#disputes" in filtered
+
+
+def test_the_dispute_heading_names_the_account_and_the_traveler_at_opening(crew):
+    crew.users["cara"].first_name = "Friend"
+    crew.users["cara"].save()
+    open_dispute(crew, "cara", crew.taxi)
+    assert "Dispute by Friend (Cara)" in page(crew, "ann", crew.taxi)
+    crew.trip.participants.filter(pk=crew.travelers["cara"].pk).update(user=None)
+    assert "Dispute by Friend (Cara)" in page(crew, "ann", crew.taxi)
+    open_dispute(crew, "dan", crew.taxi)
+    assert "Dispute by Dan<" in page(crew, "ann", crew.taxi)
+
+
+def test_the_closed_notification_names_the_opener_and_the_reason(crew):
+    open_dispute(crew, "cara", crew.taxi)
+    close(crew, "ann", Dispute.objects.get(), "Receipt checked")
+    listing = crew.client("cara").get("/notifications/").content.decode()
+    assert "Ann, the Owner, closed Cara’s dispute on “Taxi”. Reason: Receipt checked" in listing
+
+
+def test_balances_counts_open_disputes_in_words(crew):
+    open_dispute(crew, "cara", crew.taxi)
+    open_dispute(crew, "dan", crew.taxi)
+    balances = crew.client("ann").get(crew.url("summary")).content.decode()
+    assert "2 open disputes block settling" in balances
+
+
+def test_the_dispute_section_wording(crew):
+    assert "Disputes</h2>" not in page(crew, "cara", crew.taxi)
+    assert "Dispute this expense" in page(crew, "cara", crew.taxi)
+    open_dispute(crew, "cara", crew.taxi)
+    dispute = Dispute.objects.get()
+    owner_page = page(crew, "ann", crew.taxi)
+    assert "Disputes</h2>" in owner_page
+    assert "Close dispute" in owner_page and "Confirm closing" in owner_page
+    assert "Mark as resolved" in page(crew, "cara", crew.taxi)
+    local = timezone.localtime(dispute.created_at)
+    assert f"{local:%-d %b %Y} at {local:%H:%M}" in owner_page
+    resolve(crew, "cara", dispute)
+    dispute.refresh_from_db()
+    done = timezone.localtime(dispute.closed_at)
+    assert f"Cara marked this dispute resolved on {done:%-d %b %Y} at {done:%H:%M}." in page(
+        crew, "ann", crew.taxi
+    )

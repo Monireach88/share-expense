@@ -60,7 +60,7 @@
 </div>
 {% endblock %}
 {% block bar %}{% if membership.can_settle and not error and not trip.is_settled and summary.total %}{% if open_disputes %}
-<a class="fab fab-warn" href="{% url 'trip' trip.id %}?disputed=1">{% icon "triangle-alert" %}{% blocktranslate count n=open_disputes %}{{ n }} open dispute{% plural %}{{ n }} open disputes{% endblocktranslate %}</a>
+<a class="fab fab-warn" href="{% url 'trip' trip.id %}?disputed=1">{% icon "triangle-alert" %}{% blocktranslate count n=open_disputes %}{{ n }} open dispute blocks settling{% plural %}{{ n }} open disputes block settling{% endblocktranslate %}</a>
 {% else %}
 <form method="post" action="{% url 'trip_settle' trip.id %}" hx-confirm="{% translate 'Mark this trip as settled? Its expenses are locked until the trip is reopened.' %}">{% csrf_token %}
   <button type="submit" class="fab">{% icon "check" %}{% translate "Mark as settled" %}</button>

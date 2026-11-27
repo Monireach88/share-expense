@@ -381,7 +381,7 @@ def _describe_dispute(entry: HistoryEntry, data: dict) -> str:
         "opened": _("%(who)s opened a dispute on %(label)s: %(new)s"),
         "message": _("%(who)s wrote in the dispute on %(label)s: %(new)s"),
         "resolved": _("%(who)s resolved the dispute on %(label)s"),
-        "closed": _("%(who)s, the Owner, closed %(opener)s's dispute on %(label)s: %(new)s"),
+        "closed": _("%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s: %(new)s"),
     }
     data["label"] = f"“{entry.object_label}”"
     return texts.get(entry.action, "%(who)s %(label)s") % data

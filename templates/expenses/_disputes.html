@@ -3,21 +3,21 @@ The Disputes section at the bottom of an expense page (spec section 5.4): the ed
 page and the deleted-expense page all include it. Needs: disputes (each with can_write, can_resolve,
 can_close), can_dispute, dispute_expense_id, back_url.
 {% endcomment %}{% if disputes or can_dispute %}
-<section id="disputes" class="disputes" aria-labelledby="disputes-title">
-  <h2 class="section-title" id="disputes-title">{% translate "Disputes" %}</h2>
+<section id="disputes" class="disputes"{% if disputes %} aria-labelledby="disputes-title"{% endif %}>
+  {% if disputes %}<h2 class="section-title" id="disputes-title">{% translate "Disputes" %}</h2>{% endif %}
   <div class="stack">
   {% for d in disputes %}
   <article class="card dispute">
     <div class="dispute-head">
-      <strong>{% blocktranslate with name=d.opened_by_name %}{{ name }}’s dispute{% endblocktranslate %}</strong>
+      <strong>{% blocktranslate with name=d.opener_label %}Dispute by {{ name }}{% endblocktranslate %}</strong>
       <span class="badge{% if d.is_open %} badge-warn{% elif d.state == 'resolved' %} badge-pos{% endif %}">{{ d.get_state_display }}</span>
     </div>
     <ul class="dispute-messages">
-      <li><p class="tiny muted">{{ d.opened_by_name }} · {{ d.created_at|date:"j M, H:i" }}</p><p>{{ d.reason|linebreaksbr }}</p></li>
-      {% for m in d.messages.all %}<li><p class="tiny muted">{{ m.author_name }} · {{ m.created_at|date:"j M, H:i" }}</p><p>{{ m.text|linebreaksbr }}</p></li>{% endfor %}
+      <li><p class="tiny muted">{{ d.opened_by_name }} · {% blocktranslate with day=d.created_at|date:"j M Y" time=d.created_at|time:"H:i" %}{{ day }} at {{ time }}{% endblocktranslate %}</p><p>{{ d.reason|linebreaksbr }}</p></li>
+      {% for m in d.messages.all %}<li><p class="tiny muted">{{ m.author_name }} · {% blocktranslate with day=m.created_at|date:"j M Y" time=m.created_at|time:"H:i" %}{{ day }} at {{ time }}{% endblocktranslate %}</p><p>{{ m.text|linebreaksbr }}</p></li>{% endfor %}
     </ul>
-    {% if d.state == "closed" %}<div class="note">{% icon "lock" %}<div>{% blocktranslate with who=d.closed_by_name day=d.closed_at|date:"j M, H:i" %}{{ who }}, the Owner, closed this dispute on {{ day }}:{% endblocktranslate %} {{ d.close_reason }}</div></div>
-    {% elif d.state == "resolved" %}<p class="settled-line small">{% icon "circle-check" %}<span>{% blocktranslate with who=d.opened_by_name day=d.closed_at|date:"j M, H:i" %}{{ who }} marked this dispute resolved on {{ day }}.{% endblocktranslate %}</span></p>{% endif %}
+    {% if d.state == "closed" %}<div class="note">{% icon "lock" %}<div>{% blocktranslate with who=d.closed_by_name day=d.closed_at|date:"j M Y" time=d.closed_at|time:"H:i" reason=d.close_reason %}{{ who }}, the Owner, closed this dispute on {{ day }} at {{ time }}. Reason: {{ reason }}{% endblocktranslate %}</div></div>
+    {% elif d.state == "resolved" %}<p class="settled-line small">{% icon "circle-check" %}<span>{% blocktranslate with who=d.opened_by_name day=d.closed_at|date:"j M Y" time=d.closed_at|time:"H:i" %}{{ who }} marked this dispute resolved on {{ day }} at {{ time }}.{% endblocktranslate %}</span></p>{% endif %}
     {% if d.can_write %}
     <form method="post" action="{% url 'dispute_write' trip.id d.id %}" class="dispute-write">{% csrf_token %}
       <input type="hidden" name="next" value="{{ back_url }}">
@@ -26,15 +26,15 @@ can_close), can_dispute, dispute_expense_id, back_url.
     </form>
     {% endif %}
     {% if d.can_resolve or d.can_close %}<div class="dispute-actions">
-      {% if d.can_resolve %}<form method="post" action="{% url 'dispute_resolve' trip.id d.id %}" hx-confirm="{% translate 'Mark your dispute as resolved? It cannot be reopened.' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ back_url }}"><button type="submit" class="btn btn-sm">{% icon "check" %}{% translate "Resolved" %}</button></form>{% endif %}
+      {% if d.can_resolve %}<form method="post" action="{% url 'dispute_resolve' trip.id d.id %}" hx-confirm="{% translate 'Mark your dispute as resolved? It cannot be reopened.' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ back_url }}"><button type="submit" class="btn btn-sm">{% icon "check" %}{% translate "Mark as resolved" %}</button></form>{% endif %}
       {% if d.can_close %}<details class="dispute-close">
-        <summary class="btn btn-secondary btn-sm">{% translate "Close" %}</summary>
+        <summary class="btn btn-secondary btn-sm">{% translate "Close dispute" %}</summary>
         <form method="post" action="{% url 'dispute_close' trip.id d.id %}" class="stack">{% csrf_token %}
           <input type="hidden" name="next" value="{{ back_url }}">
-          <div class="field"><label for="close-{{ d.id }}">{% translate "Why do you close this dispute?" %}</label>
+          <div class="field"><label for="close-{{ d.id }}">{% translate "Reason for closing" %}</label>
           <textarea id="close-{{ d.id }}" name="reason" rows="2" maxlength="500" required></textarea>
-          <p class="help">{% translate "Everyone in the dispute sees your reason. It cannot be reopened." %}</p></div>
-          <button type="submit" class="btn btn-danger btn-sm">{% translate "Close dispute" %}</button>
+          <p class="help">{% translate "Everyone on the trip can see the reason in History. A closed dispute cannot be reopened." %}</p></div>
+          <button type="submit" class="btn btn-danger btn-sm">{% translate "Confirm closing" %}</button>
         </form>
       </details>{% endif %}
     </div>{% endif %}
@@ -42,12 +42,12 @@ can_close), can_dispute, dispute_expense_id, back_url.
   {% endfor %}
   {% if can_dispute %}
   <details class="dispute-new">
-    <summary class="btn btn-secondary">{% icon "triangle-alert" %}{% translate "Dispute" %}</summary>
+    <summary class="btn btn-secondary">{% icon "triangle-alert" %}{% translate "Dispute this expense" %}</summary>
     <form method="post" action="{% url 'dispute_open' trip.id dispute_expense_id %}" class="card stack">{% csrf_token %}
       <input type="hidden" name="next" value="{{ back_url }}">
       <div class="field"><label for="dispute-reason">{% translate "What is wrong with this expense?" %}</label>
       <textarea id="dispute-reason" name="reason" rows="3" maxlength="500" required></textarea>
-      <p class="help">{% translate "The person who recorded it and the payer are notified." %}</p></div>
+      <p class="help">{% translate "The person who recorded this expense and the payer are notified. If neither has an account, the Owner is notified." %}</p></div>
       <button type="submit" class="btn">{% translate "Open dispute" %}</button>
     </form>
   </details>

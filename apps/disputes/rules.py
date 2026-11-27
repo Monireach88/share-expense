@@ -58,10 +58,11 @@ def has_open_dispute(membership: TripMember, expense: Expense) -> bool:
 
 
 def may_write(membership: TripMember, dispute: Dispute) -> bool:
-    """§5.2: the opener (even after becoming a Viewer), the creator, the payer's account, the Owner."""
+    """§5.2: the opener (even after becoming a Viewer), the creator, the payer's account, the
+    Owner and Editors (Editors may fix any expense, so they may write "Fixed")."""
     expense = dispute.expense
     user_id = membership.user_id
-    return membership.is_owner or user_id in (
+    return membership.can_manage_expenses or user_id in (
         dispute.opened_by_id,
         expense.created_by_id,
         expense.payer.user_id,
@@ -83,6 +84,15 @@ def _trip_user_ids(trip: Trip) -> set:
     return set(trip.memberships.values_list("user_id", flat=True))
 
 
+def _manager_ids(trip: Trip) -> set:
+    """The Owner and the Editors, as they are now."""
+    return set(
+        trip.memberships.filter(
+            role__in=[TripMember.Role.OWNER, TripMember.Role.EDITOR]
+        ).values_list("user_id", flat=True)
+    )
+
+
 def _owner_id(trip: Trip):
     return (
         trip.memberships.filter(role=TripMember.Role.OWNER)
@@ -93,13 +103,16 @@ def _owner_id(trip: Trip):
 
 def dispute_people(dispute: Dispute) -> set:
     """Everyone in the dispute (§5.2): the opener, the creator, the payer's account, and the
-    Owner once the Owner has written in it. Accounts no longer on the trip are skipped. When
+    Owner or an Editor once they have written in it. Accounts no longer on the trip are skipped. When
     nobody but the opener is left, the Owner joins, so every dispute reaches someone."""
     trip, expense = dispute.trip, dispute.expense
     owner_id = _owner_id(trip)
     people = {dispute.opened_by_id, expense.created_by_id, expense.payer.user_id}
-    if dispute.messages.filter(author_id=owner_id).exists():
-        people.add(owner_id)
+    people.update(
+        dispute.messages.filter(author_id__in=_manager_ids(trip)).values_list(
+            "author_id", flat=True
+        )
+    )
     people = {u for u in people if u in _trip_user_ids(trip)}
     if not people - {dispute.opened_by_id}:
         people.add(owner_id)
@@ -107,7 +120,17 @@ def dispute_people(dispute: Dispute) -> set:
     return people
 
 
-def notify(trip: Trip, user_ids, kind: str, *, by, label: str = "", detail: str = "", link: str):
+def notify(
+    trip: Trip,
+    user_ids,
+    kind: str,
+    *,
+    by,
+    label: str = "",
+    detail: str = "",
+    opener: str = "",
+    link: str,
+):
     """One notification per account, never to the one who acted, nor to accounts off the trip."""
     actor = getattr(by, "user", by)
     on_trip = _trip_user_ids(trip)
@@ -120,6 +143,7 @@ def notify(trip: Trip, user_ids, kind: str, *, by, label: str = "", detail: str 
             actor_name=actor.display_name,
             label=label[:200],
             detail=detail[:200],
+            opener_name=opener[:150],
             link=link,
         )
         for user_id in sorted(targets)
@@ -137,14 +161,21 @@ def expense_link(trip: Trip, expense_id) -> str:
 
 
 def notification_text(item: Notification) -> str:
-    data = {"who": item.actor_name, "label": f"“{item.label}”", "detail": item.detail}
+    data = {
+        "who": item.actor_name,
+        "label": f"“{item.label}”",
+        "detail": item.detail,
+        "opener": item.opener_name or _("someone"),
+    }
     texts = {
         Notification.Kind.DISPUTE_OPENED: _("%(who)s opened a dispute on %(label)s: %(detail)s"),
         Notification.Kind.DISPUTE_MESSAGE: _(
             "%(who)s wrote in the dispute on %(label)s: %(detail)s"
         ),
         Notification.Kind.DISPUTE_RESOLVED: _("%(who)s resolved the dispute on %(label)s"),
-        Notification.Kind.DISPUTE_CLOSED: _("%(who)s closed the dispute on %(label)s: %(detail)s"),
+        Notification.Kind.DISPUTE_CLOSED: _(
+            "%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s. Reason: %(detail)s"
+        ),
         Notification.Kind.SETTLED: _("%(who)s settled the trip"),
         Notification.Kind.REOPENED: _("%(who)s reopened the trip"),
     }
@@ -205,6 +236,7 @@ def open_dispute(membership: TripMember, expense: Expense, reason: str) -> Dispu
             expense=expense,
             opened_by=user,
             opened_by_name=user.display_name,
+            opened_as=membership.linked_traveler.name if membership.linked_traveler else "",
             reason=reason[:500],
         )
         _record(trip, membership, "opened", dispute, changes={"reason": history.change("", reason)})
@@ -270,7 +302,7 @@ def close(membership: TripMember, dispute: Dispute, reason: str) -> None:
     expense, every account on the trip is notified, so the decision is in the open."""
     reason = reason.strip()
     if not reason:
-        raise DisputeRefused(_("Write why you close this dispute."))
+        raise DisputeRefused(_("Write the reason for closing this dispute."))
     with transaction.atomic():
         dispute = _locked_dispute(dispute)
         trip, expense = dispute.trip, dispute.expense
@@ -301,6 +333,7 @@ def close(membership: TripMember, dispute: Dispute, reason: str) -> None:
             by=membership,
             label=history.expense_label(expense),
             detail=_short(reason),
+            opener=dispute.opened_by_name,
             link=expense_link(trip, expense.pk),
         )
 
@@ -314,8 +347,8 @@ def disputes_in_use_message(kind: str) -> str:
     uses it (spec section 3)."""
     return {
         "traveler": _(
-            "This traveler is in an expense that has a dispute, so it cannot be removed."
+            "This traveler cannot be removed because an expense they are in has a dispute."
         ),
-        "type": _("This type is used by an expense that has a dispute, so it cannot be removed."),
-        "rate": _("An expense in this currency has a dispute, so the rate cannot be removed."),
+        "type": _("This type cannot be removed because an expense of this type has a dispute."),
+        "rate": _("This rate cannot be deleted because an expense in this currency has a dispute."),
     }[kind]
