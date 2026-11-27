@@ -423,6 +423,7 @@ def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
     base_amount = None
     with suppress(SettlementError):
         base_amount = to_base(expense.amount, expense.currency, trip.base_currency, trip.rate_map())
+    everyone = count == trip.participants.count()
     return render(
         request,
         "expenses/detail.html",
@@ -431,11 +432,16 @@ def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
             "membership": membership,
             "expense": expense,
             "beneficiaries": beneficiaries,
-            "everyone": count == trip.participants.count(),
-            "split_line": ngettext(
-                "%(n)d traveler · %(share)s %(currency)s each",
-                "%(n)d travelers · %(share)s %(currency)s each",
-                count,
+            "everyone": everyone,
+            # "Everyone (5 travelers)" already gives the count, so the line under it gives only the share.
+            "split_line": (
+                _("%(share)s %(currency)s each")
+                if everyone
+                else ngettext(
+                    "%(n)d traveler · %(share)s %(currency)s each",
+                    "%(n)d travelers · %(share)s %(currency)s each",
+                    count,
+                )
             )
             % {
                 "n": count,

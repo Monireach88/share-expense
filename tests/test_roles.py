@@ -134,7 +134,9 @@ def test_a_member_sees_someone_elses_expense_read_only(crew):
     html = page.content.decode()
     assert "Taxi" in html and "Dan" in html and "20.00" in html
     assert "Only Dan, the Owner or an Editor can change this expense." in html
-    assert "Everyone (4 travelers)" in html and "4 travelers · 5.00 USD each" in html
+    assert (
+        "Everyone (4 travelers)" in html and "5.00 USD each" in html and "4 travelers ·" not in html
+    )
     assert "Added by Ben on" in html
     assert "Save changes" not in html and "Delete this expense" not in html
     assert 'name="amount"' not in html
