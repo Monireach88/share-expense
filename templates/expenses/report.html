@@ -6,11 +6,12 @@
   <div class="note">{% icon "triangle-alert" %}<div>{{ error }}. {% if membership.is_owner %}<a href="{% url 'trip_settings' trip.id %}">{% translate "Add the rate" %}</a>{% else %}{% translate "Only the trip owner can add exchange rates." %}{% endif %}</div></div>
 {% endif %}
 
-<details class="card filters" data-keep-open="filters">
+<details class="card filters{% if filtered %} is-filtered{% endif %}" data-keep-open="filters">
   <summary>{% icon "sliders-horizontal" %}<span class="filters-title">{% if report.rows %}{% translate "Filter and download" %}{% else %}{% translate "Filter" %}{% endif %}{% if filter_summary %}<span class="filters-active">{{ filter_summary|join:" · " }}</span>{% endif %}</span>{% icon "chevron-down" "chev" %}</summary>
   <form method="get" class="filters-form" aria-label="{% translate 'Filters' %}">
     <div class="two">
       {% include "_field.html" with field=form.person %}
+      {% include "_field.html" with field=form.payer %}
       {% include "_field.html" with field=form.category %}
       {% include "_field.html" with field=form.start %}
       {% include "_field.html" with field=form.end %}
@@ -32,16 +33,16 @@
 {% with r=report cur=trip.base_currency %}
 <section class="card hero" aria-label="{% translate 'Totals' %}">
   {% if r.person %}
-  <p class="label">{% blocktranslate with name=r.person.name %}{{ name }}’s share{% endblocktranslate %}</p>
+  <p class="label">{% if r.payer %}{% blocktranslate with name=r.person.name payer=r.payer.name %}{{ name }}’s share paid by {{ payer }}{% endblocktranslate %}{% else %}{% blocktranslate with name=r.person.name %}{{ name }}’s share{% endblocktranslate %}{% endif %}</p>
   <p class="big num">{{ r.share|money:cur }}</p>
   {% if r.covered_by %}<p class="hero-note">{% blocktranslate with name=r.person.name by=r.covered_by|join:", " %}{{ name }} is covered by {{ by }}.{% endblocktranslate %}</p>{% endif %}
-  {% for other, amount in r.covers %}<p class="hero-note num">{% blocktranslate with name=other.name total=amount|money:cur %}Also covers {{ name }}: {{ total }}{% endblocktranslate %}</p>{% endfor %}
+  {% if r.covers %}<div class="hero-note">{% include "trips/_covers.html" with covers=r.covers total=r.covers_total label="also" css="" %}</div>{% endif %}
   <div class="stats">
     <div><span>{% translate "Expenses" %}</span><strong class="num">{{ r.rows|length }}</strong></div>
-    <div><span>{% blocktranslate with name=r.person.name %}Paid by {{ name }}{% endblocktranslate %}</span><strong class="num">{{ r.paid|money:cur }}</strong></div>
+    {% if not r.payer or r.payer == r.person %}<div><span>{% blocktranslate with name=r.person.name %}Paid by {{ name }}{% endblocktranslate %}</span><strong class="num">{{ r.paid|money:cur }}</strong></div>{% endif %}
   </div>
   {% else %}
-  <p class="label">{% translate "Total spent" %}</p>
+  <p class="label">{% if r.payer %}{% blocktranslate with name=r.payer.name %}Total paid by {{ name }}{% endblocktranslate %}{% else %}{% translate "Total spent" %}{% endif %}</p>
   <p class="big num">{{ r.total|money:cur }}</p>
   <div class="stats">
     <div><span>{% translate "Expenses" %}</span><strong class="num">{{ r.rows|length }}</strong></div>

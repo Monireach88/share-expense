@@ -563,3 +563,18 @@ dialog.sheet::backdrop { background: rgb(16 24 40 / 0.45); }
 .type-chips label.is-removing { opacity: 0.45; pointer-events: none; }
 
 .hero-note { margin-top: var(--s1); color: var(--muted); font-size: 15px; }
+
+/* "Covers 3 travelers -x USD": one line that opens to list each traveler and amount. */
+details.covers > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+details.covers > summary::-webkit-details-marker { display: none; }
+details.covers > summary .chev { width: 16px; height: 16px; transition: transform 0.15s; }
+details.covers[open] > summary .chev { transform: rotate(180deg); }
+details.covers ul { list-style: none; margin: var(--s1) 0 0; padding: 0 0 0 var(--s3); border-left: 2px solid var(--line); }
+details.covers li { display: flex; justify-content: space-between; gap: var(--s3); }
+
+/* While filters are on, the closed filter card stays under the header when scrolling, so every
+   section below is read as filtered. */
+details.filters.is-filtered:not([open]) {
+  position: sticky; top: 64px; z-index: 15; box-shadow: 0 4px 12px rgb(16 24 40 / 0.12);
+}
+.filters .two > .field:nth-child(3) { grid-column: 1 / -1; }

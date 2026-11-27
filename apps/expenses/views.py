@@ -2,6 +2,7 @@ from contextlib import suppress
 from datetime import date, timedelta
 from decimal import Decimal
 from itertools import groupby
+from urllib.parse import quote
 
 from django.contrib import messages
 from django.db.models import Max
@@ -10,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
@@ -271,6 +273,16 @@ def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
     return render(request, "expenses/form.html", _form_context(trip, membership, form))
 
 
+def _back_url(request: HttpRequest, trip_id) -> str:
+    """Where an expense page returns to: the trip page it was opened from (``next``), so an
+    expense opened on Stats goes back to Stats with its filters; otherwise the Expenses page."""
+    target = request.POST.get("next") or request.GET.get("next") or ""
+    inside_trip = target.startswith(f"/trips/{trip_id}/")
+    if inside_trip and url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}):
+        return target
+    return reverse("trip", args=[trip_id])
+
+
 def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     membership = get_membership(request, trip_id)
     if response := locked(request, membership.trip):
@@ -283,10 +295,10 @@ def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
         expense.save()
         form.save_m2m()
         messages.success(request, _("Saved: %(expense)s") % {"expense": _saved_text(expense)})
-        return redirect("trip", trip_id=trip_id)
-    return render(
-        request, "expenses/form.html", _form_context(membership.trip, membership, form, expense)
-    )
+        return redirect(_back_url(request, trip_id))
+    context = _form_context(membership.trip, membership, form, expense)
+    context["back_url"] = _back_url(request, trip_id)
+    return render(request, "expenses/form.html", context)
 
 
 def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
@@ -299,7 +311,7 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
         expense.updated_by = request.user
         expense.save(update_fields=["deleted_at", "updated_by", "updated_at"])
         messages.success(request, _("Deleted: %(expense)s") % {"expense": _saved_text(expense)})
-        return redirect("trip", trip_id=trip_id)
+        return redirect(_back_url(request, trip_id))
     return render(
         request,
         "trips/confirm_delete.html",
@@ -310,7 +322,9 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
             "object": str(expense),
             "warning": _("It will be left out of all totals."),
             "button": _("Delete expense"),
-            "back": reverse("expense_edit", args=[trip_id, expense.id]),
+            "back": reverse("expense_edit", args=[trip_id, expense.id])
+            + (f"?next={quote(_back_url(request, trip_id))}" if request.GET.get("next") else ""),
+            "next": _back_url(request, trip_id),
         },
     )
 
@@ -320,6 +334,8 @@ def _filter_summary(filters: dict) -> list[str]:
     parts = []
     if filters.get("person"):
         parts.append(filters["person"].name)
+    if filters.get("payer"):
+        parts.append(_("paid by %(name)s") % {"name": filters["payer"].name})
     if filters.get("category"):
         parts.append(filters["category"].name)
     start, end = filters.get("start"), filters.get("end")
@@ -359,6 +375,8 @@ def report(request: HttpRequest, trip_id) -> HttpResponse:
         filtered=any(form.filters().values()) if request.GET else False,
         filter_summary=_filter_summary(form.filters()) if request.GET else [],
         export_query=query.urlencode(),
+        # Expenses opened from this page come back here, with the same filters.
+        return_to=request.path + (f"?{query.urlencode()}" if query else ""),
         multi_year=len({r.expense.date.year for r in data["rows"]}) > 1,
         people_count=trip.participants.count(),
         travelers=list(trip.participants.all()),

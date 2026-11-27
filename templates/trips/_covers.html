@@ -1,0 +1,9 @@
+{% load i18n ui %}{% comment %}
+The travelers someone covers, short: one line for one traveler; for several, one line with the total
+that opens to list each. covers: [(traveler, amount)], total, cur, label: "covers" (Balances) or
+"also" (Stats).
+{% endcomment %}{% if covers|length == 1 %}{% with person=covers.0.0 amount=covers.0.1 %}<span class="{{ css }} num">{% if label == "also" %}{% blocktranslate with name=person.name %}Also covers {{ name }}:{% endblocktranslate %} <span class="nowrap">{{ amount|amount:cur }}&nbsp;{{ cur }}</span>{% else %}{% blocktranslate with name=person.name %}Covers {{ name }}{% endblocktranslate %} <span class="nowrap">−{{ amount|amount:cur }}&nbsp;{{ cur }}</span>{% endif %}</span>{% endwith %}
+{% elif covers %}<details class="covers {{ css }}">
+  <summary class="num">{% if label == "also" %}{% blocktranslate count n=covers|length %}Also covers {{ n }} traveler:{% plural %}Also covers {{ n }} travelers:{% endblocktranslate %} <span class="nowrap">{{ total|amount:cur }}&nbsp;{{ cur }}</span>{% else %}{% blocktranslate count n=covers|length %}Covers {{ n }} traveler{% plural %}Covers {{ n }} travelers{% endblocktranslate %} <span class="nowrap">−{{ total|amount:cur }}&nbsp;{{ cur }}</span>{% endif %}{% icon "chevron-down" "chev" %}</summary>
+  <ul>{% for person, amount in covers %}<li class="num"><span>{{ person.name }}</span><span class="nowrap">{% if label != "also" %}−{% endif %}{{ amount|amount:cur }}&nbsp;{{ cur }}</span></li>{% endfor %}</ul>
+</details>{% endif %}

@@ -35,6 +35,12 @@ class ReportFilterForm(forms.Form):
         required=False,
         empty_label=gettext_lazy("Everyone"),
     )
+    payer = forms.ModelChoiceField(
+        label=gettext_lazy("Paid by"),
+        queryset=Participant.objects.none(),
+        required=False,
+        empty_label=gettext_lazy("Anyone"),
+    )
     category = forms.ModelChoiceField(
         label=gettext_lazy("Type"),
         queryset=Category.objects.none(),
@@ -48,6 +54,7 @@ class ReportFilterForm(forms.Form):
         super().__init__(data)
         # Only this trip's people, so an ID from another trip is rejected as invalid.
         self.fields["person"].queryset = trip.participants.all()
+        self.fields["payer"].queryset = trip.participants.all()
         self.fields["category"].queryset = trip.categories.all()
 
     def filters(self) -> dict:
@@ -114,6 +121,8 @@ def build_report(trip: Trip, filters: dict) -> dict:
     """Filtered rows (newest first) and their totals by type and by day, in the base currency."""
     person: Participant | None = filters.get("person")
     expenses = trip.expenses.select_related("payer", "category").prefetch_related("beneficiaries")
+    if filters.get("payer"):
+        expenses = expenses.filter(payer=filters["payer"])
     if filters.get("category"):
         expenses = expenses.filter(category=filters["category"])
     if filters.get("start"):
@@ -151,7 +160,7 @@ def build_report(trip: Trip, filters: dict) -> dict:
         # The rows' shares are rounded together so they add up to the person's share; without
         # other filters that is the Balances page's number, so both pages always agree.
         target = _to_cents(sum(exact_shares, Fraction(0)) * 100)
-        if not any(filters.get(k) for k in ("category", "start", "end")):
+        if not any(filters.get(k) for k in ("payer", "category", "start", "end")):
             with suppress(SettlementError, StopIteration):
                 result = trip_settlement(trip)
                 share = next(p for p in result.people if p.participant == person.id)
@@ -174,6 +183,7 @@ def build_report(trip: Trip, filters: dict) -> dict:
     type_bars, day_bars = _bars(by_category), _bars(by_day)
     return {
         "person": person,
+        "payer": filters.get("payer"),
         "rows": rows,
         "total": total,
         "paid": paid,
@@ -188,6 +198,7 @@ def build_report(trip: Trip, filters: dict) -> dict:
         "by_day": [{"day": day, **day_bars[day]} for day in sorted(by_day)],
         # (traveler, amount) for each traveler whose share the chosen one pays.
         "covers": sorted(covers.items(), key=lambda kv: kv[0].name),
+        "covers_total": sum(covers.values(), Decimal(0)),
     }
 
 
