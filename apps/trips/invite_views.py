@@ -46,6 +46,14 @@ def invite_page(request: HttpRequest, token: str) -> HttpResponse:
                     "sign_out": True,
                 },
             )
+        if request.method != "POST":
+            # Joining changes data, so it needs a button (a POST with a CSRF token), never only
+            # a visit: a page elsewhere could otherwise make a signed-in browser open the link.
+            return render(
+                request,
+                "trips/invite.html",
+                {"trip_name": trip.name, "inviter": invite.invited_by_name, "join": True},
+            )
         request.session.pop(SESSION_KEY, None)
         try:
             invites.accept(invite, token, user)

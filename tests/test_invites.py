@@ -101,6 +101,10 @@ def accept_with_google(client, link, google, email):  # noqa: F811
     response = sign_in_with_google(client, link)
     while response.status_code == 302 and response["Location"].startswith("/"):
         response = client.get(response["Location"])
+    if response.status_code == 200 and b'name="join"' in response.content:
+        response = client.post(link)  # The "Join <trip>" button.
+        while response.status_code == 302 and response["Location"].startswith("/"):
+            response = client.get(response["Location"])
     return response
 
 
@@ -407,10 +411,15 @@ def test_signed_in_as_another_account(crew):
     assert not TripMember.objects.filter(trip=crew.trip, user=crew.users["sam"]).exists()
 
 
-def test_signed_in_with_the_invited_google_address_accepts_at_once(crew):
+def test_signed_in_with_the_invited_google_address_joins_with_one_button(crew):
     link = invite_link(crew, "sam@example.com")  # No account uses this address yet.
     link_google(crew.users["sam"], "SAM@example.com")  # Sam links Google afterwards.
-    response = crew.client("sam").get(link)
+    sam = crew.client("sam")
+    page = sam.get(link)  # Opening the link alone never joins.
+    assert page.status_code == 200 and "Join Crew trip" in page.content.decode()
+    assert 'name="csrfmiddlewaretoken"' in page.content.decode()
+    assert not TripMember.objects.filter(trip=crew.trip, user=crew.users["sam"]).exists()
+    response = sam.post(link)
     assert response.status_code == 302 and response["Location"] == crew.url("trip")
     assert TripMember.objects.get(trip=crew.trip, user=crew.users["sam"]).is_viewer
 

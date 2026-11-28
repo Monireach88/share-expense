@@ -8,6 +8,11 @@
   <h1 class="page-title">{{ trip_name }}</h1>
   <p>{% blocktranslate %}{{ inviter }} invited you to this trip on Share Expense.{% endblocktranslate %}</p>
 </div>
+{% if join %}
+<form method="post" class="card stack">{% csrf_token %}
+  <button type="submit" name="join" value="1" class="btn btn-block">{% blocktranslate %}Join {{ trip_name }}{% endblocktranslate %}</button>
+</form>
+{% else %}
 <div class="card stack">
   <p>{% blocktranslate %}This invite is for {{ address }}. Continue with the Google account of this address.{% endblocktranslate %}</p>
   {% if google_signin %}
@@ -19,4 +24,5 @@
   <p class="small muted">{% translate "Log in with Google is not set up yet. Ask the Owner of the trip." %}</p>
   {% endif %}
 </div>
+{% endif %}
 {% endblock %}
