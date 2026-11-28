@@ -256,6 +256,13 @@ LOGGING = {
             '"service": "share-expense", "logger": "%(name)s", "message": "%(message)s"}'
         }
     },
-    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json"}},
+    "filters": {"redact_invite_tokens": {"()": "config.log_redaction.RedactInviteTokens"}},
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+            "filters": ["redact_invite_tokens"],
+        }
+    },
     "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
 }
