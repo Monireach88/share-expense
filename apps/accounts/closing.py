@@ -10,7 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.trips import history, invites
+from apps.trips import english, history, invites
 from apps.trips.access import lock_trip
 from apps.trips.models import TripMember
 
@@ -24,7 +24,11 @@ class CloseRefused(Exception):
 def owner_block(user: User) -> str:
     """Why the account cannot be closed yet, or "": it owns trips that have other accounts."""
     owned = TripMember.objects.filter(user=user, role=TripMember.Role.OWNER).select_related("trip")
-    names = [m.trip.name for m in owned if m.trip.memberships.exclude(user=user).exists()]
+    names = [
+        english.shown(m.trip, "name")
+        for m in owned
+        if m.trip.memberships.exclude(user=user).exists()
+    ]
     if not names:
         return ""
     trips = (

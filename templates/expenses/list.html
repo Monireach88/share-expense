@@ -1,5 +1,5 @@
 {% extends "trips/_trip_base.html" %}{% load i18n ui %}
-{% block title %}{{ trip.name }}{% endblock %}
+{% block title %}{{ trip|shown:'name' }}{% endblock %}
 {% block content %}
 {% if days or trip.country or trip.start_date %}<p class="hero-meta">{% if trip.country %}{{ trip.country.name }} · {% endif %}{% include "trips/_dates.html" %}{% blocktranslate count n=people_count %}{{ n }} traveler{% plural %}{{ n }} travelers{% endblocktranslate %}</p>{% endif %}
 {% if error %}

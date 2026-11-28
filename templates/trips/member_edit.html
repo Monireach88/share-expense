@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% load i18n ui %}
-{% block title %}{{ member.user.display_name }} · {{ trip.name }}{% endblock %}
+{% block title %}{{ member.user.display_name }} · {{ trip|shown:'name' }}{% endblock %}
 {% block back %}<a class="back" href="{% url 'people' trip.id %}">{% icon "chevron-left" %}<span>{% translate "Travelers" %}</span></a>{% endblock %}
 {% block content %}
 <h1 class="page-title">{{ member.user.display_name }}</h1>

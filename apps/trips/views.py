@@ -11,10 +11,11 @@ from django.views.decorators.http import require_POST
 
 from apps.disputes import rules as dispute_rules
 from apps.disputes.models import Dispute
+from apps.expenses import suggest
 from apps.expenses.models import Expense
 from apps.settlement.engine import SettlementError
 
-from . import actions, history, invites, rates
+from . import actions, english, history, invites, rates
 from .access import get_membership, locked
 from .country_currency import currency_for
 from .currencies import CURRENCIES
@@ -48,7 +49,7 @@ def home(request: HttpRequest) -> HttpResponse:
 
 
 def trip_create(request: HttpRequest) -> HttpResponse:
-    form = TripForm(request.POST or None)
+    form = TripForm(request.POST or None, user=request.user)
     rate_rows = new_rate_formset(request.POST or None)
     # Both are checked, so the page shows every error at once.
     if request.method == "POST" and all([form.is_valid(), rate_rows.is_valid()]):
@@ -66,6 +67,19 @@ def trip_create(request: HttpRequest) -> HttpResponse:
         messages.success(request, _("Trip created."))
         return redirect("people", trip_id=trip.id)
     return render(request, "trips/trip_form.html", {"form": form, "rates": rate_rows})
+
+
+@require_POST
+def english_suggestion(request: HttpRequest) -> JsonResponse:
+    """An English copy of a text with Khmer or Chinese letters, as JSON {"english": "..."}.
+    The form boxes ask for it as soon as the text has such letters (static/js/english_copy.js).
+    The answer is "" when no copy is needed or DeepSeek is off, fails or is at its limit."""
+    text = request.POST.get("text", "")[:1000]
+    if not english.needs_copy(text):
+        return JsonResponse({"english": ""})
+    if not suggest.allowed(request.user.pk):
+        return JsonResponse({"english": ""}, status=429)
+    return JsonResponse({"english": english.ask(text, 1000)})
 
 
 def rate_suggestion(request: HttpRequest) -> JsonResponse:
@@ -102,7 +116,7 @@ def rate_suggestion(request: HttpRequest) -> JsonResponse:
 def trip_settings(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id, owner_only=True)
     trip = membership.trip
-    form = TripForm(request.POST or None, instance=trip)
+    form = TripForm(request.POST or None, instance=trip, user=request.user)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
             form.save()
@@ -124,7 +138,7 @@ def trip_settings(request: HttpRequest, trip_id) -> HttpResponse:
 
 def _record_trip_changes(trip: Trip, membership: TripMember, form: TripForm) -> None:
     """History: a new name is "renamed"; the other settings go into one "changed" entry."""
-    if "name" in form.changed_data:
+    if "name" in form.changed_data or "name_en" in form.changed_data:
         history.record(
             trip,
             membership,
@@ -132,7 +146,14 @@ def _record_trip_changes(trip: Trip, membership: TripMember, form: TripForm) -> 
             "trip",
             object_id=trip.pk,
             label=trip.name,
-            changes={"name": history.change(form.initial["name"], trip.name)},
+            changes={
+                "name": history.change(
+                    form.initial["name"],
+                    trip.name,
+                    old_en=form.initial.get("name_en", ""),
+                    new_en=trip.name_en,
+                )
+            },
         )
     others = {}
     for field in ("country", "start_date", "end_date", "base_currency"):
@@ -248,7 +269,7 @@ def rate_delete(request: HttpRequest, trip_id, rate_id) -> HttpResponse:
 def trip_delete(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id, owner_only=True)
     if request.method == "POST":
-        name = membership.trip.name
+        name = english.shown(membership.trip, "name")
         membership.trip.delete()
         messages.success(request, _("Trip “%(name)s” deleted.") % {"name": name})
         return redirect("home")
@@ -258,7 +279,7 @@ def trip_delete(request: HttpRequest, trip_id) -> HttpResponse:
         {
             "trip": membership.trip,
             "membership": membership,
-            "object": membership.trip.name,
+            "object": english.shown(membership.trip, "name"),
             "warning": _("All expenses of this trip are deleted too. This cannot be undone."),
             "button": _("Delete trip"),
             "back": reverse("trip_settings", args=[trip_id]),
@@ -553,7 +574,9 @@ def trip_leave(request: HttpRequest, trip_id) -> HttpResponse:
     except actions.ActionRefused as refused:
         messages.error(request, str(refused))
         return redirect("people", trip_id=trip_id)
-    messages.success(request, _("You left %(trip)s.") % {"trip": membership.trip.name})
+    messages.success(
+        request, _("You left %(trip)s.") % {"trip": english.shown(membership.trip, "name")}
+    )
     return redirect("home")
 
 

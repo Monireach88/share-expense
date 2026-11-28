@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models.functions import Lower
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from django_countries.fields import CountryField
 
 from .currencies import CURRENCY_CHOICES, DEFAULT_CURRENCY
@@ -13,6 +14,8 @@ from .currencies import CURRENCY_CHOICES, DEFAULT_CURRENCY
 class Trip(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid7, editable=False)
     name = models.CharField(_("trip name"), max_length=120)
+    # English copy of the name when it has Khmer or Chinese letters (apps/trips/english.py).
+    name_en = models.CharField(_("trip name in English"), max_length=120, blank=True)
     country = CountryField(_("country"), blank=True)
     start_date = models.DateField(_("start date"), null=True, blank=True)
     end_date = models.DateField(_("end date"), null=True, blank=True)
@@ -59,9 +62,9 @@ class TripMember(models.Model):
     """
 
     class Role(models.TextChoices):
-        OWNER = "owner", _("Owner")
-        EDITOR = "editor", _("Editor")
-        MEMBER = "member", _("Member")
+        OWNER = "owner", pgettext_lazy("trip role", "Owner")
+        EDITOR = "editor", pgettext_lazy("trip role", "Editor")
+        MEMBER = "member", pgettext_lazy("trip role", "Member")
 
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="memberships")
     user = models.ForeignKey(
@@ -101,7 +104,7 @@ class TripMember(models.Model):
 
     @property
     def role_label(self) -> str:
-        return _("Viewer") if self.is_viewer else self.get_role_display()
+        return pgettext_lazy("trip role", "Viewer") if self.is_viewer else self.get_role_display()
 
     @property
     def can_manage_expenses(self) -> bool:
@@ -235,7 +238,7 @@ class HistoryEntry(models.Model):
     class Meta:
         ordering = ["-created_at", "-id"]
         indexes = [models.Index(fields=["trip", "-created_at"], name="history_trip_time")]
-        verbose_name_plural = "history entries"
+        verbose_name_plural = _("history entries")
 
     def __str__(self) -> str:
         return f"{self.actor_name} {self.action} {self.object_type} {self.object_label}"
@@ -259,10 +262,10 @@ class Invite(models.Model):
     """
 
     class State(models.TextChoices):
-        PENDING = "pending", _("Pending")
-        EXPIRED = "expired", _("Expired")
-        ACCEPTED = "accepted", _("Accepted")
-        CANCELLED = "cancelled", _("Cancelled")
+        PENDING = "pending", pgettext_lazy("invite state", "Pending")
+        EXPIRED = "expired", pgettext_lazy("invite state", "Expired")
+        ACCEPTED = "accepted", pgettext_lazy("invite state", "Accepted")
+        CANCELLED = "cancelled", pgettext_lazy("invite state", "Cancelled")
 
     OPEN_STATES = (State.PENDING, State.EXPIRED)
 

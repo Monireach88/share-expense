@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% load i18n ui %}
 {% comment %}The four trip tabs share this layout: a header with the trip name and a fixed tab bar at the bottom.{% endcomment %}
 {% block main_class %}has-tabbar{% endblock %}
-{% block back %}<a class="back" href="{% url 'home' %}" aria-label="{% translate 'All trips' %}">{% icon "chevron-left" %}<span class="back-title">{{ trip.name }}</span></a>{% endblock %}
+{% block back %}<a class="back" href="{% url 'home' %}" aria-label="{% translate 'All trips' %}">{% icon "chevron-left" %}<span class="back-title">{{ trip|shown:'name' }}</span></a>{% endblock %}
 {% block header_end %}<div class="header-actions">{% include "_bell.html" %}<a class="icon-btn" href="{% url 'history' trip.id %}" aria-label="{% translate 'History' %}"{% if tab == "history" %} aria-current="page"{% endif %}>{% icon "history" %}</a>{% if membership.is_owner %}<a class="icon-btn" href="{% url 'trip_settings' trip.id %}" aria-label="{% translate 'Trip settings' %}">{% icon "settings" %}</a>{% endif %}</div>{% endblock %}
 {% block nav %}
 <nav class="tabbar" aria-label="{% translate 'Trip sections' %}">

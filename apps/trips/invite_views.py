@@ -10,7 +10,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 
-from . import invites
+from . import english, invites
 from .models import TripMember
 
 SESSION_KEY = "invite_token"  # Kept for Google sign-in, which leaves the site and comes back.
@@ -52,21 +52,25 @@ def invite_page(request: HttpRequest, token: str) -> HttpResponse:
             return render(
                 request,
                 "trips/invite.html",
-                {"trip_name": trip.name, "inviter": invite.invited_by_name, "join": True},
+                {
+                    "trip_name": english.shown(trip, "name"),
+                    "inviter": invite.invited_by_name,
+                    "join": True,
+                },
             )
         request.session.pop(SESSION_KEY, None)
         try:
             invites.accept(invite, token, user)
         except invites.InviteRefused:
             return gone(request)
-        messages.success(request, _("You joined %(trip)s.") % {"trip": trip.name})
+        messages.success(request, _("You joined %(trip)s.") % {"trip": english.shown(trip, "name")})
         return redirect("trip", trip_id=trip.id)
     request.session[SESSION_KEY] = token
     return render(
         request,
         "trips/invite.html",
         {
-            "trip_name": trip.name,
+            "trip_name": english.shown(trip, "name"),
             "inviter": invite.invited_by_name,
             "address": invites.mask(invite.email),
             "next": request.path,

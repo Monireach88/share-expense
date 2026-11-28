@@ -1,10 +1,10 @@
 {% extends "base.html" %}{% load i18n ui %}
 {% comment %}The expense page read-only: for people who may not edit this expense, and for everyone on a settled trip.{% endcomment %}
-{% block title %}{{ expense }} · {{ trip.name }}{% endblock %}
-{% block back %}<a class="back" href="{{ back_url }}">{% icon "chevron-left" %}<span>{{ trip.name }}</span></a>{% endblock %}
+{% block title %}{{ expense }} · {{ trip|shown:'name' }}{% endblock %}
+{% block back %}<a class="back" href="{{ back_url }}">{% icon "chevron-left" %}<span>{{ trip|shown:'name' }}</span></a>{% endblock %}
 {% block content %}
-<h1 class="page-title">{{ expense.category.emoji|default:"📦" }} {% if expense.description %}{{ expense.description }}{% else %}{{ expense.category.name }}{% endif %}</h1>
-{% include "expenses/_facts.html" with amount=expense.amount currency=expense.currency payer=expense.payer.name type_name=expense.category.name day=expense.date %}
+<h1 class="page-title">{{ expense.category.emoji|default:"📦" }} {% if expense.description %}{{ expense|shown:'description' }}{% else %}{{ expense.category.label }}{% endif %}</h1>
+{% include "expenses/_facts.html" with amount=expense.amount currency=expense.currency payer=expense.payer.name type_name=expense.category.label day=expense.date %}
 <div class="note" style="margin-top: 16px">{% icon "lock" %}<div>{{ reason }}</div></div>
 <p class="tiny muted" style="margin-top: 16px">{% include "expenses/_added.html" %}</p>
 {% include "expenses/_disputes.html" %}

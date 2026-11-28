@@ -26,7 +26,7 @@ from django.utils.translation import gettext as _
 from apps.disputes import rules as disputes
 from apps.disputes.models import Notification
 
-from . import history
+from . import english, history
 from .access import lock_trip
 from .models import Invite, InviteEmailAttempt, Participant, Trip, TripMember
 
@@ -373,7 +373,7 @@ def send_email(invite: Invite, link: str, sender) -> Outcome:
         )
     context = {
         "inviter": sender.display_name,
-        "trip": invite.trip.name,
+        "trip": english.shown(invite.trip, "name"),
         "link": link,
         "address": invite.email,
         "expires": expiry_text(invite),

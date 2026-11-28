@@ -1,6 +1,6 @@
 {% extends "base.html" %}{% load i18n static ui %}
-{% block title %}{% translate "Trip settings" %} · {{ trip.name }}{% endblock %}
-{% block back %}<a class="back" href="{% url 'trip' trip.id %}">{% icon "chevron-left" %}<span>{{ trip.name }}</span></a>{% endblock %}
+{% block title %}{% translate "Trip settings" %} · {{ trip|shown:'name' }}{% endblock %}
+{% block back %}<a class="back" href="{% url 'trip' trip.id %}">{% icon "chevron-left" %}<span>{{ trip|shown:'name' }}</span></a>{% endblock %}
 {% block content %}
 <h1 class="page-title">{% translate "Trip settings" %}</h1>
 <div class="stack-lg" style="margin-top: 16px">
@@ -8,7 +8,10 @@
   <h2 class="section-title">{% translate "Trip details" %}</h2>
   <form method="post" class="stack">{% csrf_token %}
     {% include "_form_errors.html" %}
+    <div data-english="{% url 'english_suggestion' %}">
     {% include "_field.html" with field=form.name %}
+    {% include "_english_row.html" with field=form.name_en source=form.name %}
+  </div>
     {% include "_field.html" with field=form.country %}
     {% include "trips/_date_range_fields.html" %}
     {% include "_field.html" with field=form.base_currency %}

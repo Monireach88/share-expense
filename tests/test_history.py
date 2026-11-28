@@ -410,11 +410,11 @@ def test_ten_days_per_page_with_show_older(crew):
             )
     client = crew.client("cara")
     first = client.get(crew.url("history")).content.decode()
-    assert first.count("<details") == 10
+    assert first.count('<details class="day"') == 10
     assert "Show older" in first and "10 of 12 days shown" in first
     assert "T0" in first and "T9" in first and "T10" not in first
     second = client.get(crew.url("history"), {"page": 2}).content.decode()
-    assert second.count("<details") == 2 and "T10" in second and "T11" in second
+    assert second.count('<details class="day"') == 2 and "T10" in second and "T11" in second
     assert "Show older" not in second
 
 

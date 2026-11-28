@@ -14,6 +14,7 @@ from django_countries.fields import Country
 from apps.expenses.models import Expense
 from apps.trips.templatetags.ui import format_amount
 
+from . import english
 from .access import lock_trip
 from .models import HistoryEntry, Participant, Trip
 
@@ -93,7 +94,7 @@ def record(
 
 def _texts(values: dict) -> list[str]:
     out = []
-    for key in ("description", "type", "payer", "currency"):
+    for key in ("description", "description_en", "type", "payer", "currency"):
         out.append(str(values.get(key) or ""))
     out.extend(values.get("for") or [])
     if values.get("amount"):
@@ -104,7 +105,7 @@ def _texts(values: dict) -> list[str]:
 def _change_texts(changes: dict) -> list[str]:
     out = []
     for change in changes.values():
-        out.extend(str(change.get(side) or "") for side in ("old", "new"))
+        out.extend(str(change.get(side) or "") for side in ("old", "new", "old_en", "new_en"))
     return out
 
 
@@ -133,12 +134,14 @@ def expense_snapshot(expense: Expense) -> dict:
         "type": category.name if category else "",
         "type_id": category.pk if category else None,
         "description": expense.description,
+        "description_en": expense.description_en,
         "amount": f"{expense.amount:f}",
         "currency": expense.currency,
     }
 
 
 def _people_text(names: list[str], ids: list[str], everyone: set[str] | None) -> str:
+    # Translators: used in a History line when an expense is split between all travelers ("split between everyone").
     return _("everyone") if everyone is not None and set(ids) == everyone else ", ".join(names)
 
 
@@ -172,8 +175,21 @@ def expense_changes(before: dict, after: dict, everyone: set[str] | None = None)
             "old_id": before["type_id"],
             "new_id": after["type_id"],
         }
+    old_en, new_en = before.get("description_en", ""), after.get("description_en", "")
     if before["description"] != after["description"]:
-        changes["description"] = {"old": before["description"], "new": after["description"]}
+        changes["description"] = {
+            "old": before["description"],
+            "new": after["description"],
+            "old_en": old_en,
+            "new_en": new_en,
+        }
+    elif old_en != new_en:  # Only the English copy changed.
+        changes["description"] = {
+            "old": old_en or before["description"],
+            "new": new_en or after["description"],
+            "old_en": old_en,
+            "new_en": new_en,
+        }
     if Decimal(before["amount"]) != Decimal(after["amount"]):
         changes["amount"] = {"old": _amount_text(before), "new": _amount_text(after)}
     if before["currency"] != after["currency"]:
@@ -191,6 +207,7 @@ def fresh_expense(expense_id) -> Expense:
 
 
 def expense_label(expense: Expense) -> str:
+    # Translators: the word that names an expense in History when it has no description, as in: Cara deleted "expense".
     return str(expense) or _("expense")
 
 
@@ -287,6 +304,7 @@ def restore_expense(trip: Trip, expense_id, *, by) -> bool:
         expense.payer = payer
         expense.category = category
         expense.description = values["description"]
+        expense.description_en = values.get("description_en", "")
         expense.amount = Decimal(values["amount"])
         expense.currency = values["currency"]
         expense.deleted_at = None
@@ -300,6 +318,13 @@ def restore_expense(trip: Trip, expense_id, *, by) -> bool:
 # --- The lines of the History page -------------------------------------------------------------
 
 
+def _side(change: dict, side: str) -> str:
+    """The old or new value of a change; in English its English copy when there is one."""
+    if english.in_english() and change.get(f"{side}_en"):
+        return change[f"{side}_en"]
+    return change.get(side) or ""
+
+
 def changes_text(changes: dict) -> str:
     labels = {
         "date": _("date"),
@@ -311,7 +336,7 @@ def changes_text(changes: dict) -> str:
         "currency": _("currency"),
     }
     return "; ".join(
-        f"{labels.get(field, field)} {c.get('old') or '–'} → {c.get('new') or '–'}"
+        f"{labels.get(field, field)} {_side(c, 'old') or '–'} → {_side(c, 'new') or '–'}"
         for field, c in changes.items()
     )
 
@@ -319,15 +344,18 @@ def changes_text(changes: dict) -> str:
 def describe(entry: HistoryEntry) -> str:
     """The entry as one sentence in the reader's language: "Cara changed Dinner: amount 40 USD
     → 4 USD". Built from the stored names and values, never from live rows."""
+    # Translators: the start of a History sentence when the name of the person who acted is unknown ("Someone added ...").
     who = entry.actor_name or _("Someone")
     label = entry.object_label
     kind, action, changes = entry.object_type, entry.action, entry.changes
     if kind == "expense":
+        if english.in_english() and entry.values.get("description_en"):
+            label = entry.values["description_en"]
         label = f"“{label}”"
     old = new = ""
     if changes:
         first = next(iter(changes.values()))
-        old, new = first.get("old") or "", first.get("new") or ""
+        old, new = _side(first, "old"), _side(first, "new")
     data = {"who": who, "label": label, "old": old, "new": new}
     if kind == "expense":
         if action == "changed":
@@ -416,6 +444,7 @@ def _describe_invite(entry: HistoryEntry, data: dict) -> str:
 
 def _describe_dispute(entry: HistoryEntry, data: dict) -> str:
     """ "Cara opened a dispute on “Dinner”: I did not eat dinner" (spec section 5)."""
+    # Translators: stands for a person in: "<Owner>, the Owner, closed <someone>'s dispute".
     data = {**data, "opener": entry.values.get("opener") or _("someone")}
     texts = {
         "opened": _("%(who)s opened a dispute on %(label)s: %(new)s"),
@@ -505,6 +534,7 @@ def record_traveler_changes(trip: Trip, by, participant: Participant, before: di
             label=after["name"],
             changes={
                 "covered_by": change(
+                    # Translators: "nobody" is shown when no traveler covers this traveler's share, as in: covered by "nobody" -> "Ann".
                     ", ".join(before["covered_by"]) or _("nobody"),
                     ", ".join(after["covered_by"]) or _("nobody"),
                 )
