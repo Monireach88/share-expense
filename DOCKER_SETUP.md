@@ -77,6 +77,7 @@ In production and staging each container gets only the variables it uses: `postg
 | `DEEPSEEK_API_KEY` | empty | your key | Writing suggestions under the expense description; empty turns them off |
 | `DEEPSEEK_MODEL` | `deepseek-flash` | `deepseek-flash` | DeepSeek model for the suggestions |
 | `DEEPSEEK_DAILY_LIMIT` | `500` | `500` | AI requests (suggestions and "Add with AI" together) the whole site may make per day; over it, the AI features answer "try again later". Each account also has its own limit of 60 per 10 minutes. The counts are kept in the database cache table `django_cache`, shared by every gunicorn worker |
+| `EXCHANGE_RATES_URL` | `https://open.er-api.com/v6/latest` | `https://open.er-api.com/v6/latest` | Market exchange rates suggested on the New trip and Trip settings pages (ExchangeRate-API's open endpoint, no key). The server asks `<url>/<BASE>` at most once per base currency per day (4-second timeout) and keeps the answer in the database cache; the browser never calls it. Empty turns the rate suggestion off; the suggested currency still appears |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | empty | from Google Cloud | Sign in with Google; empty hides the button. Redirect URI: `https://<domain>/accounts/google/login/callback/` |
 | `EMAIL_HOST` | empty | `smtp.zoho.com` | SMTP server for the personal invite email. Empty turns email off: invites still work, the Owner sends the link themselves, and Django prints emails to the console |
 | `EMAIL_PORT` | `465` | `465` | SMTP port (465 = implicit TLS) |

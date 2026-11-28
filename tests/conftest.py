@@ -54,3 +54,14 @@ def no_dns(request, monkeypatch):
     from apps.trips import email_check
 
     monkeypatch.setattr(email_check, "receives_email", lambda domain: True)
+
+
+@pytest.fixture(autouse=True)
+def no_exchange_rates(monkeypatch):
+    """Tests never call the exchange rate service: the call fails unless a test replaces it."""
+    from apps.trips import rates
+
+    def offline(request, timeout):
+        raise OSError("tests do not call the exchange rate service")
+
+    monkeypatch.setattr(rates, "urlopen", offline)

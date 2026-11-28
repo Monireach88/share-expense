@@ -8,6 +8,10 @@
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#1a1d23" media="(prefers-color-scheme: dark)">
   <title>{% block title %}{% translate "Share Expense" %}{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="icon" sizes="32x32" type="image/png" href="{% static 'img/favicon-32.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+  <link rel="manifest" href="{% url 'web_manifest' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   {# htmx without eval and without its own <style> element, so the Content-Security-Policy needs neither. #}
   <meta name="htmx-config" content='{"allowEval": false, "includeIndicatorStyles": false}'>

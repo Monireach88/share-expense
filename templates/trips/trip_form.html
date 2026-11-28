@@ -1,18 +1,31 @@
-{% extends "base.html" %}{% load i18n ui %}
+{% extends "base.html" %}{% load i18n static ui %}
 {% block title %}{% translate "New trip" %}{% endblock %}
 {% block back %}<a class="back" href="{% url 'home' %}">{% icon "chevron-left" %}<span>{% translate "Trips" %}</span></a>{% endblock %}
 {% block content %}
 <h1 class="page-title">{% translate "New trip" %}</h1>
-<form method="post" id="trip-form" class="stack" style="margin-top: 16px">{% csrf_token %}
+<form method="post" id="trip-form" class="stack" style="margin-top: 16px" data-rate-suggest="{% url 'rate_suggestion' %}">{% csrf_token %}
   {% include "_form_errors.html" %}
   {% include "_field.html" with field=form.name %}
   {% include "_field.html" with field=form.country %}
-  <div class="two">
-    {% include "_field.html" with field=form.start_date %}
-    {% include "_field.html" with field=form.end_date %}
-  </div>
+  {% include "trips/_date_range_fields.html" %}
   {% include "_field.html" with field=form.base_currency %}
+  <section class="card" data-rates>
+    <h2 class="section-title" style="margin-bottom: 4px">{% translate "Exchange rates" %}</h2>
+    <p class="lead" style="margin: 0 0 12px">{% translate "Optional. One fixed rate per currency for the whole trip." %}</p>
+    {{ rates.management_form }}
+    {% for error in rates.non_form_errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+    {% with base=form.base_currency.value %}
+    <div class="rate-rows" data-rate-rows>
+      {% for row in rates %}{% include "trips/_rate_row.html" %}{% endfor %}
+    </div>
+    <template data-rate-row-template>{% include "trips/_rate_row.html" with row=rates.empty_form %}</template>
+    {% endwith %}
+    {% include "trips/_rate_note.html" %}
+    <button type="button" class="chip chip-add" data-add-rate hidden>{% icon "plus" %}{% translate "Add currency" %}</button>
+  </section>
 </form>
+<script src="{% static 'js/date_range.js' %}"></script>
+<script src="{% static 'js/trip_rates.js' %}"></script>
 {% endblock %}
 {% block bar %}
 <div class="bottom-bar"><div class="container">

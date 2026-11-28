@@ -3,7 +3,7 @@ from contextlib import suppress
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, Q
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -14,9 +14,18 @@ from apps.disputes.models import Dispute
 from apps.expenses.models import Expense
 from apps.settlement.engine import SettlementError
 
-from . import actions, history, invites
+from . import actions, history, invites, rates
 from .access import get_membership, locked
-from .forms import ExchangeRateForm, InviteForm, MemberRoleForm, ParticipantForm, TripForm
+from .country_currency import currency_for
+from .currencies import CURRENCIES
+from .forms import (
+    ExchangeRateForm,
+    InviteForm,
+    MemberRoleForm,
+    ParticipantForm,
+    TripForm,
+    new_rate_formset,
+)
 from .models import ExchangeRate, Invite, Participant, Trip, TripMember
 from .offline import cacheable_page
 from .pagination import paginate
@@ -40,16 +49,54 @@ def home(request: HttpRequest) -> HttpResponse:
 
 def trip_create(request: HttpRequest) -> HttpResponse:
     form = TripForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
+    rate_rows = new_rate_formset(request.POST or None)
+    # Both are checked, so the page shows every error at once.
+    if request.method == "POST" and all([form.is_valid(), rate_rows.is_valid()]):
         with transaction.atomic():
             trip = form.save(commit=False)
             trip.created_by = request.user
             trip.save()
-            TripMember.objects.create(trip=trip, user=request.user, role=TripMember.Role.OWNER)
+            owner = TripMember.objects.create(
+                trip=trip, user=request.user, role=TripMember.Role.OWNER
+            )
             Participant.objects.create(trip=trip, name=request.user.display_name, user=request.user)
+            for currency, value in rate_rows.rows():
+                rate = ExchangeRate.objects.create(trip=trip, currency=currency, rate=value)
+                _record_rate(trip, owner, "added", rate, "")
         messages.success(request, _("Trip created."))
         return redirect("people", trip_id=trip.id)
-    return render(request, "trips/trip_form.html", {"form": form})
+    return render(request, "trips/trip_form.html", {"form": form, "rates": rate_rows})
+
+
+def rate_suggestion(request: HttpRequest) -> JsonResponse:
+    """The suggested currency and market rate for a trip, as JSON.
+
+    ``?base=USD&country=KH`` suggests the country's currency (New trip page);
+    ``?base=USD&currency=KHR`` only looks up the rate (Trip settings, a new rate row).
+    The answer is {"currency": "KHR", "rate": "4068", "day": "28 Nov 2026"}; "currency" is ""
+    when there is nothing to suggest, and "rate" and "day" are null when the market rate is
+    unknown (the service is off or failed).
+    """
+    nothing = {"currency": "", "rate": None, "day": None}
+    base = request.GET.get("base", "")
+    if "currency" in request.GET:
+        currency = request.GET["currency"]
+    else:
+        currency = currency_for(request.GET.get("country", ""))
+    if base not in CURRENCIES or currency not in CURRENCIES or currency == base:
+        return JsonResponse(nothing)
+    if not rates.allowed(request.user.pk):
+        return JsonResponse(nothing, status=429)
+    market = rates.market_rate(base, currency)
+    if market is None:
+        return JsonResponse({**nothing, "currency": currency})
+    return JsonResponse(
+        {
+            "currency": currency,
+            "rate": history.rate_text(market.rate).replace(",", ""),
+            "day": history.setting_text("start_date", market.day),
+        }
+    )
 
 
 def trip_settings(request: HttpRequest, trip_id) -> HttpResponse:
@@ -102,6 +149,18 @@ def _record_trip_changes(trip: Trip, membership: TripMember, form: TripForm) -> 
         )
 
 
+def _record_rate(trip: Trip, membership: TripMember, action: str, rate, old: str) -> None:
+    history.record(
+        trip,
+        membership,
+        action,
+        "rate",
+        object_id=rate.pk,
+        label=rate.currency,
+        changes={"rate": history.change(old, history.rate_line(trip, rate.currency, rate.rate))},
+    )
+
+
 @require_POST
 def rate_save(request: HttpRequest, trip_id) -> HttpResponse:
     membership = get_membership(request, trip_id, owner_only=True)
@@ -125,15 +184,7 @@ def rate_save(request: HttpRequest, trip_id) -> HttpResponse:
             else:
                 action = None
             if action:
-                history.record(
-                    trip,
-                    membership,
-                    action,
-                    "rate",
-                    object_id=rate.pk,
-                    label=rate.currency,
-                    changes={"rate": history.change(old, new)},
-                )
+                _record_rate(trip, membership, action, rate, old)
         messages.success(request, _("Exchange rate saved."))
         return redirect("trip_settings", trip_id=trip.id)
     return render(

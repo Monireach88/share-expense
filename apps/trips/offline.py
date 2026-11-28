@@ -13,7 +13,7 @@ import re
 from functools import wraps
 
 from django.contrib.auth.decorators import login_not_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponsePermanentRedirect, JsonResponse
 from django.template.loader import render_to_string
 from django.templatetags.static import static
 
@@ -73,3 +73,32 @@ def service_worker(request: HttpRequest) -> HttpResponse:
     response["Cache-Control"] = "no-cache"
     response["Service-Worker-Allowed"] = "/"
     return response
+
+
+@login_not_required
+def web_manifest(request: HttpRequest) -> JsonResponse:
+    """The web app manifest: name and icons for "Add to Home Screen" and installing the app."""
+    icons = [
+        {"src": static(f"img/icon-{size}.png"), "sizes": f"{size}x{size}", "type": "image/png"}
+        for size in (192, 512)
+    ]
+    icons.append({"src": static("img/favicon.svg"), "sizes": "any", "type": "image/svg+xml"})
+    manifest = {
+        "name": "Share Expense",
+        "short_name": "Share Expense",
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "background_color": "#f5f6f8",
+        "theme_color": "#ffffff",
+        "icons": icons,
+    }
+    response = JsonResponse(manifest, content_type="application/manifest+json")
+    response["Cache-Control"] = "public, max-age=86400"
+    return response
+
+
+@login_not_required
+def favicon(request: HttpRequest) -> HttpResponsePermanentRedirect:
+    """Browsers ask for /favicon.ico on their own; send them to the PNG icon."""
+    return HttpResponsePermanentRedirect(static("img/favicon-32.png"))
