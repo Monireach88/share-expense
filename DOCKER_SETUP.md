@@ -75,13 +75,13 @@ Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compos
 | `DEEPSEEK_API_KEY` | empty | your key | Writing suggestions under the expense description; empty turns them off |
 | `DEEPSEEK_MODEL` | `deepseek-flash` | `deepseek-flash` | DeepSeek model for the suggestions |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | empty | from Google Cloud | Sign in with Google; empty hides the button. Redirect URI: `https://<domain>/accounts/google/login/callback/` |
-| `EMAIL_HOST` | empty | `smtp.mx.cloudflare.net` | SMTP server for the personal invite email. Empty turns email off: invites still work, the Owner sends the link themselves, and Django prints emails to the console |
+| `EMAIL_HOST` | empty | `smtp.zoho.com` | SMTP server for the personal invite email. Empty turns email off: invites still work, the Owner sends the link themselves, and Django prints emails to the console |
 | `EMAIL_PORT` | `465` | `465` | SMTP port (465 = implicit TLS) |
 | `EMAIL_USE_SSL` / `EMAIL_USE_TLS` | `true` / `false` | `true` / `false` | Implicit TLS (port 465) or STARTTLS (port 587); set only one to `true` |
-| `EMAIL_HOST_USER` | `api_token` | `api_token` | SMTP user name (Cloudflare uses the literal word `api_token`) |
-| `EMAIL_HOST_PASSWORD` | empty | Cloudflare API token | A token with the "Email Sending: Edit" permission |
+| `EMAIL_HOST_USER` | empty | the mailbox address | SMTP user name: the address you log in to the provider with |
+| `EMAIL_HOST_PASSWORD` | empty | app password | An application-specific password for this app, never the account password |
 | `EMAIL_TIMEOUT` | `10` | `10` | Seconds to wait for the SMTP server before the send counts as failed |
-| `DEFAULT_FROM_EMAIL` | `Share Expense <invites@monireach.com>` | same | Sender of the invite email; its domain must be set up for sending in Cloudflare |
+| `DEFAULT_FROM_EMAIL` | `Share Expense <you@example.com>` | the mailbox address | Sender of the invite email: the mailbox address or one of its aliases (most providers refuse other senders) |
 | `CLOUDFLARE_TUNNEL_TOKEN` | — | **required** | `cloudflared tunnel token <tunnel-name>` |
 | `GUNICORN_WORKERS` | — | `2` | |
 
