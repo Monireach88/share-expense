@@ -59,6 +59,8 @@ Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compos
 
 ## Environment variables
 
+In production and staging each container gets only the variables it uses: `postgres` gets the three `POSTGRES_*` values, `cloudflared` gets only the tunnel token, and `web` gets the app variables listed under `environment:` in `docker-compose.prod.yml` and `docker-compose.staging.yml`. Their values come from the file given with `--env-file` (`.env.prod`, `.env.staging`). A new app variable must be added to that list in both files and to `.env.example`; `tests/test_deploy_files.py` fails until it is. Every container's log is rotated by Docker at 10 MB, keeping 3 files.
+
 | Variable | Dev default | Production | Meaning |
 |---|---|---|---|
 | `DJANGO_DEBUG` | `true` | `false` | Debug pages, plain static files, no HTTPS settings |
