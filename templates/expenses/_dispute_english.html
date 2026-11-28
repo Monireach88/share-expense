@@ -1,0 +1,9 @@
+{% load i18n %}{% comment %}
+The "English" box of a dispute form (see _english_row.html; the dispute forms are not Django forms). Needs: name,
+rows, maxlength, and draft (what was typed when the English copy could not be made, or empty).
+{% endcomment %}<div class="field english-row" data-english-row{% if not draft %} hidden{% endif %}>
+  <label>{% translate "English" context "label of the box with the English translation of the text above" %}
+  <textarea name="{{ name }}" rows="{{ rows }}" maxlength="{{ maxlength }}">{{ draft.english }}</textarea></label>
+  <p class="help">{% translate "Shown to people who read in English. Check it and correct it if needed." %}</p>
+  {% if draft %}<p class="field-error"><span>{% translate "Write the English version." %}</span></p>{% endif %}
+</div>

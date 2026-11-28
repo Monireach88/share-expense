@@ -6,6 +6,7 @@ The rules (who may open, write, resolve, close, and who is notified) live in ``r
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from apps.expenses.models import Expense
 from apps.trips.models import Trip
@@ -18,9 +19,9 @@ class Dispute(models.Model):
     """
 
     class State(models.TextChoices):
-        OPEN = "open", _("Open")
-        RESOLVED = "resolved", _("Resolved")
-        CLOSED = "closed", _("Closed")
+        OPEN = "open", pgettext_lazy("dispute state", "Open")
+        RESOLVED = "resolved", pgettext_lazy("dispute state", "Resolved")
+        CLOSED = "closed", pgettext_lazy("dispute state", "Closed")
 
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="disputes")
     # RESTRICT: an expense with a dispute cannot be erased on its own (removing its payer is
@@ -34,8 +35,12 @@ class Dispute(models.Model):
     # "Dispute by Friend (Person B)" after an unlink or rename.
     opened_as = models.CharField(max_length=80, blank=True)
     reason = models.TextField(_("reason"), max_length=500)
+    reason_en = models.TextField(_("reason in English"), max_length=500, blank=True)
     state = models.CharField(max_length=10, choices=State.choices, default=State.OPEN)
     close_reason = models.TextField(_("reason for closing"), max_length=500, blank=True)
+    close_reason_en = models.TextField(
+        _("reason for closing in English"), max_length=500, blank=True
+    )
     closed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
     )
@@ -76,6 +81,7 @@ class DisputeMessage(models.Model):
     )
     author_name = models.CharField(max_length=150)
     text = models.TextField(_("message"), max_length=1000)
+    text_en = models.TextField(_("message in English"), max_length=1000, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

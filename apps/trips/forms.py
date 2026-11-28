@@ -3,18 +3,23 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core.validators import validate_email
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from . import email_check
+from .english import ENGLISH_LABEL, EnglishCopyMixin
 from .invites import VERIFIED_GOOGLE_EMAIL, google_user
 from .models import ExchangeRate, Invite, Participant, Trip, TripMember
 
 DATE_INPUT = forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
 
 
-class TripForm(forms.ModelForm):
+class TripForm(EnglishCopyMixin, forms.ModelForm):
+    english_fields = {"name": "name_en"}
+
     class Meta:
         model = Trip
-        fields = ["name", "country", "start_date", "end_date", "base_currency"]
+        fields = ["name", "name_en", "country", "start_date", "end_date", "base_currency"]
+        labels = {"name_en": ENGLISH_LABEL}
         widgets = {"start_date": DATE_INPUT, "end_date": DATE_INPUT}
 
     def __init__(self, *args, **kwargs):
@@ -300,8 +305,8 @@ class MemberRoleForm(forms.Form):
     role = forms.ChoiceField(
         label=_("Role"),
         choices=[
-            (TripMember.Role.MEMBER, _("Member")),
-            (TripMember.Role.EDITOR, _("Editor")),
+            (TripMember.Role.MEMBER, pgettext_lazy("trip role", "Member")),
+            (TripMember.Role.EDITOR, pgettext_lazy("trip role", "Editor")),
         ],
         widget=forms.RadioSelect,
     )

@@ -1,0 +1,11 @@
+{% load i18n ui %}{% comment %}
+The "English" box under a text that can have an English copy (spec_languages.md section 3). Needs: field (the
+bound "<name>_en" field) and source (the bound text field above it). It shows when the text has Khmer or
+Chinese letters or when the field has an error; static/js/english_copy.js shows and hides it while the person
+types and fills it with a suggestion. The container around it carries data-english.
+{% endcomment %}<div class="field english-row" data-english-row{% if not source.value|needs_copy and not field.errors %} hidden{% endif %}>
+  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  <p class="help">{% translate "Shown to people who read in English. Check it and correct it if needed." %}</p>
+  {% for error in field.errors %}<p class="field-error" id="{{ field.auto_id }}_error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+</div>

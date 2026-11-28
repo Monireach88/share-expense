@@ -1,6 +1,6 @@
 {% extends "base.html" %}{% load i18n ui %}
 {% comment %}The Owner invites a person (spec section 6.2): the form, then a confirmation of exactly who is added or invited.{% endcomment %}
-{% block title %}{% translate "Invite" %} · {{ trip.name }}{% endblock %}
+{% block title %}{% translate "Invite" %} · {{ trip|shown:'name' }}{% endblock %}
 {% block back %}<a class="back" href="{% url 'people' trip.id %}">{% icon "chevron-left" %}<span>{% translate "Travelers" %}</span></a>{% endblock %}
 {% block content %}
 <h1 class="page-title">{% translate "Invite" %}</h1>
@@ -29,7 +29,7 @@
 {% block bar %}
 <div class="bottom-bar"><div class="container">
   {% if question %}
-  <button type="submit" form="invite-form" name="back" value="1" class="btn btn-secondary">{% translate "Change" %}</button>
+  <button type="submit" form="invite-form" name="back" value="1" class="btn btn-secondary">{% translate "Change" context "button back to the invite form" %}</button>
   <button type="submit" form="invite-form" class="btn">{% translate "Confirm" %}</button>
   {% else %}
   <a class="btn btn-secondary" href="{% url 'people' trip.id %}">{% translate "Cancel" %}</a>

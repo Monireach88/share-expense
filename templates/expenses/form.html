@@ -1,13 +1,17 @@
 {% extends "base.html" %}{% load i18n static ui %}
 {% block title %}{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}{% endblock %}
-{% block back %}<a class="back" href="{{ back_url|default:'' }}{% if not back_url %}{% url 'trip' trip.id %}{% endif %}">{% icon "chevron-left" %}<span>{{ trip.name }}</span></a>{% endblock %}
+{% block back %}<a class="back" href="{{ back_url|default:'' }}{% if not back_url %}{% url 'trip' trip.id %}{% endif %}">{% icon "chevron-left" %}<span>{{ trip|shown:'name' }}</span></a>{% endblock %}
 {% block content %}
 <div class="title-row">
   <h1 class="page-title">{% if expense %}{% translate "Edit expense" %}{% else %}{% translate "Add expense" %}{% endif %}</h1>
   {% if suggestions and not expense %}<button type="button" class="btn btn-secondary btn-sm" data-ai-open>{% icon "sparkles" %}{% translate "Fill with AI" %}</button>{% endif %}
 </div>
 <form method="post" id="expense-form" class="stack-lg" style="margin-top: 16px" novalidate
-      data-base="{{ trip.base_currency }}">
+      data-base="{{ trip.base_currency }}"
+      data-text-pick="{% translate 'Pick at least one traveler.' %}"
+      data-text-one="{% blocktranslate count counter=1 with n='{n}' %}{{ n }} traveler{% plural %}{{ n }} travelers{% endblocktranslate %}"
+      data-text-many="{% blocktranslate count counter=2 with n='{n}' %}{{ n }} traveler{% plural %}{{ n }} travelers{% endblocktranslate %}"
+      data-text-each="{% blocktranslate with amount='{amount}' %}{{ amount }} each{% endblocktranslate %}">
   {% csrf_token %}
   {% if back_url %}<input type="hidden" name="next" value="{{ back_url }}">{% endif %}
   {% include "_form_errors.html" %}
@@ -27,7 +31,7 @@
     {% for error in form.currency.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
   </div>
 
-  <div{% if suggestions %} data-suggest="{% url 'description_suggestion' trip.id %}"{% endif %}>
+  <div data-english="{% url 'english_suggestion' %}"{% if suggestions %} data-suggest="{% url 'description_suggestion' trip.id %}"{% endif %}>
     <div class="field">
       <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
       <div class="desc-box">{{ form.description }}{% if suggestions %}<button type="button" class="ai-btn" data-suggest-btn hidden aria-label="{% translate 'Suggest a better wording' %}" title="{% translate 'Suggest a better wording' %}">{% icon "sparkles" %}</button>{% endif %}</div>
@@ -38,6 +42,7 @@
       <span class="suggestion-text" data-suggestion-text></span>
       <button type="button" class="btn btn-secondary btn-sm" data-accept>{% translate "Accept" %}</button>
     </div>{% endif %}
+    {% include "_english_row.html" with field=form.description_en source=form.description %}
   </div>
 
   {% include "_checks.html" with field=form.payer %}
@@ -53,9 +58,14 @@
     {% for error in form.beneficiaries.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
   </fieldset>
 
-  <fieldset data-types data-create="{% url 'category_create' trip.id %}"{% if membership.can_manage_expenses %} data-edit="{% url 'category_edit' trip.id 0 %}" data-delete="{% url 'category_delete' trip.id 0 %}"{% endif %}>
+  <fieldset data-types
+            data-text-save-failed="{% translate 'The type could not be saved.' %}"
+            data-text-remove-failed="{% translate 'The type could not be removed.' %}"
+            data-text-remove="{% blocktranslate with name='{name}' %}Remove {{ name }}{% endblocktranslate %}"
+            data-text-confirm="{% blocktranslate with name='{name}' %}Remove the type “{{ name }}”? This cannot be undone.{% endblocktranslate %}"
+            data-create="{% url 'category_create' trip.id %}"{% if membership.can_manage_expenses %} data-edit="{% url 'category_edit' trip.id 0 %}" data-delete="{% url 'category_delete' trip.id 0 %}"{% endif %}>
     <legend class="types-legend">{{ form.category.label }}<button type="button" class="btn-text types-done" data-types-done hidden>{% translate "Done" %}</button></legend>
-    <div class="chips type-chips">{% for choice in form.category %}{% with c=choice.data.value.instance %}<label data-type="{{ c.pk }}" data-name="{{ c.name }}" data-emoji="{{ c.emoji }}">{{ choice.tag }}<span class="type-emoji" aria-hidden="true">{{ c.emoji }}</span><span class="type-name">{{ c.name }}</span><button type="button" class="type-remove" data-remove aria-label="{% blocktranslate with name=c.name %}Remove {{ name }}{% endblocktranslate %}">−</button></label>{% endwith %}{% endfor %}<button type="button" class="chip chip-add" data-add-type>{% icon "plus" %}{% translate "Add type" %}</button></div>
+    <div class="chips type-chips">{% for choice in form.category %}{% with c=choice.data.value.instance %}<label data-type="{{ c.pk }}" data-name="{{ c.name }}" data-name-en="{{ c.name_en }}" data-emoji="{{ c.emoji }}">{{ choice.tag }}<span class="type-emoji" aria-hidden="true">{{ c.emoji }}</span><span class="type-name">{{ c.label }}</span><button type="button" class="type-remove" data-remove aria-label="{% blocktranslate with name=c.label %}Remove {{ name }}{% endblocktranslate %}">−</button></label>{% endwith %}{% endfor %}<button type="button" class="chip chip-add" data-add-type>{% icon "plus" %}{% translate "Add type" %}</button></div>
     {% for error in form.category.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
   </fieldset>
 
@@ -84,11 +94,16 @@
 </form>
 {% if expense %}{% include "expenses/_disputes.html" %}{% endif %}
 <dialog class="sheet" data-type-dialog aria-labelledby="type-dialog-title">
-  <form method="dialog" class="stack">
+  <form method="dialog" class="stack" data-english="{% url 'english_suggestion' %}">
     <h2 class="section-title" id="type-dialog-title" data-title data-add-title="{% translate 'Add type' %}" data-edit-title="{% translate 'Edit type' %}">{% translate "Add type" %}</h2>
     <div class="type-edit">
       <button type="button" class="emoji-btn" data-emoji-btn aria-label="{% translate 'Icon' %}" aria-expanded="false">{{ default_emoji }}</button>
       <input type="text" name="name" maxlength="40" autocomplete="off" aria-label="{% translate 'Name' %}" placeholder="{% translate 'Name' %}" required>
+    </div>
+    <div class="field english-row" data-english-row hidden>
+      <label for="type-name-en">{% translate "English" context "label of the box with the English translation of the text above" %}</label>
+      <input type="text" id="type-name-en" name="name_en" maxlength="40" autocomplete="off">
+      <p class="help">{% translate "Shown to people who read in English. Check it and correct it if needed." %}</p>
     </div>
     <div class="emoji-grid" data-emoji-grid hidden>{% for e in emoji_choices %}<button type="button" data-emoji="{{ e }}" aria-label="{{ e }}">{{ e }}</button>{% endfor %}</div>
     <p class="field-error" data-error hidden></p>
@@ -99,7 +114,10 @@
   </form>
 </dialog>
 {% if suggestions and not expense %}
-<dialog class="sheet" data-ai-dialog aria-labelledby="ai-dialog-title" data-url="{% url 'expense_ai_fill' trip.id %}">
+<dialog class="sheet" data-ai-dialog aria-labelledby="ai-dialog-title" data-url="{% url 'expense_ai_fill' trip.id %}"
+        data-text-read-failed="{% translate 'The text could not be read. Try again.' %}"
+        data-text-missing="{% translate 'Filled in. Still missing:' %}"
+        data-text-filled="{% translate 'All details filled in.' %}">
   <form method="dialog" class="stack" data-ai-ask>
     <h2 class="section-title" id="ai-dialog-title">{% icon "sparkles" %} {% translate "Add with AI" %}</h2>
     <p class="ai-hint"><strong>{% translate "Include:" %}</strong> {% translate "who paid · for whom · what · amount · currency." %} <em>{% translate "Date: today if not given." %}</em></p>

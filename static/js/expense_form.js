@@ -7,6 +7,7 @@
 
   const WHOLE = new Set(["VND", "KHR", "JPY", "KRW", "IDR", "LAK"]);
   const base = form.dataset.base;
+  const text = form.dataset; // The words on this page, written in the page's language by the template.
   const ratesEl = document.getElementById("trip-rates");
   const rates = ratesEl ? JSON.parse(ratesEl.textContent) : {};
   const amountInput = form.querySelector("[name=amount]");
@@ -36,10 +37,10 @@
     const n = people.filter((p) => p.checked).length;
     if (everyone) everyone.checked = n === people.length;
     if (!n) {
-      split.textContent = "Pick at least one traveler.";
+      split.textContent = text.textPick;
     } else {
-      const each = value ? " · " + fmt(Math.round((value / n) * 100) / 100, cur) + " each" : "";
-      split.textContent = n + (n === 1 ? " traveler" : " travelers") + each;
+      const each = value ? " · " + text.textEach.replace("{amount}", fmt(Math.round((value / n) * 100) / 100, cur)) : "";
+      split.textContent = (n === 1 ? text.textOne : text.textMany).replace("{n}", n) + each;
     }
   }
 
@@ -94,6 +95,11 @@
   const grid = form.querySelector("[data-emoji-grid]");
   const error = form.querySelector("[data-error]");
   const title = form.querySelector("[data-title]");
+  const nameEn = form.querySelector("[name=name_en]");
+  const words = box.dataset; // The words on this page, written in the page's language.
+  const lang = document.documentElement.lang;
+  // The name a reader sees: the English copy in English, else the name as written.
+  const labelOf = (type) => (lang === "en" && type.name_en) || type.name;
   let editing = null; // The chip being edited, or null when adding.
   let longPressed = false;
   let ignoreClicksUntil = 0; // The tap that ends a long press must not choose the type.
@@ -135,16 +141,18 @@
   function fillChip(label, type) {
     label.dataset.type = type.id;
     label.dataset.name = type.name;
+    label.dataset.nameEn = type.name_en || "";
     label.dataset.emoji = type.emoji;
     label.querySelector(".type-emoji").textContent = type.emoji;
-    label.querySelector(".type-name").textContent = type.name;
-    label.querySelector("[data-remove]").setAttribute("aria-label", "Remove " + type.name);
+    label.querySelector(".type-name").textContent = type.label || labelOf(type);
+    label.querySelector("[data-remove]").setAttribute("aria-label", words.textRemove.replace("{name}", type.label || labelOf(type)));
   }
 
   function open(label) {
     editing = label;
     title.textContent = label ? title.dataset.editTitle : title.dataset.addTitle;
     nameInput.value = label ? label.dataset.name : "";
+    form._englishReset(nameInput.value, label ? label.dataset.nameEn : "");
     emojiButton.textContent = label ? label.dataset.emoji : emojiButton.dataset.default;
     grid.hidden = true;
     emojiButton.setAttribute("aria-expanded", "false");
@@ -171,15 +179,16 @@
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const data = new URLSearchParams({ name: nameInput.value, emoji: emojiButton.textContent.trim() });
+    const data = new URLSearchParams({ name: nameInput.value, name_en: nameEn.value, emoji: emojiButton.textContent.trim() });
     const url = editing ? urlFor(box.dataset.edit, editing.dataset.type) : box.dataset.create;
     const save = form.querySelector("[data-save]");
     save.classList.add("is-loading");
     const { ok, json } = await busy(post(url, data)).catch(() => ({ ok: false, json: {} }));
     save.classList.remove("is-loading");
     if (!ok) {
-      error.textContent = json.error || "The type could not be saved.";
+      error.textContent = json.error || words.textSaveFailed;
       error.hidden = false;
+      if (json.english) form.querySelector("[data-english-row]").hidden = false;
       return;
     }
     if (editing) {
@@ -231,12 +240,12 @@
     event.preventDefault();
     if (!event.target.closest("[data-remove]")) return open(label);
     const name = label.dataset.name;
-    if (!confirm(`Remove the type “${name}”? This cannot be undone.`)) return;
+    if (!confirm(words.textConfirm.replace("{name}", label.querySelector(".type-name").textContent || name))) return;
     label.classList.add("is-removing");
     const { ok, json } = await busy(post(urlFor(box.dataset.delete, label.dataset.type), new URLSearchParams()))
       .catch(() => ({ ok: false, json: {} }));
     label.classList.remove("is-removing");
-    if (!ok) return alert(json.error || "The type could not be removed.");
+    if (!ok) return alert(json.error || words.textRemoveFailed);
     const wasChecked = label.querySelector("input").checked;
     label.remove();
     if (wasChecked) {
@@ -316,6 +325,7 @@
   const go = ask.querySelector("[data-ai-go]");
   const result = dialog.querySelector("[data-ai-result]");
   const headers = () => JSON.parse(document.body.getAttribute("hx-headers") || "{}");
+  const words = dialog.dataset;
 
   function open() {
     ask.hidden = false;
@@ -353,6 +363,9 @@
     set("beneficiaries", fields.beneficiaries || []);
     set("category", fields.category || "");
     set("description", fields.description || "");
+    // The description changed without typing: let the English box notice it.
+    const description = form.querySelector("[name=description]");
+    if (description) description.dispatchEvent(new Event("input", { bubbles: true }));
     if (fields.date) setDate(fields.date);
     form.dispatchEvent(new Event("input", { bubbles: true })); // Updates the split and preview.
   }
@@ -373,7 +386,7 @@
       }).then((r) => r.json());
       data = await (window.seBusy ? window.seBusy(work) : work);
     } catch (e) {
-      data = { error: "The text could not be read. Try again." };
+      data = { error: words.textReadFailed };
     }
     go.classList.remove("is-loading");
     if (data.error) {
@@ -386,8 +399,8 @@
     const list = result.querySelector("[data-ai-missing]");
     list.replaceChildren(...missing.map((m) => Object.assign(document.createElement("li"), { textContent: m })));
     result.querySelector("[data-ai-result-title]").textContent = missing.length
-      ? "Filled in. Still missing:"
-      : "All details filled in.";
+      ? words.textMissing
+      : words.textFilled;
     ask.hidden = true;
     result.hidden = false;
   });

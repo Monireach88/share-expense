@@ -1,6 +1,6 @@
 {% extends "trips/_trip_base.html" %}{% load i18n ui %}
-{% block title %}{% translate "History" %} · {{ trip.name }}{% endblock %}
-{% block back %}<a class="back" href="{% url 'trip' trip.id %}" aria-label="{% translate 'Expenses' %}">{% icon "chevron-left" %}<span class="back-title">{{ trip.name }}</span></a>{% endblock %}
+{% block title %}{% translate "History" %} · {{ trip|shown:'name' }}{% endblock %}
+{% block back %}<a class="back" href="{% url 'trip' trip.id %}" aria-label="{% translate 'Expenses' %}">{% icon "chevron-left" %}<span class="back-title">{{ trip|shown:'name' }}</span></a>{% endblock %}
 {% block content %}
 <h1 class="page-title">{% translate "History" %}</h1>
 {% if days or q %}

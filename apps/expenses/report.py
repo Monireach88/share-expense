@@ -33,12 +33,14 @@ class ReportFilterForm(forms.Form):
         label=gettext_lazy("Traveler"),
         queryset=Participant.objects.none(),
         required=False,
+        # Translators: the first choice of the "Traveler" filter: no filter, all travelers.
         empty_label=gettext_lazy("Everyone"),
     )
     payer = forms.ModelChoiceField(
         label=gettext_lazy("Paid by"),
         queryset=Participant.objects.none(),
         required=False,
+        # Translators: the first choice of the "Paid by" filter: no filter, any traveler paid.
         empty_label=gettext_lazy("Anyone"),
     )
     category = forms.ModelChoiceField(
@@ -218,13 +220,14 @@ def export_rows(trip: Trip, report: dict) -> tuple[list[str], list[list]]:
     person = report["person"]
     if person:
         header.append(_("%(name)s's share in %(base)s") % {"name": person.name, "base": base})
+    header.append(_("Description in English"))  # Last, so the older columns keep their places.
     rows = []
     for row in reversed(report["rows"]):
         e = row.expense
         line = [
             e.date,
             e.description,
-            e.category.name if e.category else "",
+            e.category.label if e.category else "",
             e.payer.name,
             ", ".join(b.name for b in e.beneficiaries.all()),
             e.amount,
@@ -233,6 +236,7 @@ def export_rows(trip: Trip, report: dict) -> tuple[list[str], list[list]]:
         ]
         if person:
             line.append(row.share)
+        line.append(e.description_en)
         rows.append(line)
     return header, rows
 
@@ -281,7 +285,7 @@ def to_xlsx(title: str, header: list[str], rows: list[list]) -> bytes:
         for cell in line:
             if isinstance(cell.value, str):
                 cell.data_type = "s"  # Never a formula, even if openpyxl guessed one.
-    money = [i for i, name in enumerate(header, 1) if i >= 6 and i != 7]
+    money = [i for i, name in enumerate(header, 1) if 6 <= i < len(header) and i != 7]
     for column in money:
         for (cell,) in sheet.iter_rows(min_row=2, min_col=column, max_col=column):
             cell.number_format = "#,##0.00"
@@ -290,6 +294,7 @@ def to_xlsx(title: str, header: list[str], rows: list[list]) -> bytes:
     widths = [12, 32, 18, 16, 32, 14, 10, 16, 18]
     for i, width in enumerate(widths[: len(header)], 1):
         sheet.column_dimensions[get_column_letter(i)].width = width
+    sheet.column_dimensions[get_column_letter(len(header))].width = 32  # Description in English.
     sheet.freeze_panes = "A2"
     out = io.BytesIO()
     book.save(out)

@@ -10,6 +10,7 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("health/", health, name="health"),
     path("trips/new/", views.trip_create, name="trip_create"),
+    path("trips/english-suggestion/", views.english_suggestion, name="english_suggestion"),
     path("trips/rate-suggestion/", views.rate_suggestion, name="rate_suggestion"),
     path("trips/<uuid:trip_id>/", expense_views.expense_list, name="trip"),
     path("trips/<uuid:trip_id>/expenses/new/", expense_views.expense_create, name="expense_create"),
