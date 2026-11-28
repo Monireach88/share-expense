@@ -1,0 +1,11 @@
+{% load i18n %}<!doctype html>
+<html lang="en">
+<body style="margin:0;padding:24px;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#1a1d23;line-height:1.5">
+  <p>{% blocktranslate %}{{ inviter }} invited you to the trip “{{ trip }}” on Share Expense, an app that splits trip expenses.{% endblocktranslate %}</p>
+  <p><a href="{{ link }}" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#2448c8;color:#ffffff;text-decoration:none;font-weight:600">{% translate "Join the trip" %}</a></p>
+  <p style="font-size:14px;color:#555">{% translate "Or copy this link:" %}<br><a href="{{ link }}" style="color:#2448c8;word-break:break-all">{{ link }}</a></p>
+  <p style="font-size:14px;color:#555">{% blocktranslate %}Use the Google account of {{ address }}.{% endblocktranslate %}</p>
+  <p style="font-size:14px;color:#555">{% blocktranslate %}This link works once and expires on {{ expires }} ({{ city }} time).{% endblocktranslate %}</p>
+  <p style="font-size:14px;color:#555">{% blocktranslate %}If you do not know {{ inviter }}, ignore this email.{% endblocktranslate %}</p>
+</body>
+</html>

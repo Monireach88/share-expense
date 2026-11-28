@@ -1,50 +1,55 @@
+from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_not_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.utils.translation import gettext as _
 
-from apps.trips.models import Trip
+from apps.trips.invite_views import SESSION_KEY
 
-from .forms import LoginForm, SignupRequestForm
-
-
-def pending_join_url(user) -> str | None:
-    """The join page of the invite link this account came from, if it still has one."""
-    return reverse("join", args=[user.invite_token]) if user.invite_token else None
+from .closing import CloseRefused, close_account, owner_block
+from .forms import CloseAccountForm, LoginForm
 
 
 class LoginView(auth_views.LoginView):
-    """After a first sign-in that began at an invite link, go to that link's join page."""
-
     form_class = LoginForm
     redirect_authenticated_user = True
 
-    def get_default_redirect_url(self):
-        return pending_join_url(self.request.user) or super().get_default_redirect_url()
+    def get(self, request, *args, **kwargs):
+        # A plain sign-in forgets an invite opened earlier in this browser, so a Google sign-in
+        # from here is never mistaken for accepting that invite.
+        request.session.pop(SESSION_KEY, None)
+        return super().get(request, *args, **kwargs)
 
 
 @login_not_required
 def signup(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect("home")
-    token = request.POST.get("invite") or request.GET.get("invite") or ""
-    if not Trip.objects.filter(invite_token=token).exists():
-        token = ""
-    form = SignupRequestForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        user = form.save(commit=False)
-        user.invite_token = token  # The first sign-in after approval opens the join page.
-        user.save()
-        return render(request, "registration/signup_sent.html", {"invite": bool(token)})
-    return render(request, "registration/signup.html", {"form": form, "invite": token})
+    """The old "Request an account" address: new accounts come only from personal invites."""
+    return redirect("login")
 
 
 @login_not_required
 def pending(request: HttpRequest) -> HttpResponse:
-    """After a first Google sign-in: the new account waits for the admin's approval."""
-    invite = request.session.pop("signup_invite", False)
-    return render(request, "registration/signup_sent.html", {"google": True, "invite": invite})
+    """An account made before personal invites that still waits for the admin's approval."""
+    return render(request, "registration/pending.html")
+
+
+def close(request: HttpRequest) -> HttpResponse:
+    """Close account (spec section 6.5): the account is closed, not erased. An Owner of a trip
+    with other accounts sees only why it cannot be closed yet."""
+    form = CloseAccountForm(request.POST or None, user=request.user)
+    blocked = owner_block(request.user)
+    if request.method == "POST" and not blocked and form.is_valid():
+        try:
+            close_account(request.user)
+        except CloseRefused as refused:
+            form.add_error(None, str(refused))
+        else:
+            logout(request)
+            messages.success(request, _("Your account is closed."))
+            return redirect("login")
+    return render(request, "registration/close_account.html", {"form": form, "blocked": blocked})
 
 
 @login_not_required

@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% comment %}The Owner invites a person (spec section 6.2): the form, then a confirmation of exactly who is added or invited.{% endcomment %}
+{% block title %}{% translate "Invite" %} · {{ trip.name }}{% endblock %}
+{% block back %}<a class="back" href="{% url 'people' trip.id %}">{% icon "chevron-left" %}<span>{% translate "Travelers" %}</span></a>{% endblock %}
+{% block content %}
+<h1 class="page-title">{% translate "Invite" %}</h1>
+{% if question %}
+<form method="post" id="invite-form" class="stack" style="margin-top: 16px">{% csrf_token %}
+  <div class="card stack"><p class="row-title history-line">{{ question.title }}</p><p class="row-sub">{{ question.detail }}</p></div>
+  <input type="hidden" name="who" value="{{ form.who.value }}">
+  <input type="hidden" name="traveler" value="{{ form.traveler.value }}">
+  <input type="hidden" name="new_name" value="{{ form.new_name.value|default:'' }}">
+  <input type="hidden" name="confirm" value="1">
+</form>
+{% else %}
+<form method="post" id="invite-form" class="stack invite-form" style="margin-top: 16px">{% csrf_token %}
+  {% include "_form_errors.html" %}
+  {% include "_field.html" with field=form.who %}
+  {% if form.pending %}
+  <div><button type="submit" class="btn btn-sm" formaction="{% url 'invite_resend' trip.id form.pending.pk %}" formnovalidate>{% translate "Send the invite again" %}</button></div>
+  {% endif %}
+  {% include "_checks.html" with field=form.traveler %}
+  {# Shown only while "A new traveler" is chosen (CSS :has, no script); the server checks it too. #}
+  {% if not trip.is_settled %}<div class="new-name">{% include "_field.html" with field=form.new_name %}</div>{% endif %}
+</form>
+{% endif %}
+{% endblock %}
+{% block bar %}
+<div class="bottom-bar"><div class="container">
+  {% if question %}
+  <button type="submit" form="invite-form" name="back" value="1" class="btn btn-secondary">{% translate "Change" %}</button>
+  <button type="submit" form="invite-form" class="btn">{% translate "Confirm" %}</button>
+  {% else %}
+  <a class="btn btn-secondary" href="{% url 'people' trip.id %}">{% translate "Cancel" %}</a>
+  <button type="submit" form="invite-form" class="btn">{% translate "Continue" %}</button>
+  {% endif %}
+</div></div>
+{% endblock %}

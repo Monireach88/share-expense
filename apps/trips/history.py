@@ -33,6 +33,13 @@ ACTION_WORDS = {
     "settled": "settled",
     "reopened": "reopened",
     "joined": "joined",
+    "left": "left the trip",
+    "account_closed": "closed their account",
+    "invited": "invited",
+    "sent_again": "sent the invite again",
+    "cancelled": "cancelled the invite",
+    "accepted": "accepted the invite",
+    "expired": "invite expired",
     "invite_on": "invite link turned on",
     "invite_off": "invite link turned off",
     "invite_renewed": "invite link renewed",
@@ -352,6 +359,11 @@ def describe(entry: HistoryEntry) -> str:
         ("account", "role_changed"): _("%(who)s changed %(label)s's role: %(old)s → %(new)s"),
         ("account", "removed"): _("%(who)s removed %(label)s's account"),
         ("account", "became_owner"): _("%(who)s made %(label)s the Owner"),
+        ("account", "left"): _("%(who)s left the trip"),
+        ("account", "account_closed"): _("%(who)s closed their account"),
+        ("invite", "sent_again"): _("%(who)s sent the invite for %(label)s again"),
+        ("invite", "cancelled"): _("%(who)s cancelled the invite for %(label)s"),
+        ("invite", "expired"): _("The invite for %(label)s expired"),
         ("rate", "added"): _("%(who)s added the %(label)s rate: %(new)s"),
         ("rate", "changed"): _("%(who)s changed the %(label)s rate: %(old)s → %(new)s"),
         ("rate", "removed"): _("%(who)s removed the %(label)s rate: %(old)s"),
@@ -366,6 +378,8 @@ def describe(entry: HistoryEntry) -> str:
         ("trip", "invite_renewed"): _("%(who)s renewed the invite link"),
         ("trip", "renamed"): _("%(who)s renamed the trip: %(old)s → %(new)s"),
     }
+    if kind == "invite" and action in ("invited", "accepted"):
+        return _describe_invite(entry, data)
     if (kind, action) == ("account", "joined"):
         if traveler := entry.values.get("traveler"):
             return _("%(who)s joined by link as %(traveler)s") % {**data, "traveler": traveler}
@@ -383,6 +397,21 @@ def describe(entry: HistoryEntry) -> str:
             ),
         }
     return f"{who} {ACTION_WORDS.get(action, action)} {kind} {label}".strip()
+
+
+def _describe_invite(entry: HistoryEntry, data: dict) -> str:
+    """ "Ann invited d***@example.com as Dan"; the label is the address partly hidden (§6.2)."""
+    if traveler := entry.values.get("traveler"):
+        texts = {
+            "invited": _("%(who)s invited %(label)s as %(traveler)s"),
+            "accepted": _("%(who)s accepted the invite for %(label)s as %(traveler)s"),
+        }
+        return texts[entry.action] % {**data, "traveler": traveler}
+    texts = {
+        "invited": _("%(who)s invited %(label)s (view only)"),
+        "accepted": _("%(who)s accepted the invite for %(label)s (view only)"),
+    }
+    return texts[entry.action] % data
 
 
 def _describe_dispute(entry: HistoryEntry, data: dict) -> str:

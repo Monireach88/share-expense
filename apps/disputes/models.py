@@ -92,7 +92,7 @@ class NotificationQuerySet(models.QuerySet):
 
 
 class Notification(models.Model):
-    """One item in an account's in-app list. The app sends no email or push message.
+    """One item in an account's in-app list. The app sends no email or push message about it.
 
     Stores names and text, not live rows, so it reads the same after a rename; ``link`` is the
     address it opens (an expense page, or the History entry of a settle or reopen).
@@ -105,6 +105,9 @@ class Notification(models.Model):
         DISPUTE_CLOSED = "dispute_closed"
         SETTLED = "settled"
         REOPENED = "reopened"
+        ADDED = "added"  # The Owner added this account to the trip (section 6.2).
+        INVITE_ACCEPTED = "invite_accepted"  # To the Owner (section 6.3).
+        INVITE_UNLINKED = "invite_unlinked"  # To the Owner: the traveler could not be linked.
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"

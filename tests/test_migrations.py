@@ -32,3 +32,38 @@ def test_old_fixed_types_become_each_trips_own_types():
 
     executor = MigrationExecutor(connection)
     executor.migrate(executor.loader.graph.leaf_nodes())
+
+
+@pytest.mark.django_db(transaction=True)
+def test_the_shared_invite_link_is_cleared_and_dropped_on_existing_data():
+    """Spec section 6.4: old links, remembered links and removal marks go; trips and accounts
+    stay, and accounts still waiting for approval keep waiting."""
+    before = [("trips", "0006_invite_link"), ("accounts", "0002_username_rules")]
+    executor = MigrationExecutor(connection)
+    executor.migrate(before)
+    old = executor.loader.project_state(before).apps
+    user_model = old.get_model("accounts", "User")
+    owner = user_model.objects.create(username="person_a", password="x")
+    waiting = user_model.objects.create(
+        username="person_b", password="x", is_active=False, invite_token="abc"
+    )
+    trip = old.get_model("trips", "Trip").objects.create(name="Old trip", invite_token="tok")
+    old.get_model("trips", "RemovedAccount").objects.create(trip=trip, user=waiting)
+
+    executor = MigrationExecutor(connection)
+    executor.migrate(executor.loader.graph.leaf_nodes())
+    from django.contrib.auth import get_user_model
+
+    from apps.trips.models import Invite, Trip
+
+    assert Trip.objects.get(pk=trip.pk).name == "Old trip"
+    users = get_user_model().objects
+    assert users.get(pk=owner.pk).closed_at is None
+    assert not users.get(pk=waiting.pk).is_active and users.get(pk=waiting.pk).closed_at is None
+    assert not Invite.objects.exists()
+    with connection.cursor() as cursor:
+        tables = connection.introspection.table_names(cursor)
+        columns = [
+            c.name for c in connection.introspection.get_table_description(cursor, "trips_trip")
+        ]
+    assert "trips_removedaccount" not in tables and "invite_token" not in columns

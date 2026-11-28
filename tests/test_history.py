@@ -211,7 +211,9 @@ def _traveler_removed(crew):
 def _account_added(crew):
     crew.users["sam"].is_active = True
     crew.users["sam"].save()
-    crew.client("ann").post(crew.url("member_add"), {"username": "sam", "traveler": "none"})
+    crew.client("ann").post(
+        crew.url("invite_new"), {"who": "sam", "traveler": "none", "confirm": "1"}
+    )
 
 
 def _account_role(crew):

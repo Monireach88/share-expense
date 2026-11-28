@@ -178,6 +178,13 @@ def notification_text(item: Notification) -> str:
         ),
         Notification.Kind.SETTLED: _("%(who)s settled the trip"),
         Notification.Kind.REOPENED: _("%(who)s reopened the trip"),
+        # The list shows the trip name under each item, so these do not repeat it.
+        Notification.Kind.ADDED: _("%(who)s added you to the trip"),
+        Notification.Kind.INVITE_ACCEPTED: _("%(who)s accepted your invite"),
+        Notification.Kind.INVITE_UNLINKED: _(
+            "%(who)s accepted your invite, but traveler %(detail)s could not be linked. Link the "
+            "right traveler on the Travelers page."
+        ),
     }
     return texts[item.kind] % data
 

@@ -2,6 +2,17 @@
 {% block title %}{% translate "Travelers" %} · {{ trip.name }}{% endblock %}
 {% block content %}
 <div class="stack-lg">
+{% if new_link %}
+<section class="card stack">
+  <p class="row-title">{% blocktranslate with email=new_link.email %}Invite link for {{ email }}{% endblocktranslate %}</p>
+  <div class="field">
+    <label class="visually-hidden" for="invite-url">{% translate "Invite link" %}</label>
+    <input type="text" id="invite-url" value="{{ new_link.url }}" readonly>
+  </div>
+  <p class="small muted">{% blocktranslate with day=new_link.expires %}This link works once and expires on {{ day }}. Only the Google account of this address can use it.{% endblocktranslate %}</p>
+  <div class="actions"><button type="button" class="btn btn-sm" data-copy="invite-url" data-done="{% translate 'Copied' %}">{% translate "Copy link" %}</button></div>
+</section>
+{% endif %}
 <section>
   <h2 class="section-title">{% translate "All travelers" %}</h2>
   {% if participants.object_list %}
@@ -31,7 +42,7 @@
       {% if membership.is_owner and not m.is_owner %}<a class="row" href="{% url 'member_edit' trip.id m.id %}">{% else %}<div class="row">{% endif %}
       <span class="row-main">
         <span class="row-title">{{ m.user.display_name }}{% if m.user_id == user.id %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
-        <span class="row-sub">{% if m.user.username|lower != m.user.display_name|lower %}{{ m.user.username }} · {% endif %}{{ m.role_label }}</span>
+        <span class="row-sub">{% if m.user.username|lower != m.user.display_name|lower %}{{ m.user.username }} · {% endif %}{{ m.role_label }}{% if m.user.is_closed %} · {% translate "Closed" %}{% endif %}</span>
       </span>
       {% if membership.is_owner and not m.is_owner %}{% icon "chevron-right" "chev" %}</a>{% else %}</div>{% endif %}
     </li>
@@ -39,26 +50,31 @@
   </ul>
 </section>
 
-{% if membership.is_owner %}
+{% if pending %}
 <section>
-  <h2 class="section-title">{% translate "Invite link" %}</h2>
-  <div class="card stack">
-    {% if invite_url %}
-    <p class="small muted">{% translate "People with an approved account can use this link to join this trip as a Member and choose their traveler." %}</p>
-    <div class="field">
-      <label class="visually-hidden" for="invite-url">{% translate "Invite link" %}</label>
-      <input type="text" id="invite-url" value="{{ invite_url }}" readonly>
-    </div>
-    <div class="actions">
-      <button type="button" class="btn btn-sm" data-copy="invite-url" data-done="{% translate 'Copied' %}">{% translate "Copy" %}</button>
-      <form method="post" action="{% url 'invite_change' trip.id 'renew' %}" hx-confirm="{% translate 'Renew the link? The old link will stop working.' %}">{% csrf_token %}<button type="submit" class="btn btn-secondary btn-sm">{% translate "Renew" %}</button></form>
-      <form method="post" action="{% url 'invite_change' trip.id 'off' %}" hx-confirm="{% translate 'Turn the link off? Nobody can join with it until you turn it on again.' %}">{% csrf_token %}<button type="submit" class="btn btn-secondary btn-sm">{% translate "Turn off" %}</button></form>
-    </div>
-    {% else %}
-    <p class="small muted">{% translate "The invite link is off. When it is on, people with an approved account can join this trip with it." %}</p>
-    <form method="post" action="{% url 'invite_change' trip.id 'on' %}">{% csrf_token %}<button type="submit" class="btn btn-sm">{% translate "Turn on" %}</button></form>
-    {% endif %}
-  </div>
+  <h2 class="section-title">{% translate "Pending invites" %}</h2>
+  <ul class="list">
+    {% for invite in pending %}
+    <li><div class="row" style="flex-wrap: wrap">
+      <span class="row-main">
+        <span class="row-title">{{ invite.email }}</span>
+        <span class="row-sub">{% if invite.traveler_label %}{% blocktranslate with name=invite.traveler_label %}As {{ name }}{% endblocktranslate %}{% else %}{% translate "As Viewer" %}{% endif %} · {% if invite.expired %}{% translate "Expired" %}{% else %}{% blocktranslate with when=invite.expires_text %}expires on {{ when }}{% endblocktranslate %}{% endif %}</span>
+      </span>
+      <div class="actions" style="width: 100%">
+        <form method="post" action="{% url 'invite_copy' trip.id invite.pk %}" hx-confirm="{% translate 'Make a new link? The old link will stop working.' %}">{% csrf_token %}<button type="submit" class="btn btn-secondary btn-sm">{% translate "Copy link" %}</button></form>
+        <form method="post" action="{% url 'invite_resend' trip.id invite.pk %}">{% csrf_token %}<button type="submit" class="btn btn-secondary btn-sm">{% translate "Send again" %}</button></form>
+        <form method="post" action="{% url 'invite_cancel' trip.id invite.pk %}" hx-confirm="{% blocktranslate with email=invite.email %}Cancel the invite for {{ email }}? Its link will stop working.{% endblocktranslate %}">{% csrf_token %}<button type="submit" class="link-danger">{% translate "Cancel" %}</button></form>
+      </div>
+    </div></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% if not membership.is_owner %}
+<section>
+  <form method="post" action="{% url 'trip_leave' trip.id %}" hx-confirm="{% if membership.linked_traveler %}{% blocktranslate with name=membership.linked_traveler.name %}Leave this trip? You will no longer see it, and the traveler {{ name }} is unlinked from your account. Only the Owner can add you again.{% endblocktranslate %}{% else %}{% translate 'Leave this trip? You will no longer see it. Only the Owner can add you again.' %}{% endif %}">{% csrf_token %}
+    <button type="submit" class="link-danger">{% translate "Leave this trip" %}</button>
+  </form>
 </section>
 {% endif %}
 </div>
@@ -68,7 +84,7 @@
   <summary class="fab" aria-label="{% translate 'Add' %}">{% icon "plus" %}</summary>
   <div class="fab-options" role="menu">
     {% if not trip.is_settled %}<a role="menuitem" href="{% url 'participant_create' trip.id %}">{% icon "user-plus" %}{% translate "Add traveler" %}</a>{% endif %}
-    <a role="menuitem" href="{% url 'member_add' trip.id %}">{% icon "key-round" %}{% translate "Add account" %}</a>
+    <a role="menuitem" href="{% url 'invite_new' trip.id %}">{% icon "key-round" %}{% translate "Invite" %}</a>
   </div>
 </details>
 {% endif %}{% endblock %}
