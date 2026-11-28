@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+# The jobs only read the code; no step writes to the repository or asks GitHub for tokens.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
