@@ -63,6 +63,47 @@ class ExchangeRateForm(forms.ModelForm):
         return rate
 
 
+class BaseNewRateFormSet(forms.BaseFormSet):
+    """The rate rows of the New trip page: each row is an ``ExchangeRateForm``; empty rows are
+    skipped, and a currency may appear only once."""
+
+    def clean(self):
+        if any(self.errors):
+            return
+        seen = set()
+        for form in self.forms:
+            currency = form.cleaned_data.get("currency")
+            if not currency:
+                continue
+            if currency in seen:
+                form.add_error("currency", _("This currency already has a rate."))
+            seen.add(currency)
+
+    def rows(self) -> list[tuple[str, object]]:
+        """(currency, rate) of every filled row, in page order."""
+        return [
+            (form.cleaned_data["currency"], form.cleaned_data["rate"])
+            for form in self.forms
+            if form.cleaned_data.get("currency")
+        ]
+
+
+NewRateFormSet = forms.formset_factory(
+    ExchangeRateForm, formset=BaseNewRateFormSet, extra=1, max_num=30, validate_max=True
+)
+
+
+def new_rate_formset(data=None) -> BaseNewRateFormSet:
+    """The rate rows for a new trip; the base currency comes from the same POST, so a row in
+    the base currency is refused like on the Trip settings page."""
+    base = (data or {}).get("base_currency") or Trip._meta.get_field("base_currency").default
+    if data is not None and "rates-TOTAL_FORMS" not in data:
+        # A POST without the rate rows (an older page, a script) means "no rates".
+        data = data.copy()
+        data.update({"rates-TOTAL_FORMS": "0", "rates-INITIAL_FORMS": "0"})
+    return NewRateFormSet(data, prefix="rates", form_kwargs={"trip": Trip(base_currency=base)})
+
+
 class ParticipantForm(forms.ModelForm):
     class Meta:
         model = Participant

@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% load i18n ui %}
+{% extends "base.html" %}{% load i18n static ui %}
 {% block title %}{% translate "Trip settings" %} · {{ trip.name }}{% endblock %}
 {% block back %}<a class="back" href="{% url 'trip' trip.id %}">{% icon "chevron-left" %}<span>{{ trip.name }}</span></a>{% endblock %}
 {% block content %}
@@ -10,10 +10,7 @@
     {% include "_form_errors.html" %}
     {% include "_field.html" with field=form.name %}
     {% include "_field.html" with field=form.country %}
-    <div class="two">
-      {% include "_field.html" with field=form.start_date %}
-      {% include "_field.html" with field=form.end_date %}
-    </div>
+    {% include "trips/_date_range_fields.html" %}
     {% include "_field.html" with field=form.base_currency %}
     <button type="submit" class="btn btn-block">{% translate "Save trip" %}</button>
   </form>
@@ -35,14 +32,16 @@
   <p class="muted" style="margin-bottom: 16px">{% translate "No other currencies yet." %}</p>
   {% endif %}
   {% if trip.is_settled %}<p class="muted small">{% translate "Locked while the trip is settled." %}</p>{% else %}
-  <form method="post" action="{% url 'rate_save' trip.id %}" class="stack">{% csrf_token %}
+  <form method="post" action="{% url 'rate_save' trip.id %}" class="stack" data-rate-suggest="{% url 'rate_suggestion' %}" data-base="{{ trip.base_currency }}">{% csrf_token %}
     {% include "_form_errors.html" with form=rate_form %}
     {% include "_field.html" with field=rate_form.currency %}
       <div class="field">
         <label for="{{ rate_form.rate.id_for_label }}">{{ rate_form.rate.label }}</label>
         <div class="prefixed"><span class="num">1 {{ trip.base_currency }} =</span>{{ rate_form.rate }}</div>
         {% for error in rate_form.rate.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+        <p class="rate-note" data-rate-note hidden></p>
       </div>
+    {% include "trips/_rate_note.html" %}
     <button type="submit" class="btn btn-secondary btn-block">{% translate "Save rate" %}</button>
   </form>{% endif %}
 </section>
@@ -53,4 +52,6 @@
   <a class="btn btn-danger btn-block" href="{% url 'trip_delete' trip.id %}">{% translate "Delete trip" %}</a>
 </section>
 </div>
+<script src="{% static 'js/date_range.js' %}"></script>
+<script src="{% static 'js/trip_rates.js' %}"></script>
 {% endblock %}

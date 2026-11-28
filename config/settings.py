@@ -220,6 +220,9 @@ DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
 # How many AI requests (suggestions and "Add with AI") the whole site may make per day, so many
 # accounts together cannot run up costs. Each account also has its own limit (suggest.py).
 DEEPSEEK_DAILY_LIMIT = int(os.environ.get("DEEPSEEK_DAILY_LIMIT", "500"))
+# Market exchange rates suggested for a trip's currencies (apps/trips/rates.py), from
+# ExchangeRate-API's open endpoint; <url>/<BASE> answers with today's rates. Empty turns them off.
+EXCHANGE_RATES_URL = os.environ.get("EXCHANGE_RATES_URL", "https://open.er-api.com/v6/latest")
 USE_I18N = True
 USE_TZ = True
 

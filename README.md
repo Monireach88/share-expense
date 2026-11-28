@@ -7,6 +7,7 @@ It was built to replace a spreadsheet, and it gives the same numbers as that spr
 ## Features
 
 - **Trips** with a base currency (for example USD) and one fixed exchange rate for each other currency (for example 1 USD = 26,200 VND).
+- **New trip:** one calendar picks the first and last day. Choosing a country adds its currency with today's market rate (from [ExchangeRate-API](https://www.exchangerate-api.com), asked by the server once per base currency per day; turn it off with an empty `EXCHANGE_RATES_URL`). The rate stays editable, and nothing is saved until you create the trip; Trip settings suggests the same market rate for a new currency.
 - **Travelers are just names.** Grandma does not need an account to be part of a trip.
 - **Covering:** a traveler can be covered by one or more travelers who pay for themselves (the **Everyone** chip ticks them all). The covered traveler's share is split equally among them. Balances and Stats show each traveler's own share, plus "Covered by … +amount" or "Covers … −amount", so every row adds up to its balance.
 - **Expenses:** date, payer, beneficiaries (everyone by default), type, description, amount and currency. The amount is split equally among the beneficiaries. Deleted expenses are kept in the database but left out of the totals.
