@@ -23,12 +23,21 @@ function isLogin(response) {
   return new URL(response.url).pathname.startsWith("/accounts/login/");
 }
 
+// A trip page that now answers 403 or 404: the person was removed from the trip, or it was
+// deleted. Its stored copy must not be shown again.
+function isGoneTripPage(request, response) {
+  return (response.status === 403 || response.status === 404) &&
+    new URL(request.url).pathname.startsWith("/trips/");
+}
+
 async function fetchAndStore(request) {
   const response = await fetch(request);
   const cache = await caches.open(PAGES);
   if (response.redirected && isLogin(response)) {
     // The session ended: nothing stored may be shown any more.
     await caches.delete(PAGES);
+  } else if (isGoneTripPage(request, response)) {
+    await cache.delete(request.url, { ignoreVary: true });
   } else if (response.ok && response.headers.get("X-SW-Cache") === "page") {
     await cache.put(request.url, response.clone());
   } else {
@@ -51,6 +60,9 @@ async function page(event) {
   event.waitUntil(
     fresh.then(async (response) => {
       if (response.redirected && isLogin(response)) return notify(clientId, { type: "reload" });
+      // The stored copy is on screen but the trip is no longer open to this person: reload,
+      // which now shows the server's answer (the stored copy was deleted above).
+      if (isGoneTripPage(request, response)) return notify(clientId, { type: "reload" });
       if (!response.ok || response.headers.get("X-Page-Hash") === stored.headers.get("X-Page-Hash")) return;
       notify(clientId, { type: "update", url: request.url, html: await response.clone().text() });
     }).catch(() => {})  // Offline: the stored copy stays on screen.

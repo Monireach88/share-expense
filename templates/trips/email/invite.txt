@@ -1,0 +1,10 @@
+{% load i18n %}{% autoescape off %}{% blocktranslate %}{{ inviter }} invited you to the trip "{{ trip }}" on Share Expense, an app that splits trip expenses.{% endblocktranslate %}
+
+{% translate "Open this link to join:" %}
+{{ link }}
+{% blocktranslate %}Use the Google account of {{ address }}.{% endblocktranslate %}
+
+{% blocktranslate %}This link works once and expires on {{ expires }} ({{ city }} time).{% endblocktranslate %}
+
+{% blocktranslate %}If you do not know {{ inviter }}, ignore this email.{% endblocktranslate %}
+{% endautoescape %}

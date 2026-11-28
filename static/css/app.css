@@ -150,6 +150,7 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
 }
 .tab-icon { display: grid; place-items: center; width: 56px; height: 28px; border-radius: 999px; }
 .tabbar a[aria-current="page"] { color: var(--accent); }
+.icon-btn[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
 .tabbar a[aria-current="page"] .tab-icon { background: var(--accent-soft); }
 @media (min-width: 720px) {
   .tabbar { padding-inline: calc((100vw - 640px) / 2); }
@@ -237,6 +238,7 @@ body:has(.fab-solo) main.container { padding-bottom: calc(56px + var(--s6) + env
 }
 a.row:hover { background: var(--bg); }
 .row-main { flex: 1; min-width: 0; }
+.row > .chev { flex-shrink: 0; }
 .row-main > span, .row-end > span { display: block; }
 .row-main > .tags { margin-top: 2px; }
 /* Titles and details wrap to two lines rather than cutting a word after a few letters. */
@@ -244,6 +246,7 @@ a.row:hover { background: var(--bg); }
   font-weight: 600; overflow: hidden; overflow-wrap: anywhere;
   display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
 }
+.row-title.history-line { font-weight: 500; -webkit-line-clamp: unset; }
 .row-title.placeholder { font-weight: 400; font-style: italic; color: var(--muted); }
 .row-sub {
   font-size: 13px; color: var(--muted); overflow: hidden; overflow-wrap: anywhere;
@@ -294,7 +297,7 @@ ul[data-reorder] li.ghost { opacity: 0.35; }
 .tag {
   display: inline-block; font-size: 13px; line-height: 1.6; padding: 0 var(--s2);
   border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted);
-  margin-right: var(--s1); white-space: nowrap;
+  margin-right: var(--s1); white-space: normal; max-width: 100%; overflow-wrap: anywhere;
 }
 
 /* Hero card: the one main number of a page, with a few smaller numbers under it. */
@@ -359,6 +362,12 @@ details.filters { padding-block: 0; }
 .why dd { margin: 0; text-align: right; }
 .why .why-total { font-weight: 700; color: var(--fg); padding-top: var(--s1); border-top: 1px solid var(--line); }
 .why p { margin: var(--s2) 0 0; }
+/* The read-only expense page: label on the left, value on the right, like the breakdown above. */
+.facts { margin: var(--s4) 0 0; padding-top: var(--s3); border-top: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr; gap: var(--s2) var(--s4); font-size: 15px; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; text-align: right; }
+.facts .name { white-space: nowrap; }
+.facts .facts-split { display: block; }
 .you {
   display: inline-block; vertical-align: 2px; margin-left: 4px; padding: 1px 6px; border-radius: 999px;
   font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft);
@@ -596,3 +605,76 @@ details.filters.is-filtered:not([open]) {
   position: sticky; top: 64px; z-index: 15; box-shadow: 0 4px 12px rgb(16 24 40 / 0.12);
 }
 .filters .two > .field:nth-child(5) { grid-column: 1 / -1; }
+
+/* ---------- Notifications and disputes (spec sections 4 and 5) ---------- */
+.header-actions { display: flex; align-items: center; gap: var(--s1); flex: none; }
+.bell { position: relative; }
+.bell-count {
+  position: absolute; top: 4px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 999px; background: var(--neg); color: var(--on-neg);
+  font-size: 11px; font-weight: 700; line-height: 18px; text-align: center;
+}
+.row.unread .row-title { font-weight: 700; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--neg); margin-right: var(--s2); vertical-align: middle; }
+.badge-warn { background: var(--warn-soft); color: var(--warn); }
+.row-main > .badge { display: inline-flex; }
+.disputes { margin-top: var(--s6); }
+.dispute { display: flex; flex-direction: column; gap: var(--s3); }
+.dispute-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
+.dispute-head .badge { margin-top: 0; }
+.dispute-messages { list-style: none; margin: 0; padding: 0; }
+.dispute-messages li + li { margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line); }
+.dispute-messages p { margin: 0; overflow-wrap: anywhere; }
+.dispute-write { display: flex; gap: var(--s2); align-items: flex-end; }
+.dispute-write textarea { flex: 1; min-width: 0; resize: vertical; }
+.dispute-actions { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: flex-start; }
+.dispute-actions form { display: contents; }
+.dispute-actions details form { display: block; margin-top: var(--s3); }
+.dispute-close { flex-basis: 100%; }
+.dispute-close > summary, .dispute-new > summary { list-style: none; cursor: pointer; }
+.dispute-close > summary::-webkit-details-marker, .dispute-new > summary::-webkit-details-marker { display: none; }
+.fab-warn { background: var(--warn); color: var(--surface); }
+/* Invite form: the new traveler's name only while "A new traveler" is chosen. */
+.invite-form:not(:has(input[name="traveler"][value="new"]:checked)) .new-name { display: none; }
+
+/* Exchange rate rows on the New trip page: currency, "1 USD = [rate]", remove (trip_rates.js). */
+.rate-rows > * + * { margin-top: var(--s3); }
+.rate-fields { display: flex; align-items: center; gap: 6px; }
+.rate-fields > .rate-base { flex: none; white-space: nowrap; color: var(--muted); font-weight: 600; }
+.rate-fields > input { flex: 1; min-width: 0; padding-inline: 10px; font-variant-numeric: tabular-nums; }
+.rate-fields > .icon-btn { width: 32px; }
+.rate-fields > select { flex: none; width: 112px; }
+button.icon-btn { border: 0; background: none; font: inherit; cursor: pointer; padding: 0; }
+.rate-row > .field-error { margin-top: var(--s1); }
+.rate-note { font-size: 13px; color: var(--muted); margin-top: var(--s1); }
+.rate-note a { color: var(--accent); white-space: nowrap; }
+.field > .rate-note { margin-top: 0; }
+[data-rates] > .chip-add { margin-top: var(--s3); }
+
+/* Trip dates: one calendar for the first and the last day (date_range.js). */
+input.date-pick { cursor: pointer; caret-color: transparent; }
+dialog.date-range { width: min(100vw - 32px, 360px); padding: var(--s4); }
+.dr-hint { font-size: 15px; color: var(--muted); margin-top: var(--s1); min-height: 21px; }
+.dr-head { display: flex; align-items: center; justify-content: space-between; margin: var(--s3) 0 var(--s2); }
+.dr-head button {
+  width: 44px; height: 44px; border: 0; border-radius: 999px; background: none; color: var(--fg);
+  font: 400 26px/1 var(--font); cursor: pointer;
+}
+.dr-head button:hover { background: var(--bg); }
+.dr-month { font-size: 17px; }
+.dr-grid { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: var(--s4); }
+.dr-grid th { font-size: 13px; font-weight: 600; color: var(--muted); padding: var(--s1) 0; }
+.dr-grid td { padding: 2px 0; text-align: center; }
+.dr-grid td.in-range { background: var(--accent-soft); }
+.dr-grid td.has-range.is-start { background: linear-gradient(to right, transparent 50%, var(--accent-soft) 50%); }
+.dr-grid td.has-range.is-end { background: linear-gradient(to left, transparent 50%, var(--accent-soft) 50%); }
+.dr-grid button {
+  width: 40px; height: 40px; border: 0; border-radius: 999px; background: none; color: var(--fg);
+  font: 400 16px/1 var(--font); font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.dr-grid button:hover { background: var(--bg); }
+.dr-grid td.in-range button:hover { background: var(--surface); }
+.dr-grid button[aria-current="date"] { box-shadow: inset 0 0 0 1px var(--field); }
+/* The keyboard focus is a dashed ring, so it never looks like a chosen day. */
+.dr-grid button:focus-visible { outline: 2px dashed var(--fg); outline-offset: 1px; border-radius: 999px; }
+.dr-grid .is-start button, .dr-grid .is-end button { background: var(--accent); color: var(--on-accent); font-weight: 700; }

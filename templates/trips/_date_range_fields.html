@@ -1,0 +1,5 @@
+{% load i18n %}{# Start and end date. static/js/date_range.js turns them into one calendar; without it they are two date boxes. #}
+<div class="two" data-date-range data-text-title="{% translate 'Trip dates' %}" data-text-first="{% translate 'Tap the first day' %}" data-text-last="{% translate 'Tap the last day' %}" data-text-prev="{% translate 'Previous month' %}" data-text-next="{% translate 'Next month' %}" data-text-clear="{% translate 'Clear' %}" data-text-done="{% translate 'Done' %}" data-text-empty="{% translate 'Choose' %}">
+  {% include "_field.html" with field=form.start_date %}
+  {% include "_field.html" with field=form.end_date %}
+</div>

@@ -193,10 +193,11 @@
   });
 
   // A long press (500 ms) on a type turns on edit mode instead of choosing the type.
+  // Only the owner and editors rename or remove types: their page carries data-edit.
   let timer = null;
   chips.addEventListener("pointerdown", (event) => {
     const label = event.target.closest("label[data-type]");
-    if (!label || box.classList.contains("editing")) return;
+    if (!label || !box.dataset.edit || box.classList.contains("editing")) return;
     timer = setTimeout(() => {
       timer = null;
       longPressed = true;

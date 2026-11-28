@@ -59,6 +59,8 @@ Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compos
 
 ## Environment variables
 
+In production and staging each container gets only the variables it uses: `postgres` gets the three `POSTGRES_*` values, `cloudflared` gets only the tunnel token, and `web` gets the app variables listed under `environment:` in `docker-compose.prod.yml` and `docker-compose.staging.yml`. Their values come from the file given with `--env-file` (`.env.prod`, `.env.staging`). A new app variable must be added to that list in both files and to `.env.example`; `tests/test_deploy_files.py` fails until it is. Every container's log is rotated by Docker at 10 MB, keeping 3 files.
+
 | Variable | Dev default | Production | Meaning |
 |---|---|---|---|
 | `DJANGO_DEBUG` | `true` | `false` | Debug pages, plain static files, no HTTPS settings |
@@ -74,7 +76,16 @@ Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compos
 | `CLIENT_IP_HEADER` | `HTTP_X_FORWARDED_FOR` | `HTTP_CF_CONNECTING_IP` | Header with the real visitor IP, so a login lock hits the attacker and not everyone behind the proxy |
 | `DEEPSEEK_API_KEY` | empty | your key | Writing suggestions under the expense description; empty turns them off |
 | `DEEPSEEK_MODEL` | `deepseek-flash` | `deepseek-flash` | DeepSeek model for the suggestions |
+| `DEEPSEEK_DAILY_LIMIT` | `500` | `500` | AI requests (suggestions and "Add with AI" together) the whole site may make per day; over it, the AI features answer "try again later". Each account also has its own limit of 60 per 10 minutes. The counts are kept in the database cache table `django_cache`, shared by every gunicorn worker |
+| `EXCHANGE_RATES_URL` | `https://open.er-api.com/v6/latest` | `https://open.er-api.com/v6/latest` | Market exchange rates suggested on the New trip and Trip settings pages (ExchangeRate-API's open endpoint, no key). The server asks `<url>/<BASE>` at most once per base currency per day (4-second timeout) and keeps the answer in the database cache; the browser never calls it. Empty turns the rate suggestion off; the suggested currency still appears |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | empty | from Google Cloud | Sign in with Google; empty hides the button. Redirect URI: `https://<domain>/accounts/google/login/callback/` |
+| `EMAIL_HOST` | empty | `smtp.zoho.com` | SMTP server for the personal invite email. Empty turns email off: invites still work, the Owner sends the link themselves, and Django prints emails to the console |
+| `EMAIL_PORT` | `465` | `465` | SMTP port (465 = implicit TLS) |
+| `EMAIL_USE_SSL` / `EMAIL_USE_TLS` | `true` / `false` | `true` / `false` | Implicit TLS (port 465) or STARTTLS (port 587); set only one to `true` |
+| `EMAIL_HOST_USER` | empty | the mailbox address | SMTP user name: the address you log in to the provider with |
+| `EMAIL_HOST_PASSWORD` | empty | app password | An application-specific password for this app, never the account password |
+| `EMAIL_TIMEOUT` | `10` | `10` | Seconds to wait for the SMTP server before the send counts as failed |
+| `DEFAULT_FROM_EMAIL` | `Share Expense <you@example.com>` | the mailbox address | Sender of the invite email: the mailbox address or one of its aliases (most providers refuse other senders) |
 | `CLOUDFLARE_TUNNEL_TOKEN` | — | **required** | `cloudflared tunnel token <tunnel-name>` |
 | `GUNICORN_WORKERS` | — | `2` | |
 

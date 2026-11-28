@@ -7,6 +7,7 @@ It was built to replace a spreadsheet, and it gives the same numbers as that spr
 ## Features
 
 - **Trips** with a base currency (for example USD) and one fixed exchange rate for each other currency (for example 1 USD = 26,200 VND).
+- **New trip:** one calendar picks the first and last day. Choosing a country adds its currency with today's market rate (from [ExchangeRate-API](https://www.exchangerate-api.com), asked by the server once per base currency per day; turn it off with an empty `EXCHANGE_RATES_URL`). The rate stays editable, and nothing is saved until you create the trip; Trip settings suggests the same market rate for a new currency.
 - **Travelers are just names.** Grandma does not need an account to be part of a trip.
 - **Covering:** a traveler can be covered by one or more travelers who pay for themselves (the **Everyone** chip ticks them all). The covered traveler's share is split equally among them. Balances and Stats show each traveler's own share, plus "Covered by … +amount" or "Covers … −amount", so every row adds up to its balance.
 - **Expenses:** date, payer, beneficiaries (everyone by default), type, description, amount and currency. The amount is split equally among the beneficiaries. Deleted expenses are kept in the database but left out of the totals.
@@ -20,7 +21,7 @@ It was built to replace a spreadsheet, and it gives the same numbers as that spr
 - **Fast repeat visits:** a service worker shows the last copy of a page at once, then fetches the fresh copy and swaps it in if anything changed. Any save, delete, login or logout clears the stored pages, and pages with a one-time message are never stored. Static files have content-hashed names and are cached for a year.
 - **Long lists** show about 25 rows, then a "Load more" button; a page never splits a day, so day totals match their rows.
 - **Exact money:** amounts are stored as decimals, shares are kept as exact fractions, and balances are rounded once so they always add up to exactly zero.
-- **Accounts:** anyone can request an account; it stays inactive until the admin approves it in the admin page. The admin can also create accounts directly. Login is locked for 1 hour after 5 wrong passwords.
+- **Accounts:** a trip Owner invites a person by email; the person accepts with the Google account of that address, which creates their account. The admin can also create accounts in the admin page. A person can close their own account; the admin can restore it. Login is locked for 1 hour after 5 wrong passwords.
 - **Roles per trip:** the **owner** manages people, members, rates and the trip itself; a **member** adds, edits and deletes expenses. Every expense records who created and who last changed it.
 
 ## How the money is calculated
@@ -59,13 +60,14 @@ Open http://share-expense.local and log in.
 | `make lint` | ruff check and format check |
 | `make migrations` / `make migrate` | Create / apply database migrations |
 
-## Approving accounts
+## Inviting people
 
-1. A new user opens **Request an account**, then waits.
-2. The admin opens `/admin/` → Users, ticks the request, and chooses **Approve selected sign-up requests**.
-3. The user can now log in. The trip owner adds them to a trip on the trip's **Travelers** page, with the **+** button → **Add account**.
+1. The trip Owner opens the trip's **Travelers** page, taps **+** → **Invite**, and types a username or an email address, and which traveler the person is.
+2. An approved account (its username, or the address it signs in with through Google) joins the trip at once.
+3. Any other address gets a **personal invite**: a link that works once, for 7 days. The app emails it when SMTP is set up (`EMAIL_*` variables in [`DOCKER_SETUP.md`](DOCKER_SETUP.md)); the Owner can always copy it and send it themselves. Pending invites are listed on the Travelers page with **Copy link**, **Send again** and **Cancel**.
+4. The person opens the link and taps **Continue with Google**. Only the Google account of the invited address is accepted; it creates their account and puts them on the trip.
 
-**Sign in with Google.** With `GOOGLE_CLIENT_ID` set, the login page shows **Continue with Google**. An approved account whose email matches the Google email signs in; anyone else's first Google sign-in creates an account that waits for the admin's approval, like a request from the sign-up page. A signed-in user can connect Google from the account menu (**Google sign-in**) and from then on sign in without the password.
+**Sign in with Google.** With `GOOGLE_CLIENT_ID` set, the login page shows **Continue with Google**. Google sign-in matches only a Google account that is linked to an account; a typed email address never signs anyone in. Accounts with a username and password can link Google from the account menu (**Google account**). Google sign-in with no linked account and no invite is refused.
 
 ## Self-hosting
 

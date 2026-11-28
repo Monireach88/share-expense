@@ -1,0 +1,13 @@
+{% load i18n ui %}<div class="rate-row" data-rate-row>
+  <div class="rate-fields">
+    <label class="visually-hidden" for="{{ row.rate.id_for_label }}">{% translate "Rate" %}</label>
+    <span class="rate-base num" data-base-label>1 {{ base }} =</span>
+    {{ row.rate }}
+    <label class="visually-hidden" for="{{ row.currency.id_for_label }}">{% translate "Currency" %}</label>
+    {{ row.currency }}
+    <button type="button" class="icon-btn" data-remove-rate aria-label="{% translate 'Remove this currency' %}" hidden>{% icon "x" %}</button>
+  </div>
+  {% for error in row.rate.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+  {% for error in row.currency.errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
+  <p class="rate-note" data-rate-note hidden></p>
+</div>

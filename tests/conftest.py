@@ -43,3 +43,25 @@ def trip(make_trip, owner):
 def owner_client(client, owner):
     client.force_login(owner)
     return client
+
+
+@pytest.fixture(autouse=True)
+def no_dns(request, monkeypatch):
+    """Tests never ask real DNS: every invite domain receives email, unless a test opts out
+    with the "real_email_check" marker and mocks the resolver itself."""
+    if "real_email_check" in request.keywords:
+        return
+    from apps.trips import email_check
+
+    monkeypatch.setattr(email_check, "receives_email", lambda domain: True)
+
+
+@pytest.fixture(autouse=True)
+def no_exchange_rates(monkeypatch):
+    """Tests never call the exchange rate service: the call fails unless a test replaces it."""
+    from apps.trips import rates
+
+    def offline(request, timeout):
+        raise OSError("tests do not call the exchange rate service")
+
+    monkeypatch.setattr(rates, "urlopen", offline)

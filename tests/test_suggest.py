@@ -171,3 +171,29 @@ def test_everyone_and_me_are_understood(owner_client, trip, ai_reply):
     data = fill(owner_client, trip, "I paid 9 USD for a taxi for everyone")
     assert data["fields"]["beneficiaries"] == [str(owner_p.id), str(friend.id)]
     assert '"I" or "me" means Owner' in sent[0][0]["content"]
+
+
+def test_ai_limits_are_counted_in_the_database_shared_by_every_worker(db, settings):
+    from django.core.cache import caches
+
+    assert settings.CACHES["default"]["BACKEND"] == "django.core.cache.backends.db.DatabaseCache"
+    caches["default"].set("probe", 1)  # The table exists in tests too (made by a migration).
+    assert caches["default"].get("probe") == 1
+
+
+def test_the_whole_site_has_a_daily_ai_limit(owner_client, trip, deepseek, settings, make_user):
+    from django.test import Client
+
+    from apps.trips.models import TripMember
+
+    settings.DEEPSEEK_DAILY_LIMIT = 2
+    friend = make_user("friend")
+    TripMember.objects.create(trip=trip, user=friend, role=TripMember.Role.EDITOR)
+    friend_client = Client()
+    friend_client.force_login(friend)
+    assert ask(owner_client, trip, "one a").status_code == 200
+    assert ask(friend_client, trip, "two b").status_code == 200
+    assert ask(friend_client, trip, "three c").status_code == 429  # Another account, same day.
+    response = owner_client.post(reverse("expense_ai_fill", args=[trip.id]), {"text": "x"})
+    assert response.status_code == 429
+    assert response.json() == {"error": "Too many requests. Try again in a few minutes."}

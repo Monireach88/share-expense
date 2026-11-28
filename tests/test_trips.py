@@ -92,8 +92,10 @@ def test_non_member_gets_404_on_every_trip_page(client, trip, make_user):
 def test_member_can_record_expenses_but_not_manage_the_trip(client, trip, make_user):
     member = make_user("member")
     TripMember.objects.create(trip=trip, user=member)
+    payer = trip.participants.get(name="Friend")
+    payer.user = member  # A Member records expenses paid by their own linked traveler.
+    payer.save()
     client.force_login(member)
-    payer = trip.participants.first()
     response = client.post(
         reverse("expense_create", args=[trip.id]),
         {
@@ -391,6 +393,11 @@ def test_service_worker_is_public_and_versioned(client):
     assert response["Content-Type"].startswith("text/javascript")
     assert 'const VERSION = "' in response.content.decode()
     assert response["Cache-Control"] == "no-cache"
+    # A trip page that answers 403 or 404 loses its stored copy and the page reloads.
+    assert "response.status === 403 || response.status === 404" in response.content.decode()
+    assert 'if (isGoneTripPage(request, response)) return notify(clientId, { type: "reload" })' in (
+        response.content.decode()
+    )
 
 
 def test_spending_share_matches_balances_and_its_rows(owner_client, trip):
@@ -462,7 +469,6 @@ def test_settled_trip_locks_everything_that_changes_the_numbers(owner_client, tr
         reverse("expense_edit", args=[trip.id, expense.id]),
         reverse("expense_delete", args=[trip.id, expense.id]),
         reverse("participant_create", args=[trip.id]),
-        reverse("participant_edit", args=[trip.id, friend.id]),
         reverse("participant_delete", args=[trip.id, friend.id]),
     ):
         response = owner_client.post(url, {"name": "X", "amount": "1"})
@@ -475,14 +481,23 @@ def test_settled_trip_locks_everything_that_changes_the_numbers(owner_client, tr
         == 302
     )
     assert not trip.rates.exists()
+    # The traveler page stays open on a settled trip, but only the linked account can change.
+    owner_client.post(reverse("participant_edit", args=[trip.id, friend.id]), {"name": "X"})
+    friend.refresh_from_db()
+    assert friend.name == "Friend"
     expense.refresh_from_db()
     assert expense.deleted_at is None and trip.participants.count() == 2
     page = owner_client.get(reverse("trip", args=[trip.id])).content.decode()
     assert "Add expense" not in page
-    assert reverse("expense_edit", args=[trip.id, expense.id]) not in page
+    # Cards still open the expense page, read-only.
+    edit_url = reverse("expense_edit", args=[trip.id, expense.id])
+    assert edit_url in page
+    detail = owner_client.get(edit_url).content.decode()
+    assert "Save changes" not in detail and "Delete this expense" not in detail
+    assert "This trip is settled" in detail
 
 
-def test_only_the_owner_settles_or_reopens(client, trip, make_user):
+def test_a_member_cannot_settle_or_reopen(client, trip, make_user):
     member = make_user("member")
     TripMember.objects.create(trip=trip, user=member)
     client.force_login(member)
@@ -492,9 +507,9 @@ def test_only_the_owner_settles_or_reopens(client, trip, make_user):
 
 def test_owner_adds_an_account_on_its_own_page(owner_client, trip, make_user):
     make_user("friend")
-    url = reverse("member_add", args=[trip.id])
+    url = reverse("invite_new", args=[trip.id])
     assert owner_client.get(url).status_code == 200
-    response = owner_client.post(url, {"username": "friend"})
+    response = owner_client.post(url, {"who": "friend", "traveler": "none", "confirm": "1"})
     assert response.status_code == 302
     assert trip.memberships.filter(user__username="friend").exists()
 
@@ -504,8 +519,9 @@ def test_only_the_owner_can_add_an_account(client, trip, make_user):
     TripMember.objects.create(trip=trip, user=friend)
     make_user("other")
     client.force_login(friend)
-    url = reverse("member_add", args=[trip.id])
-    assert client.post(url, {"username": "other"}).status_code == 403
+    url = reverse("invite_new", args=[trip.id])
+    data = {"who": "other", "traveler": "none", "confirm": "1"}
+    assert client.post(url, data).status_code == 403
     assert not trip.memberships.filter(user__username="other").exists()
 
 
@@ -778,3 +794,40 @@ def test_avatar_letter_comes_from_the_given_name():
     assert initial("Person A") == "A"
     assert initial("dara") == "D"
     assert initial("") == ""
+
+
+FORMULAS = ["=1+1", '=HYPERLINK("http://x","a")', "+1", "-1", "@SUM(A1)", "\tx", "\rx"]
+
+
+def test_export_cells_that_look_like_formulas_stay_plain_text(owner_client, trip):
+    import csv as csv_module
+    import io
+
+    from openpyxl import load_workbook
+
+    owner_p, friend = trip.participants.all()
+    for text in FORMULAS:
+        add_expense(trip, owner_p, [owner_p], "1", description=text)
+    url = reverse("report_export", args=[trip.id, "csv"])
+    text = owner_client.get(url).content.decode("utf-8-sig")
+    descriptions = [row[1] for row in csv_module.reader(io.StringIO(text, newline=""))][1:]
+    assert sorted(descriptions) == sorted("'" + f for f in FORMULAS)
+    xlsx = owner_client.get(reverse("report_export", args=[trip.id, "xlsx"])).content
+    sheet = load_workbook(io.BytesIO(xlsx)).active
+    cells = [sheet.cell(row=r, column=2) for r in range(2, sheet.max_row + 1)]
+    # XML turns a carriage return into a line feed when the file is read back.
+    assert sorted(c.value for c in cells) == sorted(("'" + f).replace("\r", "\n") for f in FORMULAS)
+    assert {c.data_type for c in cells} == {"s"}
+    assert sheet.cell(row=2, column=6).data_type == "n"  # Amounts stay numbers.
+
+
+def test_xlsx_export_works_for_a_trip_name_excel_forbids_in_sheet_names(owner_client, trip):
+    import io
+
+    from openpyxl import load_workbook
+
+    for name, title in [("Bali 2026/27", "Bali 202627"), ("[?*:\\/]", "Expenses")]:
+        Trip.objects.filter(pk=trip.pk).update(name=name)
+        response = owner_client.get(reverse("report_export", args=[trip.id, "xlsx"]))
+        assert response.status_code == 200
+        assert load_workbook(io.BytesIO(response.content)).active.title == title

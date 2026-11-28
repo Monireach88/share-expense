@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% load i18n socialaccount %}
+{% comment %}The page a personal invite link opens. Before acceptance it shows only the trip name, who invited and the invited address partly hidden.{% endcomment %}
+{% block title %}{{ trip_name }}{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<div class="auth-intro">
+  <div class="brand-mark" aria-hidden="true">S</div>
+  <h1 class="page-title">{{ trip_name }}</h1>
+  <p>{% blocktranslate %}{{ inviter }} invited you to this trip on Share Expense.{% endblocktranslate %}</p>
+</div>
+{% if join %}
+<form method="post" class="card stack">{% csrf_token %}
+  <button type="submit" name="join" value="1" class="btn btn-block">{% blocktranslate %}Join {{ trip_name }}{% endblocktranslate %}</button>
+</form>
+{% else %}
+<div class="card stack">
+  <p>{% blocktranslate %}This invite is for {{ address }}. Continue with the Google account of this address.{% endblocktranslate %}</p>
+  {% if google_signin %}
+  {# A normal form post (no hx-boost): the browser must follow the redirect to Google's own page. #}
+  <form method="post" action="{% provider_login_url 'google' next=next %}" hx-boost="false">{% csrf_token %}
+    <button type="submit" class="btn btn-block btn-google">{% include "_google_logo.html" %}{% translate "Continue with Google" %}</button>
+  </form>
+  {% else %}
+  <p class="small muted">{% translate "Log in with Google is not set up yet. Ask the Owner of the trip." %}</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

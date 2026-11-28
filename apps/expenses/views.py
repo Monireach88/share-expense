@@ -5,6 +5,8 @@ from itertools import groupby
 from urllib.parse import quote
 
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Max
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -17,8 +19,12 @@ from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 
+from apps.disputes import rules as dispute_rules
+from apps.disputes import views as dispute_views
+from apps.disputes.models import Dispute
 from apps.settlement.engine import SettlementError, to_base
-from apps.trips.access import get_membership, locked
+from apps.trips import history
+from apps.trips.access import get_membership, lock_trip, locked
 from apps.trips.offline import cacheable_page
 from apps.trips.pagination import DayPage
 from apps.trips.summary import named, trip_settlement
@@ -42,6 +48,11 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
     q = request.GET.get("q", "").strip()[:100]
     if q:
         expenses = [e for e in expenses if _matches(e, q)]
+    disputed = dispute_views.open_ids(trip)
+    # Balances links here when open disputes block settling: only the disputed expenses.
+    only_disputed = request.GET.get("disputed") == "1"
+    if only_disputed:
+        expenses = [e for e in expenses if e.id in disputed]
     rates = trip.rate_map()
     day_totals: dict = {}
     for e in expenses:
@@ -71,8 +82,19 @@ def expense_list(request: HttpRequest, trip_id) -> HttpResponse:
         "tab": "expenses",
         "ai_enabled": suggest.enabled(),
         "q": q,
+        "disputed": disputed,
+        "only_disputed": only_disputed,
+        # A dispute on a deleted expense also blocks settling, but its card is gone: link it.
+        "deleted_disputed": list(
+            Expense.all_objects.filter(id__in=disputed, trip=trip, deleted_at__isnull=False)
+        )
+        if only_disputed
+        else [],
         # A search shows only part of a day, so cards can be reordered only in the full list.
-        "can_reorder": not q and not trip.is_settled,
+        "can_reorder": membership.can_manage_expenses
+        and not q
+        and not only_disputed
+        and not trip.is_settled,
     }
     try:
         context["summary"] = named(trip, trip_settlement(trip), request.user)
@@ -105,21 +127,22 @@ def _matches(expense: Expense, query: str) -> bool:
 @require_POST
 def expense_reorder(request: HttpRequest, trip_id) -> HttpResponse:
     """Save the order of one day's cards after a drag: ``ids`` lists the whole day, in order."""
-    membership = get_membership(request, trip_id)
-    trip = membership.trip
-    if trip.is_settled:
-        return HttpResponse(status=409)
+    membership = get_membership(request, trip_id, managers_only=True)
     ids = request.POST.getlist("ids")
     try:
         day = date.fromisoformat(request.POST.get("day", ""))
-        expenses = {str(e.id): e for e in trip.expenses.filter(date=day)}
     except ValueError:
         return HttpResponse(status=400)
-    if sorted(ids) != sorted(expenses):
-        return HttpResponse(status=409)  # The day changed in the meantime; the page reloads.
-    for position, expense_id in enumerate(ids):
-        expenses[expense_id].position = position
-    Expense.objects.bulk_update(expenses.values(), ["position"])
+    with transaction.atomic():
+        trip = lock_trip(membership.trip)
+        if trip.is_settled:
+            return HttpResponse(status=409)
+        expenses = {str(e.id): e for e in trip.expenses.filter(date=day)}
+        if sorted(ids) != sorted(expenses):
+            return HttpResponse(status=409)  # The day changed in the meantime; the page reloads.
+        for position, expense_id in enumerate(ids):
+            expenses[expense_id].position = position
+        Expense.objects.bulk_update(expenses.values(), ["position"])
     return HttpResponse(status=204)
 
 
@@ -136,57 +159,99 @@ def _form_error(form) -> JsonResponse:
 
 @require_POST
 def category_create(request: HttpRequest, trip_id) -> HttpResponse:
-    """Add a type from the expense form; answers JSON so the form keeps what was typed."""
-    trip = get_membership(request, trip_id).trip
-    if trip.is_settled:
-        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    """Add a type from the expense form; answers JSON so the form keeps what was typed.
+    Everyone who may add an expense may add a type; only Owner and Editors rename or remove."""
+    membership = get_membership(request, trip_id, can_add=True)
+    trip = membership.trip
     form = CategoryForm(request.POST, trip=trip)
     if not form.is_valid():
         return _form_error(form)
-    category = form.save(commit=False)
-    category.trip = trip
-    category.position = (trip.categories.aggregate(m=Max("position"))["m"] or 0) + 1
-    category.save()
+    with transaction.atomic():
+        if lock_trip(trip).is_settled:
+            return JsonResponse({"error": _("This trip is settled.")}, status=409)
+        category = form.save(commit=False)
+        category.trip = trip
+        category.position = (trip.categories.aggregate(m=Max("position"))["m"] or 0) + 1
+        category.save()
+        history.record(
+            trip, membership, "added", "type", object_id=category.pk, label=category.name
+        )
     return _category_json(category, status=201)
 
 
 @require_POST
 def category_edit(request: HttpRequest, trip_id, category_id) -> HttpResponse:
-    trip = get_membership(request, trip_id).trip
+    membership = get_membership(request, trip_id, managers_only=True)
+    trip = membership.trip
     category = get_object_or_404(Category, pk=category_id, trip=trip)
-    if trip.is_settled:
-        return JsonResponse({"error": _("This trip is settled.")}, status=409)
+    old_name, old_emoji = category.name, category.emoji
     form = CategoryForm(request.POST, instance=category, trip=trip)
     if not form.is_valid():
         return _form_error(form)
-    return _category_json(form.save())
+    with transaction.atomic():
+        if lock_trip(trip).is_settled:
+            return JsonResponse({"error": _("This trip is settled.")}, status=409)
+        category = form.save()
+        if category.name != old_name:
+            history.record(
+                trip,
+                membership,
+                "renamed",
+                "type",
+                object_id=category.pk,
+                label=category.name,
+                changes={"name": history.change(old_name, category.name)},
+            )
+        if category.emoji != old_emoji:
+            history.record(
+                trip,
+                membership,
+                "changed",
+                "type",
+                object_id=category.pk,
+                label=category.name,
+                changes={"icon": history.change(old_emoji, category.emoji)},
+            )
+    return _category_json(category)
 
 
 @require_POST
 def category_delete(request: HttpRequest, trip_id, category_id) -> HttpResponse:
     """Remove a type no expense uses. Deleted expenses that had it simply lose their type."""
-    trip = get_membership(request, trip_id).trip
+    membership = get_membership(request, trip_id, managers_only=True)
+    trip = membership.trip
     category = get_object_or_404(Category, pk=category_id, trip=trip)
-    if trip.is_settled:
-        return JsonResponse({"error": _("This trip is settled.")}, status=409)
-    used = trip.expenses.filter(category=category).count()
-    if used:
-        message = ngettext(
-            "“%(name)s” is used by %(n)d expense, so it cannot be removed.",
-            "“%(name)s” is used by %(n)d expenses, so it cannot be removed.",
-            used,
-        ) % {"name": category.name, "n": used}
-        return JsonResponse({"error": message}, status=409)
-    if trip.categories.count() == 1:
-        return JsonResponse({"error": _("A trip needs at least one type.")}, status=409)
-    category.delete()
+    with transaction.atomic():
+        if lock_trip(trip).is_settled:
+            return JsonResponse({"error": _("This trip is settled.")}, status=409)
+        used = trip.expenses.filter(category=category).count()
+        if used:
+            message = ngettext(
+                "“%(name)s” is used by %(n)d expense, so it cannot be removed.",
+                "“%(name)s” is used by %(n)d expenses, so it cannot be removed.",
+                used,
+            ) % {"name": category.name, "n": used}
+            return JsonResponse({"error": message}, status=409)
+        # A deleted expense with a dispute still needs its type, so it can be restored.
+        if Dispute.objects.filter(trip=trip, expense__category=category).exists():
+            return JsonResponse(
+                {"error": dispute_rules.disputes_in_use_message("type")}, status=409
+            )
+        if trip.categories.count() == 1:
+            return JsonResponse({"error": _("A trip needs at least one type.")}, status=409)
+        history.record(
+            trip, membership, "removed", "type", object_id=category.pk, label=category.name
+        )
+        category.delete()
     return HttpResponse(status=204)
 
 
 @require_POST
 def expense_ai_fill(request: HttpRequest, trip_id) -> HttpResponse:
-    """Read one sentence about an expense; answer the form values it states for certain."""
-    trip = get_membership(request, trip_id).trip
+    """Read one sentence about an expense; answer the form values it states for certain.
+    A Member's payer is always their own traveler (``fixed_payer``)."""
+    membership = get_membership(request, trip_id, can_add=True)
+    trip = membership.trip
     if trip.is_settled:
         return JsonResponse({"error": _("This trip is settled.")}, status=409)
     if not suggest.enabled():
@@ -195,14 +260,17 @@ def expense_ai_fill(request: HttpRequest, trip_id) -> HttpResponse:
         return JsonResponse(
             {"error": _("Too many requests. Try again in a few minutes.")}, status=429
         )
-    me = trip.participants.filter(user=request.user).first()
-    return JsonResponse(ai_fill.fill(trip, request.POST.get("text", ""), me))
+    me = membership.linked_traveler
+    fixed_payer = not membership.can_manage_expenses
+    return JsonResponse(
+        ai_fill.fill(trip, request.POST.get("text", ""), me, fixed_payer=fixed_payer)
+    )
 
 
 @require_POST
 def description_suggestion(request: HttpRequest, trip_id) -> HttpResponse:
     """A better wording of the description being typed, as JSON {"suggestion": "..."}."""
-    trip = get_membership(request, trip_id).trip
+    trip = get_membership(request, trip_id, can_add=True).trip
     if not suggest.enabled():
         return JsonResponse({"suggestion": ""})
     if not suggest.allowed(request.user.pk):
@@ -216,10 +284,11 @@ def _in_trip(trip, day) -> bool:
     )
 
 
-def _initial(request: HttpRequest, trip) -> dict:
+def _initial(request: HttpRequest, membership) -> dict:
     """Sensible defaults: today, the current user as payer, everyone as beneficiary, last currency."""
+    trip = membership.trip
     last = trip.expenses.filter(created_by=request.user).order_by("-created_at").first()
-    me = trip.participants.filter(user=request.user).first()
+    me = membership.linked_traveler
     today = timezone.localdate()
     return {
         "date": today if _in_trip(trip, today) or not trip.start_date else trip.start_date,
@@ -240,6 +309,18 @@ def _trip_days(trip) -> list:
     if count > MAX_DAY_CHIPS:
         return []
     return [trip.start_date + timedelta(days=i) for i in range(count)]
+
+
+def _payer_only(membership):
+    """The one payer a Member may record (their own traveler); None for Owner and Editors."""
+    return None if membership.can_manage_expenses else membership.linked_traveler
+
+
+def _check_payer(request: HttpRequest, membership) -> None:
+    """A Member's request with another traveler as payer is refused (403), never changed."""
+    payer = request.POST.get("payer")
+    if payer and not membership.allowed_payer(payer):
+        raise PermissionDenied
 
 
 def _form_context(trip, membership, form, expense=None) -> dict:
@@ -270,19 +351,30 @@ def _saved_text(expense) -> str:
 
 
 def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
-    membership = get_membership(request, trip_id)
+    membership = get_membership(request, trip_id, can_add=True)
     if response := locked(request, membership.trip):
         return response
     trip = membership.trip
     if not trip.participants.exists():
         return redirect("people", trip_id=trip.id)
-    form = ExpenseForm(request.POST or None, trip=trip, initial=_initial(request, trip))
+    if request.method == "POST":
+        _check_payer(request, membership)
+    form = ExpenseForm(
+        request.POST or None,
+        trip=trip,
+        initial=_initial(request, membership),
+        payer_only=_payer_only(membership),
+    )
     if request.method == "POST" and form.is_valid():
-        expense = form.save(commit=False)
-        expense.trip = trip
-        expense.created_by = expense.updated_by = request.user
-        expense.save()
-        form.save_m2m()
+        with transaction.atomic():
+            if response := locked(request, lock_trip(trip)):
+                return response
+            expense = form.save(commit=False)
+            expense.trip = trip
+            expense.created_by = expense.updated_by = request.user
+            expense.save()
+            form.save_m2m()
+            history.record_expense(trip, membership, "added", history.fresh_expense(expense.pk))
         messages.success(request, _("Added: %(expense)s") % {"expense": _saved_text(expense)})
         if "add_another" in request.POST:
             return redirect("expense_create", trip_id=trip.id)
@@ -301,20 +393,52 @@ def _back_url(request: HttpRequest, trip_id) -> str:
 
 
 def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
+    """The expense page: the edit form for people who may edit the expense, else read-only.
+    On a settled trip it is read-only for everyone."""
     membership = get_membership(request, trip_id)
-    if response := locked(request, membership.trip):
+    trip = membership.trip
+    expense = (
+        Expense.all_objects.select_related("payer__user", "category", "created_by", "updated_by")
+        .filter(pk=expense_id, trip=trip)
+        .first()
+    )
+    if expense is None or expense.deleted_at is not None:
+        return _deleted_expense_view(request, membership, expense_id, expense)
+    can_edit = membership.can_edit_expense(expense)
+    if request.method != "POST" and (trip.is_settled or not can_edit):
+        return _expense_view(request, membership, expense)
+    if response := locked(request, trip):
         return response
-    expense = get_object_or_404(Expense, pk=expense_id, trip=membership.trip)
-    form = ExpenseForm(request.POST or None, instance=expense, trip=membership.trip)
+    if not can_edit:
+        raise PermissionDenied
+    _check_payer(request, membership)
+    form = ExpenseForm(
+        request.POST or None, instance=expense, trip=trip, payer_only=_payer_only(membership)
+    )
     if request.method == "POST" and form.is_valid():
-        expense = form.save(commit=False)
-        expense.updated_by = request.user
-        expense.save()
-        form.save_m2m()
+        with transaction.atomic():
+            if response := locked(request, lock_trip(trip)):
+                return response
+            before = history.expense_snapshot(history.fresh_expense(expense.pk))
+            expense = form.save(commit=False)
+            expense.updated_by = request.user
+            expense.save()
+            form.save_m2m()
+            history.record_expense(
+                trip, membership, "changed", history.fresh_expense(expense.pk), before=before
+            )
         messages.success(request, _("Saved: %(expense)s") % {"expense": _saved_text(expense)})
+        if expense.disputes.filter(state=Dispute.State.OPEN).exists():
+            # The fixer stays on the expense page, sees the dispute and can write "Fixed".
+            back = request.POST.get("next")
+            url = reverse("expense_edit", args=[trip_id, expense.id])
+            if back:
+                url += f"?next={quote(_back_url(request, trip_id))}"
+            return redirect(url + "#disputes")
         return redirect(_back_url(request, trip_id))
     context = _form_context(membership.trip, membership, form, expense)
     context["back_url"] = _back_url(request, trip_id)
+    context.update(dispute_views.section(membership, expense))
     return render(request, "expenses/form.html", context)
 
 
@@ -323,10 +447,18 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     if response := locked(request, membership.trip):
         return response
     expense = get_object_or_404(Expense, pk=expense_id, trip=membership.trip)
+    if not membership.can_edit_expense(expense):
+        raise PermissionDenied
     if request.method == "POST":
-        expense.deleted_at = timezone.now()
-        expense.updated_by = request.user
-        expense.save(update_fields=["deleted_at", "updated_by", "updated_at"])
+        with transaction.atomic():
+            if response := locked(request, lock_trip(membership.trip)):
+                return response
+            expense.deleted_at = timezone.now()
+            expense.updated_by = request.user
+            expense.save(update_fields=["deleted_at", "updated_by", "updated_at"])
+            history.record_expense(
+                membership.trip, membership, "deleted", history.fresh_expense(expense.pk)
+            )
         messages.success(request, _("Deleted: %(expense)s") % {"expense": _saved_text(expense)})
         return redirect(_back_url(request, trip_id))
     return render(
@@ -344,6 +476,160 @@ def expense_delete(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
             "next": _back_url(request, trip_id),
         },
     )
+
+
+def _money_facts(trip, amount, currency, count: int, everyone: bool) -> dict:
+    """The lines under an expense's amount: its value in the base currency (when a rate exists)
+    and each traveler's share. Shared by the read-only page and the deleted-expense page."""
+    share = (amount / count).quantize(Decimal("0.01")) if count else Decimal(0)
+    base_amount = None
+    with suppress(SettlementError):
+        base_amount = to_base(amount, currency, trip.base_currency, trip.rate_map())
+    # "Everyone (5 travelers)" already gives the count, so the line under it gives only the share.
+    if everyone:
+        template = _("%(share)s %(currency)s each")
+    else:
+        template = ngettext(
+            "%(n)d traveler · %(share)s %(currency)s each",
+            "%(n)d travelers · %(share)s %(currency)s each",
+            count,
+        )
+    split_line = template % {
+        "n": count,
+        "share": format_amount(share, currency),
+        "currency": currency,
+    }
+    return {"base_amount": base_amount, "split_line": split_line}
+
+
+def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
+    """The expense page read-only: the same values as the form, with no Save or Delete."""
+    trip = membership.trip
+    if trip.is_settled:
+        reason = _("This trip is settled, so its expenses are locked.")
+    elif membership.is_viewer:
+        reason = _(
+            "Your account is not linked to a traveler, so you can view expenses but not "
+            "change them. The trip Owner can link it."
+        )
+    else:
+        reason = _who_may_change(expense.payer)
+    beneficiaries = list(expense.beneficiaries.all())
+    everyone = {p.pk for p in beneficiaries} == {p.pk for p in trip.participants.all()}
+    facts = _money_facts(trip, expense.amount, expense.currency, len(beneficiaries), everyone)
+    return render(
+        request,
+        "expenses/detail.html",
+        {
+            "trip": trip,
+            "membership": membership,
+            "expense": expense,
+            "beneficiaries": beneficiaries,
+            "names": [p.name for p in beneficiaries],
+            "everyone": everyone,
+            **facts,
+            "reason": reason,
+            "back_url": _back_url(request, trip.id),
+            **dispute_views.section(membership, expense),
+        },
+    )
+
+
+def _deleted_expense_view(request: HttpRequest, membership, expense_id, row) -> HttpResponse:
+    """A deleted expense, from its last History values, with Restore for people allowed to.
+
+    ``row`` is the deleted expense, or None when it was erased (with its payer, as today); its
+    History entries then still read, but it can no longer be restored."""
+    trip = membership.trip
+    values = history.last_expense_values(trip, expense_id, row)
+    if values is None or request.method != "GET":
+        raise Http404
+    deleted = (
+        trip.history.filter(object_type="expense", object_id=str(expense_id), action="deleted")
+        .select_related("actor")
+        .first()
+    )
+    can_restore = row is not None and membership.can_edit_expense(row)
+    if row is None:
+        reason = _("%(name)s was removed from the trip, so this expense cannot be restored.") % {
+            "name": values["payer"]
+        }
+    elif trip.is_settled:
+        reason = _("This trip is settled, so its expenses are locked.")
+    elif not can_restore:
+        reason = _who_may_change(row.payer, restore=True)
+    else:
+        reason = ""
+    everyone = set(values["for_ids"]) == {str(p.pk) for p in trip.participants.all()}
+    category = trip.categories.filter(pk=values["type_id"]).first() if values["type_id"] else None
+    amount = Decimal(values["amount"])
+    facts = _money_facts(trip, amount, values["currency"], len(values["for_ids"]), everyone)
+    return render(
+        request,
+        "expenses/deleted.html",
+        {
+            "trip": trip,
+            "membership": membership,
+            "expense_id": expense_id,
+            "values": values,
+            "title": values["description"] or values["type"],
+            "emoji": category.emoji if category else "📦",
+            "names": values["for"],
+            "amount": amount,
+            **facts,
+            "day": date.fromisoformat(values["date"]),
+            "everyone": everyone,
+            "deleted": deleted,
+            "reason": reason,
+            "can_restore": can_restore and not trip.is_settled,
+            "back_url": _back_url(request, trip.id),
+            **dispute_views.section(membership, row),
+        },
+    )
+
+
+@require_POST
+def expense_restore(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
+    """Bring a deleted expense back with its last History values. Whoever may edit it may
+    restore it; refused on a settled trip; a second tap changes nothing."""
+    membership = get_membership(request, trip_id)
+    trip = membership.trip
+    expense = Expense.all_objects.filter(pk=expense_id, trip=trip).first()
+    if expense is None:
+        if not trip.history.filter(object_type="expense", object_id=str(expense_id)).exists():
+            raise Http404
+        messages.error(request, _("This expense can no longer be restored."))
+        return redirect("expense_edit", trip_id=trip.id, expense_id=expense_id)
+    if not membership.can_edit_expense(expense):
+        raise PermissionDenied
+    if response := locked(request, trip):
+        return response
+    try:
+        restored = history.restore_expense(trip, expense_id, by=membership)
+    except history.RestoreRefused as refused:
+        messages.error(request, str(refused))
+        return redirect("expense_edit", trip_id=trip.id, expense_id=expense_id)
+    if restored:
+        messages.success(
+            request,
+            _("Restored: %(expense)s")
+            % {"expense": _saved_text(history.fresh_expense(expense_id))},
+        )
+    return redirect("expense_edit", trip_id=trip.id, expense_id=expense_id)
+
+
+def _who_may_change(payer, *, restore: bool = False) -> str:
+    """The read-only notice for a Member: who besides the Owner and Editors may change (or
+    restore) it."""
+    if payer.user is None:
+        if restore:
+            return _("Only the Owner or an Editor can restore this expense.")
+        return _("Only the Owner or an Editor can change this expense.")
+    account = payer.user.display_name
+    name = account if account == payer.name else f"{account} ({payer.name})"
+    if restore:
+        return _("Only %(name)s, the Owner or an Editor can restore this expense.") % {"name": name}
+    return _("Only %(name)s, the Owner or an Editor can change this expense.") % {"name": name}
 
 
 def _filter_summary(filters: dict) -> list[str]:
@@ -395,6 +681,7 @@ def report(request: HttpRequest, trip_id) -> HttpResponse:
         # Expenses opened from this page come back here, with the same filters.
         return_to=request.path + (f"?{query.urlencode()}" if query else ""),
         multi_year=len({r.expense.date.year for r in data["rows"]}) > 1,
+        disputed=dispute_views.open_ids(trip),
         people_count=trip.participants.count(),
         travelers=list(trip.participants.all()),
     )

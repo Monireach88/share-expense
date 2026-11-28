@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% load i18n ui %}
+{% block title %}{{ member.user.display_name }} · {{ trip.name }}{% endblock %}
+{% block back %}<a class="back" href="{% url 'people' trip.id %}">{% icon "chevron-left" %}<span>{% translate "Travelers" %}</span></a>{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ member.user.display_name }}</h1>
+<p class="lead">{% if member.user.username|lower != member.user.display_name|lower %}{{ member.user.username }} · {% endif %}{% if member.linked_traveler %}{% blocktranslate with name=member.linked_traveler.name %}Traveler: {{ name }}{% endblocktranslate %}{% elif member.is_viewer %}{% translate "No traveler · Viewer" %}{% else %}{% translate "No traveler" %}{% endif %}</p>
+<form method="post" id="member-form" style="margin-top: 16px">{% csrf_token %}
+  {% include "_form_errors.html" %}
+  {% include "_checks.html" with field=form.role %}
+  {% if not member.linked_traveler %}<p class="help" style="margin-top: 8px">{% translate "This account is not linked to a traveler, so as a Member it can only view the trip. To link it, open a traveler on the Travelers page." %}</p>{% endif %}
+</form>
+<div class="form-foot stack">
+  {% if member.user.is_active %}<p><a href="{% url 'member_transfer' trip.id member.id %}">{% blocktranslate with name=member.user.display_name %}Make {{ name }} the Owner{% endblocktranslate %}</a></p>{% endif %}
+  <form method="post" action="{% url 'member_remove' trip.id member.id %}" hx-confirm="{{ remove_question }}">{% csrf_token %}
+    <button type="submit" class="link-danger">{% translate "Remove from trip" %}</button>
+  </form>
+</div>
+{% endblock %}
+{% block bar %}
+<div class="bottom-bar"><div class="container">
+  <a class="btn btn-secondary" href="{% url 'people' trip.id %}">{% translate "Cancel" %}</a>
+  <button type="submit" form="member-form" class="btn">{% translate "Save changes" %}</button>
+</div></div>
+{% endblock %}

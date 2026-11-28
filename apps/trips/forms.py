@@ -1,8 +1,12 @@
+from allauth.socialaccount.models import SocialAccount
 from django import forms
 from django.contrib.auth import get_user_model
+from django.core.validators import validate_email
 from django.utils.translation import gettext_lazy as _
 
-from .models import ExchangeRate, Participant, Trip, TripMember
+from . import email_check
+from .invites import VERIFIED_GOOGLE_EMAIL, google_user
+from .models import ExchangeRate, Invite, Participant, Trip, TripMember
 
 DATE_INPUT = forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
 
@@ -59,6 +63,47 @@ class ExchangeRateForm(forms.ModelForm):
         return rate
 
 
+class BaseNewRateFormSet(forms.BaseFormSet):
+    """The rate rows of the New trip page: each row is an ``ExchangeRateForm``; empty rows are
+    skipped, and a currency may appear only once."""
+
+    def clean(self):
+        if any(self.errors):
+            return
+        seen = set()
+        for form in self.forms:
+            currency = form.cleaned_data.get("currency")
+            if not currency:
+                continue
+            if currency in seen:
+                form.add_error("currency", _("This currency already has a rate."))
+            seen.add(currency)
+
+    def rows(self) -> list[tuple[str, object]]:
+        """(currency, rate) of every filled row, in page order."""
+        return [
+            (form.cleaned_data["currency"], form.cleaned_data["rate"])
+            for form in self.forms
+            if form.cleaned_data.get("currency")
+        ]
+
+
+NewRateFormSet = forms.formset_factory(
+    ExchangeRateForm, formset=BaseNewRateFormSet, extra=1, max_num=30, validate_max=True
+)
+
+
+def new_rate_formset(data=None) -> BaseNewRateFormSet:
+    """The rate rows for a new trip; the base currency comes from the same POST, so a row in
+    the base currency is refused like on the Trip settings page."""
+    base = (data or {}).get("base_currency") or Trip._meta.get_field("base_currency").default
+    if data is not None and "rates-TOTAL_FORMS" not in data:
+        # A POST without the rate rows (an older page, a script) means "no rates".
+        data = data.copy()
+        data.update({"rates-TOTAL_FORMS": "0", "rates-INITIAL_FORMS": "0"})
+    return NewRateFormSet(data, prefix="rates", form_kwargs={"trip": Trip(base_currency=base)})
+
+
 class ParticipantForm(forms.ModelForm):
     class Meta:
         model = Participant
@@ -68,6 +113,10 @@ class ParticipantForm(forms.ModelForm):
     def __init__(self, *args, trip: Trip, **kwargs):
         super().__init__(*args, **kwargs)
         self.trip = trip
+        if trip.is_settled:
+            # A settled trip keeps its travelers and covers; linking an account changes no number.
+            self.fields["name"].disabled = True
+            self.fields["sponsors"].disabled = True
         # Only travelers who pay for themselves can cover someone, so only they are offered.
         others = trip.participants.filter(sponsors__isnull=True)
         if self.instance.pk:
@@ -77,7 +126,8 @@ class ParticipantForm(forms.ModelForm):
         self.fields["user"].label_from_instance = lambda u: f"{u.display_name} ({u.username})"
         self.fields["user"].empty_label = _("No account")
         self.fields["user"].help_text = _(
-            "Optional. Link the person's own account so the app can show them their balance."
+            "Optional. The linked account sees this traveler's balance and can add the "
+            "expenses this traveler paid."
         )
         self.fields["sponsors"].label = _("Covered by")
         self.fields["sponsors"].help_text = _(
@@ -92,6 +142,19 @@ class ParticipantForm(forms.ModelForm):
         if clash.exists():
             raise forms.ValidationError(_("Someone on this trip already has this name."))
         return name
+
+    def clean_user(self):
+        user = self.cleaned_data["user"]
+        if user is None:
+            return user
+        taken = self.trip.participants.filter(user=user)
+        if self.instance.pk:
+            taken = taken.exclude(pk=self.instance.pk)
+        if other := taken.first():
+            raise forms.ValidationError(
+                _("This account is already linked to %(name)s.") % {"name": other.name}
+            )
+        return user
 
     def clean_sponsors(self):
         sponsors = self.cleaned_data["sponsors"]
@@ -110,19 +173,143 @@ class ParticipantForm(forms.ModelForm):
         return sponsors
 
 
-class MemberAddForm(forms.Form):
-    username = forms.CharField(label=_("Username"), max_length=150)
+class InviteForm(forms.Form):
+    """The Owner invites a person (spec section 6.2): an approved account, by username or by the
+    address it signs in with through Google, joins at once; any other email address gets a
+    personal invite. Each with one traveler choice: a free traveler, a new traveler, or none."""
+
+    NEW = "new"
+    NONE = "none"
+    NOT_AN_ACCOUNT = _(
+        "No account has this username. To invite someone new, type their email address."
+    )
+
+    who = forms.CharField(
+        label=_("Username or email"),
+        max_length=254,
+        help_text=_("A username of an approved account, or the email address of a new person."),
+    )
+    traveler = forms.ChoiceField(
+        label=_("Traveler"), widget=forms.RadioSelect, choices=[], required=True
+    )
+    new_name = forms.CharField(
+        label=_("New traveler's name"),
+        max_length=80,
+        required=False,
+    )
 
     def __init__(self, *args, trip: Trip, **kwargs):
         super().__init__(*args, **kwargs)
         self.trip = trip
+        self.user = None  # An approved account that joins at once.
+        self.email = ""  # Or the address of a personal invite.
+        self.suggestion = ""  # "dan@gmail.com" when the typed domain looks like a typo of it.
+        self.pending = None  # An open invite to the same address: offer Send again.
+        self.participant = None
+        invited = trip.invites.filter(state__in=Invite.OPEN_STATES, traveler__isnull=False).values(
+            "traveler_id"
+        )
+        free = list(trip.participants.filter(user__isnull=True).exclude(pk__in=invited))
+        choices = [(str(p.pk), p.name) for p in free]
+        if not trip.is_settled:  # Travelers are locked on a settled trip.
+            choices.append((self.NEW, _("A new traveler")))
+        choices.append((self.NONE, _("No traveler (view only)")))
+        self.fields["traveler"].choices = choices
+        self._free = {str(p.pk): p for p in free}
+        self.fields["who"].widget.attrs.update(
+            autocapitalize="none", spellcheck="false", autocomplete="off"
+        )
 
-    def clean_username(self):
-        username = self.cleaned_data["username"].strip()
-        user = get_user_model().objects.filter(username__iexact=username, is_active=True).first()
-        if user is None:
-            raise forms.ValidationError(_("No approved account has this username."))
-        if TripMember.objects.filter(trip=self.trip, user=user).exists():
-            raise forms.ValidationError(_("This account is already on the trip."))
-        self.user = user
-        return username
+    def _on_trip(self, user) -> bool:
+        return TripMember.objects.filter(trip=self.trip, user=user).exists()
+
+    def clean_who(self):
+        text = self.cleaned_data["who"].strip()
+        if "@" not in text:
+            user = get_user_model().objects.filter(username=text.lower()).first()
+            if user is not None and self._on_trip(user):
+                raise forms.ValidationError(_("This person is already on the trip."))
+            if user is None or not user.is_active or user.is_closed:
+                raise forms.ValidationError(self.NOT_AN_ACCOUNT)
+            self.user = user
+            return text
+        try:
+            validate_email(text)
+        except forms.ValidationError:
+            raise forms.ValidationError(self.NOT_AN_ACCOUNT) from None
+        email = text.lower()
+        linked = SocialAccount.objects.filter(
+            VERIFIED_GOOGLE_EMAIL, provider="google", extra_data__email__iexact=email
+        )
+        if any(self._on_trip(account.user) for account in linked.select_related("user")):
+            raise forms.ValidationError(_("This person is already on the trip."))
+        self.user = google_user(email)
+        if self.user is None:
+            self.email = email
+            self.pending = self.trip.invites.filter(
+                state__in=Invite.OPEN_STATES, email__iexact=email
+            ).first()
+            if self.pending is not None:
+                raise forms.ValidationError(_("This address already has an invite to this trip."))
+            domain = email.rpartition("@")[2]
+            if not email_check.receives_email(domain):
+                raise forms.ValidationError(
+                    _("No email can be delivered to %(domain)s. Check the address.")
+                    % {"domain": domain}
+                )
+            self.suggestion = email_check.suggestion(email)
+        return email
+
+    def clean_traveler(self):
+        choice = self.cleaned_data["traveler"]
+        self.participant = self._free.get(choice)
+        return choice
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("traveler") != self.NEW:
+            cleaned["new_name"] = ""
+            return cleaned
+        name = (cleaned.get("new_name") or "").strip()
+        cleaned["new_name"] = name
+        if not name:
+            self.add_error("new_name", _("Type the new traveler's name."))
+        elif self.trip.participants.filter(name__iexact=name).exists() or (
+            self.trip.invites.filter(
+                state__in=Invite.OPEN_STATES, new_traveler_name__iexact=name
+            ).exists()
+        ):
+            self.add_error("new_name", _("Someone on this trip already has this name."))
+        return cleaned
+
+    @property
+    def new_traveler_name(self) -> str:
+        return self.cleaned_data.get("new_name", "")
+
+    @property
+    def traveler_text(self) -> str:
+        """The choice in words, for the confirmation: "as Dan" or "view only"."""
+        if self.participant is not None:
+            return self.participant.name
+        return self.new_traveler_name
+
+
+class MemberRoleForm(forms.Form):
+    """The Owner makes an account a Member or an Editor."""
+
+    role = forms.ChoiceField(
+        label=_("Role"),
+        choices=[
+            (TripMember.Role.MEMBER, _("Member")),
+            (TripMember.Role.EDITOR, _("Editor")),
+        ],
+        widget=forms.RadioSelect,
+    )
+
+    def __init__(self, *args, traveler=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if traveler is not None:
+            self.fields["role"].help_text = _(
+                "A Member can change only the expenses that %(name)s paid. An Editor can "
+                "change every expense and mark the trip as settled."
+            ) % {"name": traveler.name}

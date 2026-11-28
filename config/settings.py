@@ -5,12 +5,17 @@ from pathlib import Path
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.csp import CSP
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in os.environ.get(name, default).split(",") if item.strip()]
+
+
+def env_bool(name: str, default: str = "false") -> bool:
+    return os.environ.get(name, default).strip().lower() in ("1", "true", "yes")
 
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
@@ -40,10 +45,13 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.trips",
     "apps.expenses",
+    "apps.disputes",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.csp.ContentSecurityPolicyMiddleware",
+    "apps.accounts.headers.PermissionsPolicyMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -58,6 +66,35 @@ MIDDLEWARE = [
     "apps.trips.offline.PageCacheMiddleware",
     "axes.middleware.AxesMiddleware",
 ]
+
+# Content-Security-Policy: the browser runs only scripts and styles from this site, so text a
+# member typed can never run as code. The templates have no inline <script> and htmx runs with
+# eval turned off (the htmx-config meta tag in templates/base.html). Inline style="" attributes
+# are allowed, because many templates and the page swaps of htmx and the service worker use
+# them; <style> elements and style sheets must still come from this site. Browsers too old for
+# style-src-elem fall back to style-src.
+# form-action allows Google, because Chrome applies it to the redirect after the "Continue with
+# Google" form posts to this site.
+SECURE_CSP = {
+    "default-src": [CSP.SELF],
+    "script-src": [CSP.SELF],
+    "style-src": [CSP.SELF, CSP.UNSAFE_INLINE],
+    "style-src-elem": [CSP.SELF],
+    "style-src-attr": [CSP.UNSAFE_INLINE],
+    "img-src": [CSP.SELF, "data:"],
+    "font-src": [CSP.SELF],
+    "connect-src": [CSP.SELF],
+    "worker-src": [CSP.SELF],
+    "manifest-src": [CSP.SELF],
+    "object-src": [CSP.NONE],
+    "base-uri": [CSP.SELF],
+    "frame-ancestors": [CSP.NONE],
+    "form-action": [CSP.SELF, "https://accounts.google.com"],
+}
+# Browser features the app never uses (apps/accounts/headers.py).
+PERMISSIONS_POLICY = ["camera", "microphone", "geolocation", "payment", "usb"]
+# The page scripts read the CSRF token from the hx-headers attribute, never from the cookie.
+CSRF_COOKIE_HTTPONLY = True
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
@@ -86,10 +123,20 @@ DATABASES = {
     )
 }
 
+# The cache holds the AI request counters. It lives in the database, so every gunicorn worker
+# shares one count and a deploy does not reset it. The table is made by a migration
+# (apps/expenses/migrations/0007_cache_table.py).
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+    }
+}
+
 AUTH_USER_MODEL = "accounts.User"
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
-    "django.contrib.auth.backends.ModelBackend",
+    "apps.accounts.backends.CaseInsensitiveBackend",
     # Signs people in after Google confirms who they are (django-allauth).
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
@@ -119,18 +166,45 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 SOCIALACCOUNT_ADAPTER = "apps.accounts.adapters.SocialAccountAdapter"
 ACCOUNT_ADAPTER = "apps.accounts.adapters.AccountAdapter"
-# A Google account whose verified email belongs to an account signs in to that account.
-SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
-SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+# A Google sign-in is matched only by the Google account itself, never by an email address
+# typed into an account: with these on, anyone whose Google address equals an account's stored
+# email would take over that account (spec section 6.4).
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = False
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = False
+# New accounts come only from a personal invite (apps/accounts/adapters.py opens sign-up then).
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_STORE_TOKENS = False
-ACCOUNT_EMAIL_VERIFICATION = "none"  # The app sends no email; Google has verified the address.
+ACCOUNT_EMAIL_VERIFICATION = "none"  # Google has verified the address.
+# Addresses never identify an account here, so two accounts may share one; otherwise an invite
+# accepted by an address the admin once typed into another account would stop at allauth's form.
+ACCOUNT_UNIQUE_EMAIL = False
+
+# The personal invite email (spec section 6.6), sent by SMTP. Every value comes from the
+# environment. An empty EMAIL_HOST means email is not set up: the Owner sends the link
+# themselves, and Django only prints emails to the console.
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_HOST
+    else "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "25"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS")
+if EMAIL_USE_SSL and EMAIL_USE_TLS:
+    raise ImproperlyConfigured("Set only one of EMAIL_USE_SSL and EMAIL_USE_TLS to true")
+EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "10"))
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webmaster@localhost")
 
 # Login rate limit (django-axes): lock a username + IP pair after 5 failures for 1 hour.
 AXES_FAILURE_LIMIT = int(os.environ.get("AXES_FAILURE_LIMIT", "5"))
 AXES_COOLOFF_TIME = 1
 AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 AXES_RESET_ON_SUCCESS = True
+# "Maly" and "maly" are one account, so they share one lock.
+AXES_USERNAME_CALLABLE = "apps.accounts.usernames.axes_username"
 # Header that holds the real visitor IP behind a proxy, e.g. HTTP_X_FORWARDED_FOR or HTTP_CF_CONNECTING_IP.
 CLIENT_IP_HEADER = os.environ.get("CLIENT_IP_HEADER", "")
 AXES_CLIENT_IP_CALLABLE = "apps.accounts.client_ip.client_ip"
@@ -143,6 +217,12 @@ TIME_ZONE = os.environ.get("TIME_ZONE", "Asia/Phnom_Penh")
 # Writing suggestions for expense descriptions (apps/expenses/suggest.py); empty turns them off.
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
+# How many AI requests (suggestions and "Add with AI") the whole site may make per day, so many
+# accounts together cannot run up costs. Each account also has its own limit (suggest.py).
+DEEPSEEK_DAILY_LIMIT = int(os.environ.get("DEEPSEEK_DAILY_LIMIT", "500"))
+# Market exchange rates suggested for a trip's currencies (apps/trips/rates.py), from
+# ExchangeRate-API's open endpoint; <url>/<BASE> answers with today's rates. Empty turns them off.
+EXCHANGE_RATES_URL = os.environ.get("EXCHANGE_RATES_URL", "https://open.er-api.com/v6/latest")
 USE_I18N = True
 USE_TZ = True
 
@@ -179,6 +259,13 @@ LOGGING = {
             '"service": "share-expense", "logger": "%(name)s", "message": "%(message)s"}'
         }
     },
-    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json"}},
+    "filters": {"redact_invite_tokens": {"()": "config.log_redaction.RedactInviteTokens"}},
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+            "filters": ["redact_invite_tokens"],
+        }
+    },
     "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
 }

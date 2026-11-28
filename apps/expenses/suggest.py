@@ -15,6 +15,7 @@ import urllib.request
 
 from django.conf import settings
 from django.core.cache import cache
+from django.utils import timezone
 
 from apps.trips.models import Trip
 
@@ -39,14 +40,28 @@ def enabled() -> bool:
     return bool(settings.DEEPSEEK_API_KEY)
 
 
-def allowed(user_id) -> bool:
-    """Count this request against the account's limit; False when the limit is reached."""
-    key = f"suggest:{user_id}"
-    cache.add(key, 0, WINDOW_SECONDS)
+DAY_SECONDS = 24 * 60 * 60
+
+
+def _count(key: str, seconds: int) -> int:
+    """Add one to a counter that ends ``seconds`` after its first use; the new value."""
+    cache.add(key, 0, seconds)
     try:
-        return cache.incr(key) <= LIMIT
+        return cache.incr(key)
     except ValueError:  # The counter expired between add and incr.
-        return True
+        return 1
+
+
+def allowed(user_id) -> bool:
+    """Count this request against the account's limit and the site's daily limit.
+
+    False when either is reached. The counters are in the shared database cache, so every
+    gunicorn worker sees the same counts.
+    """
+    if _count(f"suggest:{user_id}", WINDOW_SECONDS) > LIMIT:
+        return False
+    day = timezone.localdate().isoformat()
+    return _count(f"suggest:site:{day}", DAY_SECONDS + 60) <= settings.DEEPSEEK_DAILY_LIMIT
 
 
 def examples(trip: Trip, exclude: str = "") -> list[str]:

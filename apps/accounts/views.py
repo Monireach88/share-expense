@@ -1,25 +1,55 @@
+from django.contrib import messages
+from django.contrib.auth import logout
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_not_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 
-from .forms import SignupRequestForm
+from apps.trips.invite_views import SESSION_KEY
+
+from .closing import CloseRefused, close_account, owner_block
+from .forms import CloseAccountForm, LoginForm
+
+
+class LoginView(auth_views.LoginView):
+    form_class = LoginForm
+    redirect_authenticated_user = True
+
+    def get(self, request, *args, **kwargs):
+        # A plain sign-in forgets an invite opened earlier in this browser, so a Google sign-in
+        # from here is never mistaken for accepting that invite.
+        request.session.pop(SESSION_KEY, None)
+        return super().get(request, *args, **kwargs)
 
 
 @login_not_required
 def signup(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect("home")
-    form = SignupRequestForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        return render(request, "registration/signup_sent.html")
-    return render(request, "registration/signup.html", {"form": form})
+    """The old "Request an account" address: new accounts come only from personal invites."""
+    return redirect("login")
 
 
 @login_not_required
 def pending(request: HttpRequest) -> HttpResponse:
-    """After a first Google sign-in: the new account waits for the admin's approval."""
-    return render(request, "registration/signup_sent.html", {"google": True})
+    """An account made before personal invites that still waits for the admin's approval."""
+    return render(request, "registration/pending.html")
+
+
+def close(request: HttpRequest) -> HttpResponse:
+    """Close account (spec section 6.5): the account is closed, not erased. An Owner of a trip
+    with other accounts sees only why it cannot be closed yet."""
+    form = CloseAccountForm(request.POST or None, user=request.user)
+    blocked = owner_block(request.user)
+    if request.method == "POST" and not blocked and form.is_valid():
+        try:
+            close_account(request.user)
+        except CloseRefused as refused:
+            form.add_error(None, str(refused))
+        else:
+            logout(request)
+            messages.success(request, _("Your account is closed."))
+            return redirect("login")
+    return render(request, "registration/close_account.html", {"form": form, "blocked": blocked})
 
 
 @login_not_required

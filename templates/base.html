@@ -8,7 +8,13 @@
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#1a1d23" media="(prefers-color-scheme: dark)">
   <title>{% block title %}{% translate "Share Expense" %}{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="icon" sizes="32x32" type="image/png" href="{% static 'img/favicon-32.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+  <link rel="manifest" href="{% url 'web_manifest' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {# htmx without eval and without its own <style> element, so the Content-Security-Policy needs neither. #}
+  <meta name="htmx-config" content='{"allowEval": false, "includeIndicatorStyles": false}'>
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'vendor/sortable.min.js' %}" defer></script>
   <script src="{% static 'js/app.js' %}" defer></script>
@@ -27,7 +33,8 @@
           <div class="who"><strong>{{ user.display_name }}</strong><div class="tiny muted">{{ user.username }}</div></div>
           <a class="menu-item" href="{% url 'home' %}">{% translate "Trips" %}</a>
           <a class="menu-item" href="{% url 'password_change' %}">{% icon "key-round" %}{% translate "Change password" %}</a>
-          {% if google_signin %}<a class="menu-item" href="{% url 'socialaccount_connections' %}">{% include "_google_logo.html" %}{% translate "Google sign-in" %}</a>{% endif %}
+          {% if google_signin %}<a class="menu-item" href="{% url 'socialaccount_connections' %}">{% include "_google_logo.html" %}<span>{% translate "Google account" %}<span class="tiny muted" style="display: block">{% if google_email %}{% blocktranslate %}Linked: {{ google_email }}{% endblocktranslate %}{% else %}{% translate "Not linked" %}{% endif %}</span></span></a>{% endif %}
+          <a class="menu-item" href="{% url 'account_close' %}">{% icon "user-x" %}{% translate "Close account" %}</a>
           {% if user.is_staff %}<a class="menu-item" href="{% url 'admin:index' %}" hx-boost="false">{% icon "shield" %}{% translate "Admin" %}</a>{% endif %}
           <form method="post" action="{% url 'logout' %}">{% csrf_token %}
             <button type="submit" class="menu-item">{% icon "log-out" %}{% translate "Log out" %}</button>

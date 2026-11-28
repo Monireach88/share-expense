@@ -1,24 +1,9 @@
 import pytest
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from .conftest import PASSWORD
 
 pytestmark = pytest.mark.django_db
-
-
-def test_signup_creates_inactive_account_that_cannot_log_in(client):
-    response = client.post(
-        reverse("signup"),
-        {"username": "newbie", "first_name": "New", "password1": PASSWORD, "password2": PASSWORD},
-    )
-    assert response.status_code == 200
-    assert b"Request sent" in response.content
-    user = get_user_model().objects.get(username="newbie")
-    assert not user.is_active
-    login = client.post(reverse("login"), {"username": "newbie", "password": PASSWORD})
-    assert login.status_code == 200
-    assert "_auth_user_id" not in client.session
 
 
 def test_admin_approval_lets_the_user_log_in(client, make_user):
@@ -45,7 +30,7 @@ def test_every_page_requires_login_except_auth_pages(client, trip):
         response = client.get(url)
         assert response.status_code == 302
         assert response.url.startswith(reverse("login"))
-    assert client.get(reverse("signup")).status_code == 200
+    assert client.get(reverse("signup"))["Location"] == reverse("login")
     assert client.get(reverse("health")).status_code == 200
 
 
@@ -88,3 +73,23 @@ def test_admin_carries_the_app_name(client, make_user):
     admin_user = make_user("boss", is_staff=True, is_superuser=True)
     client.force_login(admin_user)
     assert "Share Expense admin" in client.get(reverse("admin:index")).content.decode()
+
+
+def test_pages_send_a_content_security_policy_and_a_permissions_policy(client):
+    response = client.get(reverse("login"))
+    csp = response["Content-Security-Policy"]
+    directives = dict(part.strip().split(" ", 1) for part in csp.split(";"))
+    assert directives["default-src"] == "'self'"
+    assert directives["script-src"] == "'self'"  # No inline scripts and no eval.
+    assert directives["frame-ancestors"] == "'none'"
+    assert directives["object-src"] == "'none'"
+    assert directives["form-action"] == "'self' https://accounts.google.com"
+    assert "unsafe-eval" not in csp
+    assert "camera=()" in response["Permissions-Policy"]
+    assert "geolocation=()" in response["Permissions-Policy"]
+
+
+def test_htmx_runs_without_eval_and_the_csrf_cookie_is_hidden_from_scripts(client, settings):
+    page = client.get(reverse("login")).content.decode()
+    assert '"allowEval": false' in page and '"includeIndicatorStyles": false' in page
+    assert settings.CSRF_COOKIE_HTTPONLY is True

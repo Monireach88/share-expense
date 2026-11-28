@@ -53,7 +53,9 @@ class ExpenseForm(forms.ModelForm):
         }
         help_texts = {"beneficiaries": ""}
 
-    def __init__(self, data=None, *args, trip: Trip, **kwargs):
+    def __init__(self, data=None, *args, trip: Trip, payer_only=None, **kwargs):
+        """``payer_only``: the one traveler a Member may record as payer (their own); the form
+        then offers only that traveler. The view refuses another payer with 403 before this."""
         # Day chips post date=other when the user picks "Other date"; the real value is in date_other.
         if data is not None and data.get("date") == OTHER_DATE:
             data = data.copy()
@@ -62,8 +64,14 @@ class ExpenseForm(forms.ModelForm):
         self.trip = trip
         participants = trip.participants.all()
         # Only this trip's people can be chosen, so IDs from another trip are rejected.
-        self.fields["payer"].queryset = participants
+        self.fields["payer"].queryset = (
+            participants.filter(pk=payer_only.pk) if payer_only else participants
+        )
         self.fields["payer"].empty_label = None
+        if payer_only:
+            self.fields["payer"].help_text = _(
+                "Your account can add and change only expenses paid by %(name)s."
+            ) % {"name": payer_only.name}
         self.fields["beneficiaries"].queryset = participants
         self.fields["currency"].choices = [(c, c) for c in trip.currencies()]
         self.fields["category"].queryset = trip.categories.all()
