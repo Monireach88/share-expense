@@ -13,6 +13,7 @@ __pycache__/
 htmlcov/
 
 # Compiled translations (regenerable: python manage.py compilemessages, or the polib step in tests/conftest.py)
+# regenerable: make compilemessages (the tests compile them too)
 *.mo
 
 # Django (regenerable: python manage.py collectstatic)
