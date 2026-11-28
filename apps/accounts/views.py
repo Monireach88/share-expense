@@ -2,14 +2,17 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_not_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
 from apps.trips.invite_views import SESSION_KEY
 
 from .closing import CloseRefused, close_account, owner_block
 from .forms import CloseAccountForm, LoginForm
+from .models import Appearance
 
 
 class LoginView(auth_views.LoginView):
@@ -55,3 +58,20 @@ def close(request: HttpRequest) -> HttpResponse:
 @login_not_required
 def health(request: HttpRequest) -> HttpResponse:
     return HttpResponse("ok", content_type="text/plain")
+
+
+@require_POST
+def set_appearance(request: HttpRequest) -> HttpResponse:
+    """Save the person's Light / Dark / System choice and go back to the page they were on."""
+    choice = request.POST.get("appearance")
+    if choice not in Appearance.values:
+        return HttpResponseBadRequest("Unknown appearance")
+    if request.user.appearance != choice:
+        request.user.appearance = choice
+        request.user.save(update_fields=["appearance"])
+    target = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        target, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        target = "/"
+    return redirect(target)

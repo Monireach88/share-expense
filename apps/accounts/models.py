@@ -2,8 +2,15 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
+from django.utils.translation import gettext_lazy
 
 from . import usernames
+
+
+class Appearance(models.TextChoices):
+    SYSTEM = "system", gettext_lazy("System")
+    LIGHT = "light", gettext_lazy("Light")
+    DARK = "dark", gettext_lazy("Dark")
 
 
 class User(AbstractUser):
@@ -24,6 +31,11 @@ class User(AbstractUser):
     # Set when the person closes their account (spec section 6.5). A closed account is also
     # inactive; this field tells it apart from one that waits for the admin's approval.
     closed_at = models.DateTimeField("closed on", null=True, blank=True)
+
+    # The colour scheme the person chose in the account menu; "system" follows the device.
+    appearance = models.CharField(
+        "appearance", max_length=6, choices=Appearance.choices, default=Appearance.SYSTEM
+    )
 
     class Meta(AbstractUser.Meta):
         constraints = [

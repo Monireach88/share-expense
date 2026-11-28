@@ -1,12 +1,14 @@
 {% load static i18n ui %}<!doctype html>
 {% get_current_language as LANG %}
-<html lang="{{ LANG }}">
+<html lang="{{ LANG }}"{% if user.is_authenticated and user.appearance != "system" %} data-theme="{{ user.appearance }}"{% endif %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1a1d23" media="(prefers-color-scheme: dark)">
+  {% if user.is_authenticated and user.appearance == "light" %}<meta name="theme-color" content="#ffffff">
+  {% elif user.is_authenticated and user.appearance == "dark" %}<meta name="theme-color" content="#1a1d23">
+  {% else %}<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1d23" media="(prefers-color-scheme: dark)">{% endif %}
   <title>{% block title %}{% translate "Share Expense" %}{% endblock %}</title>
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="icon" sizes="32x32" type="image/png" href="{% static 'img/favicon-32.png' %}">
@@ -36,6 +38,15 @@
           {% if google_signin %}<a class="menu-item" href="{% url 'socialaccount_connections' %}">{% include "_google_logo.html" %}<span>{% translate "Google account" %}<span class="tiny muted" style="display: block">{% if google_email %}{% blocktranslate %}Linked: {{ google_email }}{% endblocktranslate %}{% else %}{% translate "Not linked" %}{% endif %}</span></span></a>{% endif %}
           <a class="menu-item" href="{% url 'account_close' %}">{% icon "user-x" %}{% translate "Close account" %}</a>
           {% if user.is_staff %}<a class="menu-item" href="{% url 'admin:index' %}" hx-boost="false">{% icon "shield" %}{% translate "Admin" %}</a>{% endif %}
+          <form method="post" action="{% url 'set_appearance' %}" class="menu-appearance" hx-boost="false">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div class="tiny muted" id="appearance-label">{% translate "Appearance" %}</div>
+            <div class="seg" role="group" aria-labelledby="appearance-label">
+              <button type="submit" name="appearance" value="light" aria-pressed="{% if user.appearance == 'light' %}true{% else %}false{% endif %}">{% translate "Light" %}</button>
+              <button type="submit" name="appearance" value="dark" aria-pressed="{% if user.appearance == 'dark' %}true{% else %}false{% endif %}">{% translate "Dark" %}</button>
+              <button type="submit" name="appearance" value="system" aria-pressed="{% if user.appearance == 'system' %}true{% else %}false{% endif %}">{% translate "System" %}</button>
+            </div>
+          </form>
           <form method="post" action="{% url 'logout' %}">{% csrf_token %}
             <button type="submit" class="menu-item">{% icon "log-out" %}{% translate "Log out" %}</button>
           </form>
