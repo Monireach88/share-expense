@@ -11,7 +11,7 @@
   {% include "_field.html" with field=form.base_currency %}
   <section class="card" data-rates>
     <h2 class="section-title" style="margin-bottom: 4px">{% translate "Exchange rates" %}</h2>
-    <p class="lead" style="margin: 0 0 12px">{% translate "Optional. One fixed rate per currency for the whole trip. Expenses in other currencies are converted to the base currency." %}</p>
+    <p class="lead" style="margin: 0 0 12px">{% translate "Optional. One fixed rate per currency for the whole trip." %}</p>
     {{ rates.management_form }}
     {% for error in rates.non_form_errors %}<p class="field-error">{% icon "triangle-alert" %}<span>{{ error }}</span></p>{% endfor %}
     {% with base=form.base_currency.value %}

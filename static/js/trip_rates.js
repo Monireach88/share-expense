@@ -1,6 +1,7 @@
 // Exchange rates on the New trip and Trip settings pages: rows that can be added and removed, and
 // the suggested currency and market rate (asked from this server, which asks ExchangeRate-API).
 // The pages work without this file: the New trip page then has one empty rate row.
+// Removed rows leave a gap in the row numbers; the server skips the missing numbers.
 (function () {
   const note = document.querySelector("[data-rate-note-template]");
 
@@ -94,7 +95,6 @@
     // The server skips the missing row number, so the other rows keep their numbers.
     if (row.dataset.suggested) dismissed.add(row.dataset.suggested);
     row.remove();
-    if (!allRows().length) addRow();
   }
   function prepare(row) {
     const p = parts(row);
@@ -130,7 +130,7 @@
     const code = country.value;
     // An untouched suggestion for the previous country goes away.
     for (const row of allRows()) {
-      if (row.dataset.suggested && !row.dataset.edited) removeRowQuietly(row);
+      if (row.dataset.suggested && !row.dataset.edited) row.remove();
     }
     if (!code) return;
     const answer = await ask(url, { base: base(), country: code });
@@ -145,17 +145,11 @@
       showNote(p.note, answer.day);
     }
   }
-  function removeRowQuietly(row) {
-    const p = parts(row);
-    if (allRows().length > 1) row.remove();
-    else {
-      p.currency.value = p.rate.value = "";
-      hideNote(p.note);
-    }
-    delete row.dataset.suggested;
-    delete row.dataset.market;
+  // The card starts with only "Add currency": the server's empty row is for pages without
+  // this script. A row with an error message stays, so the message stays visible.
+  for (const row of allRows()) {
+    if (isEmpty(row) && !row.querySelector(".field-error")) row.remove();
   }
-
   allRows().forEach(prepare);
   addButton.hidden = false;
   addButton.addEventListener("click", () => {

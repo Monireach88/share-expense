@@ -639,13 +639,15 @@ details.filters.is-filtered:not([open]) {
 
 /* Exchange rate rows on the New trip page: currency, "1 USD = [rate]", remove (trip_rates.js). */
 .rate-rows > * + * { margin-top: var(--s3); }
-.rate-fields { display: flex; align-items: center; gap: var(--s2); }
-.rate-fields > select { flex: none; width: 96px; }
-.rate-fields > .prefixed { flex: 1; min-width: 0; }
+.rate-fields { display: flex; align-items: center; gap: 6px; }
+.rate-fields > .rate-base { flex: none; white-space: nowrap; color: var(--muted); font-weight: 600; }
+.rate-fields > input { flex: 1; min-width: 0; padding-inline: 10px; font-variant-numeric: tabular-nums; }
+.rate-fields > .icon-btn { width: 32px; }
+.rate-fields > select { flex: none; width: 112px; }
 button.icon-btn { border: 0; background: none; font: inherit; cursor: pointer; padding: 0; }
 .rate-row > .field-error { margin-top: var(--s1); }
 .rate-note { font-size: 13px; color: var(--muted); margin-top: var(--s1); }
-.rate-note a { color: var(--accent); }
+.rate-note a { color: var(--accent); white-space: nowrap; }
 .field > .rate-note { margin-top: 0; }
 [data-rates] > .chip-add { margin-top: var(--s3); }
 
@@ -673,4 +675,6 @@ dialog.date-range { width: min(100vw - 32px, 360px); padding: var(--s4); }
 .dr-grid button:hover { background: var(--bg); }
 .dr-grid td.in-range button:hover { background: var(--surface); }
 .dr-grid button[aria-current="date"] { box-shadow: inset 0 0 0 1px var(--field); }
+/* The keyboard focus is a dashed ring, so it never looks like a chosen day. */
+.dr-grid button:focus-visible { outline: 2px dashed var(--fg); outline-offset: 1px; border-radius: 999px; }
 .dr-grid .is-start button, .dr-grid .is-end button { background: var(--accent); color: var(--on-accent); font-weight: 700; }
