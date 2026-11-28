@@ -18,6 +18,7 @@
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'vendor/sortable.min.js' %}" defer></script>
   <script src="{% static 'js/app.js' %}" defer></script>
+  <script src="{% static 'js/english_copy.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
 <body hx-boost="true" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
@@ -26,6 +27,17 @@
       {% block back %}
       <a class="brand" href="{% url 'home' %}"><span class="brand-mark" aria-hidden="true">S</span>{% translate "Share Expense" %}</a>
       {% endblock %}
+      <div class="header-end">
+      <details class="menu lang-menu">
+        <summary aria-label="{% translate 'Language' %}">{% icon "globe" %}<span>{{ language_short }}</span></summary>
+        <div class="menu-panel">
+          {# A full page load (no hx-boost), so the page language and the font change with it. #}
+          <form method="post" action="{% url 'set_language' %}" hx-boost="false">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            {% for code, name in language_choices %}<button type="submit" class="menu-item" name="language" value="{{ code }}" lang="{{ code }}"{% if code == LANG %} aria-current="true"{% endif %}>{{ name }}{% if code == LANG %}{% icon "check" %}{% endif %}</button>{% endfor %}
+          </form>
+        </div>
+      </details>
       {% block header_end %}{% if user.is_authenticated %}
       <details class="menu">
         <summary aria-label="{% translate 'Account menu' %}"><span class="avatar" aria-hidden="true">{{ user.display_name|initial }}</span></summary>
@@ -42,6 +54,7 @@
         </div>
       </details>
       {% endif %}{% endblock %}
+      </div>
     </div>
   </header>
   <main class="container {% block main_class %}{% endblock %}">

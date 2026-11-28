@@ -4,12 +4,15 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_not_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
 from apps.trips.invite_views import SESSION_KEY
 
 from .closing import CloseRefused, close_account, owner_block
 from .forms import CloseAccountForm, LoginForm
+from .locale import is_supported, set_cookie
 
 
 class LoginView(auth_views.LoginView):
@@ -55,3 +58,23 @@ def close(request: HttpRequest) -> HttpResponse:
 @login_not_required
 def health(request: HttpRequest) -> HttpResponse:
     return HttpResponse("ok", content_type="text/plain")
+
+
+@require_POST
+@login_not_required
+def set_language(request: HttpRequest) -> HttpResponse:
+    """The header menu: keep the chosen language in the cookie, and in the account when signed
+    in, then return to the same page. A ``next`` on another host is ignored."""
+    target = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        target, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        target = "/"
+    response = redirect(target)
+    code = request.POST.get("language", "")
+    if is_supported(code):
+        set_cookie(response, code)
+        if request.user.is_authenticated and request.user.language != code:
+            request.user.language = code
+            request.user.save(update_fields=["language"])
+    return response

@@ -1,6 +1,20 @@
 /* Share Expense styles. No framework: tokens first, then base elements, then components.
    The design rules behind these values are in docs/ui_redesign.md. */
 
+/* ---------- Khmer font ---------- */
+/* Self-hosted Noto Sans Khmer (SIL Open Font License, static/fonts/OFL.txt). The unicode-range
+   makes a browser download it only for a page that has Khmer letters. */
+@font-face {
+  font-family: "Noto Sans Khmer"; font-weight: 400; font-style: normal; font-display: swap;
+  src: url("../fonts/NotoSansKhmer-Regular.woff2") format("woff2");
+  unicode-range: U+1780-17FF, U+19E0-19FF, U+200B-200D;
+}
+@font-face {
+  font-family: "Noto Sans Khmer"; font-weight: 600 700; font-style: normal; font-display: swap;
+  src: url("../fonts/NotoSansKhmer-Bold.woff2") format("woff2");
+  unicode-range: U+1780-17FF, U+19E0-19FF, U+200B-200D;
+}
+
 /* ---------- Tokens ---------- */
 :root {
   color-scheme: light dark;
@@ -28,7 +42,7 @@
   --gutter-r: max(16px, env(safe-area-inset-right));
   --bar-h: calc(72px + env(safe-area-inset-bottom));
   --tab-h: 64px;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font: "Noto Sans Khmer", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -53,6 +67,11 @@ body {
   font: 400 17px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
 }
+/* Khmer has marks above and below the line, so it needs more room than Latin text. */
+html[lang="km"] body { line-height: 1.8; }
+html[lang="km"] h1, html[lang="km"] h2, html[lang="km"] h3 { line-height: 1.5; }
+html[lang="km"] .btn, html[lang="km"] .chip, html[lang="km"] .chips label, html[lang="km"] .menu-item,
+html[lang="km"] .tabbar a, html[lang="km"] input, html[lang="km"] select, html[lang="km"] textarea { line-height: 1.7; }
 h1, h2, h3 { line-height: 1.25; margin: 0; font-weight: 600; }
 h1 { font-size: 24px; }
 h2 { font-size: 20px; }
@@ -129,6 +148,17 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
   color: var(--fg); font: inherit; text-decoration: none; cursor: pointer; text-align: left; white-space: nowrap;
 }
 .menu-item:hover { background: var(--bg); }
+
+/* Language menu: a globe and the short name; the panel lists every language in its own name. */
+.header-end { display: flex; align-items: center; gap: var(--s1); flex: none; }
+.lang-menu > summary {
+  width: auto; min-width: 44px; padding: 0 var(--s2); gap: var(--s1); display: flex; align-items: center;
+  justify-content: center; font-size: 15px; font-weight: 600; color: var(--fg);
+}
+.lang-menu .menu-panel { min-width: 160px; }
+.lang-menu form { margin: 0; }
+.lang-menu .menu-item[aria-current="true"] { font-weight: 700; color: var(--accent); }
+.lang-menu .menu-item .icon { margin-left: auto; }
 
 /* ---------- Header actions and the trip tab bar ---------- */
 .icon-btn {
@@ -678,3 +708,8 @@ dialog.date-range { width: min(100vw - 32px, 360px); padding: var(--s4); }
 /* The keyboard focus is a dashed ring, so it never looks like a chosen day. */
 .dr-grid button:focus-visible { outline: 2px dashed var(--fg); outline-offset: 1px; border-radius: 999px; }
 .dr-grid .is-start button, .dr-grid .is-end button { background: var(--accent); color: var(--on-accent); font-weight: 700; }
+
+/* The "English" box under a text with Khmer or Chinese letters (templates/_english_row.html). */
+[data-english] > .english-row, form[data-english] > .english-row { margin-top: var(--s3); }
+.english-row textarea, .english-row input { background: var(--accent-soft); }
+.english-row[hidden] { display: none; }

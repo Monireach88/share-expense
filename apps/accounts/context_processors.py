@@ -18,3 +18,16 @@ def google_signin(request) -> dict:
             )
         ),
     }
+
+
+def languages(request) -> dict:
+    """The language menu: every language in its own name, and the short name for the button."""
+    from django.utils import translation
+
+    from .locale import SHORT_NAMES
+
+    current = translation.get_language() or settings.LANGUAGE_CODE
+    return {
+        "language_choices": settings.LANGUAGES,
+        "language_short": SHORT_NAMES.get(current, current.upper()),
+    }

@@ -1,7 +1,9 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
+from django.utils.translation import gettext_lazy as _
 
 from . import usernames
 
@@ -15,7 +17,7 @@ class User(AbstractUser):
     """
 
     username = models.CharField(
-        "username",
+        _("username"),
         max_length=150,
         unique=True,
         validators=[usernames.validate_username],
@@ -23,7 +25,13 @@ class User(AbstractUser):
     )
     # Set when the person closes their account (spec section 6.5). A closed account is also
     # inactive; this field tells it apart from one that waits for the admin's approval.
-    closed_at = models.DateTimeField("closed on", null=True, blank=True)
+    closed_at = models.DateTimeField(_("closed on"), null=True, blank=True)
+
+    # The language the person chose in the header menu; "" until they choose. It wins over the
+    # cookie after sign-in, on any device (apps/accounts/locale.py).
+    language = models.CharField(
+        _("language"), max_length=10, choices=settings.LANGUAGES, default="", blank=True
+    )
 
     class Meta(AbstractUser.Meta):
         constraints = [
