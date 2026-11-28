@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Share Expense\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-28 14:35+0700\n"
+"POT-Creation-Date: 2026-11-28 15:42+0700\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Khmer\n"
@@ -99,15 +99,27 @@ msgstr "ឈ្មោះអ្នកប្រើរបស់អ្នក"
 msgid "Type “%(username)s” to confirm."
 msgstr "វាយ “%(username)s” ដើម្បីបញ្ជាក់។"
 
-#: apps/accounts/models.py:20 config/django_messages.py:188
+#: apps/accounts/models.py:12 templates/base.html:59
+msgid "System"
+msgstr "តាមប្រព័ន្ធ"
+
+#: apps/accounts/models.py:13 templates/base.html:57
+msgid "Light"
+msgstr "ភ្លឺ"
+
+#: apps/accounts/models.py:14 templates/base.html:58
+msgid "Dark"
+msgstr "ងងឹត"
+
+#: apps/accounts/models.py:26 config/django_messages.py:188
 msgid "username"
 msgstr "ឈ្មោះអ្នកប្រើ"
 
-#: apps/accounts/models.py:28
+#: apps/accounts/models.py:34
 msgid "closed on"
 msgstr "បិទនៅថ្ងៃ"
 
-#: apps/accounts/models.py:33
+#: apps/accounts/models.py:39
 msgid "language"
 msgstr "ភាសា"
 
@@ -119,7 +131,7 @@ msgstr "ឈ្មោះអ្នកប្រើនេះមានគេប្រ
 msgid "Use only the characters listed above."
 msgstr "សូមប្រើតែតួអក្សរដែលបានរាយខាងលើ។"
 
-#: apps/accounts/views.py:53
+#: apps/accounts/views.py:54
 msgid "Your account is closed."
 msgstr "គណនីរបស់អ្នកត្រូវបានបិទ។"
 
@@ -2211,20 +2223,20 @@ msgstr "បង្ហាញ %(shown)s ក្នុងចំណោម %(n)s ថ្
 msgid "%(shown)s of %(n)s shown"
 msgstr "បង្ហាញ %(shown)s ក្នុងចំណោម %(n)s"
 
-#: templates/base.html:10 templates/base.html:28
+#: templates/base.html:12 templates/base.html:30
 #: templates/registration/login.html:7 templates/trips/invite_notice.html:4
 msgid "Share Expense"
 msgstr "Share Expense"
 
-#: templates/base.html:32
+#: templates/base.html:34
 msgid "Language"
 msgstr "ភាសា"
 
-#: templates/base.html:43
+#: templates/base.html:45
 msgid "Account menu"
 msgstr "ម៉ឺនុយគណនី"
 
-#: templates/base.html:46 templates/notifications.html:5
+#: templates/base.html:48 templates/notifications.html:5
 #: templates/registration/close_account.html:3
 #: templates/registration/password_change_form.html:4
 #: templates/socialaccount/connections.html:5 templates/trips/home.html:4
@@ -2232,36 +2244,40 @@ msgstr "ម៉ឺនុយគណនី"
 msgid "Trips"
 msgstr "ដំណើរកម្សាន្ត"
 
-#: templates/base.html:47 templates/registration/password_change_form.html:2
+#: templates/base.html:49 templates/registration/password_change_form.html:2
 #: templates/registration/password_change_form.html:6
 #: templates/registration/password_change_form.html:10
 msgid "Change password"
 msgstr "ប្ដូរពាក្យសម្ងាត់"
 
-#: templates/base.html:48 templates/socialaccount/connections.html:4
+#: templates/base.html:50 templates/socialaccount/connections.html:4
 #: templates/socialaccount/connections.html:7
 msgid "Google account"
 msgstr "គណនី Google"
 
-#: templates/base.html:48
+#: templates/base.html:50
 #, python-format
 msgid "Linked: %(google_email)s"
 msgstr "បានភ្ជាប់៖ %(google_email)s"
 
-#: templates/base.html:48
+#: templates/base.html:50
 msgid "Not linked"
 msgstr "មិនទាន់ភ្ជាប់"
 
-#: templates/base.html:49 templates/registration/close_account.html:2
+#: templates/base.html:51 templates/registration/close_account.html:2
 #: templates/registration/close_account.html:5
 msgid "Close account"
 msgstr "បិទគណនី"
 
-#: templates/base.html:50
+#: templates/base.html:52
 msgid "Admin"
 msgstr "ផ្ទាំងគ្រប់គ្រង"
 
-#: templates/base.html:52 templates/trips/invite_notice.html:11
+#: templates/base.html:55
+msgid "Appearance"
+msgstr "រូបរាង"
+
+#: templates/base.html:63 templates/trips/invite_notice.html:11
 msgid "Log out"
 msgstr "ចេញពីគណនី"
 

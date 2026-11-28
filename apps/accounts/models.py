@@ -8,6 +8,12 @@ from django.utils.translation import gettext_lazy as _
 from . import usernames
 
 
+class Appearance(models.TextChoices):
+    SYSTEM = "system", _("System")
+    LIGHT = "light", _("Light")
+    DARK = "dark", _("Dark")
+
+
 class User(AbstractUser):
     """A person who can log in. Inactive accounts either wait for the admin's approval (made
     before personal invites existed) or were closed by their owner (``closed_at`` is set).
@@ -31,6 +37,11 @@ class User(AbstractUser):
     # cookie after sign-in, on any device (apps/accounts/locale.py).
     language = models.CharField(
         _("language"), max_length=10, choices=settings.LANGUAGES, default="", blank=True
+    )
+
+    # The colour scheme the person chose in the account menu; "system" follows the device.
+    appearance = models.CharField(
+        "appearance", max_length=6, choices=Appearance.choices, default=Appearance.SYSTEM
     )
 
     class Meta(AbstractUser.Meta):

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Share Expense\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-28 14:35+0700\n"
+"POT-Creation-Date: 2026-11-28 15:42+0700\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Simplified Chinese\n"
@@ -92,15 +92,27 @@ msgstr "你的用户名"
 msgid "Type “%(username)s” to confirm."
 msgstr "输入“%(username)s”以确认。"
 
-#: apps/accounts/models.py:20 config/django_messages.py:188
+#: apps/accounts/models.py:12 templates/base.html:59
+msgid "System"
+msgstr "跟随系统"
+
+#: apps/accounts/models.py:13 templates/base.html:57
+msgid "Light"
+msgstr "浅色"
+
+#: apps/accounts/models.py:14 templates/base.html:58
+msgid "Dark"
+msgstr "深色"
+
+#: apps/accounts/models.py:26 config/django_messages.py:188
 msgid "username"
 msgstr "用户名"
 
-#: apps/accounts/models.py:28
+#: apps/accounts/models.py:34
 msgid "closed on"
 msgstr "关闭时间"
 
-#: apps/accounts/models.py:33
+#: apps/accounts/models.py:39
 msgid "language"
 msgstr "语言"
 
@@ -112,7 +124,7 @@ msgstr "此用户名已被占用。"
 msgid "Use only the characters listed above."
 msgstr "只能使用上面列出的字符。"
 
-#: apps/accounts/views.py:53
+#: apps/accounts/views.py:54
 msgid "Your account is closed."
 msgstr "你的账户已关闭。"
 
@@ -2166,20 +2178,20 @@ msgstr "已显示%(n)s天中的%(shown)s天"
 msgid "%(shown)s of %(n)s shown"
 msgstr "已显示%(n)s条中的%(shown)s条"
 
-#: templates/base.html:10 templates/base.html:28
+#: templates/base.html:12 templates/base.html:30
 #: templates/registration/login.html:7 templates/trips/invite_notice.html:4
 msgid "Share Expense"
 msgstr "Share Expense"
 
-#: templates/base.html:32
+#: templates/base.html:34
 msgid "Language"
 msgstr "语言"
 
-#: templates/base.html:43
+#: templates/base.html:45
 msgid "Account menu"
 msgstr "账户菜单"
 
-#: templates/base.html:46 templates/notifications.html:5
+#: templates/base.html:48 templates/notifications.html:5
 #: templates/registration/close_account.html:3
 #: templates/registration/password_change_form.html:4
 #: templates/socialaccount/connections.html:5 templates/trips/home.html:4
@@ -2187,36 +2199,40 @@ msgstr "账户菜单"
 msgid "Trips"
 msgstr "行程"
 
-#: templates/base.html:47 templates/registration/password_change_form.html:2
+#: templates/base.html:49 templates/registration/password_change_form.html:2
 #: templates/registration/password_change_form.html:6
 #: templates/registration/password_change_form.html:10
 msgid "Change password"
 msgstr "修改密码"
 
-#: templates/base.html:48 templates/socialaccount/connections.html:4
+#: templates/base.html:50 templates/socialaccount/connections.html:4
 #: templates/socialaccount/connections.html:7
 msgid "Google account"
 msgstr "Google账户"
 
-#: templates/base.html:48
+#: templates/base.html:50
 #, python-format
 msgid "Linked: %(google_email)s"
 msgstr "已关联：%(google_email)s"
 
-#: templates/base.html:48
+#: templates/base.html:50
 msgid "Not linked"
 msgstr "未关联"
 
-#: templates/base.html:49 templates/registration/close_account.html:2
+#: templates/base.html:51 templates/registration/close_account.html:2
 #: templates/registration/close_account.html:5
 msgid "Close account"
 msgstr "关闭账户"
 
-#: templates/base.html:50
+#: templates/base.html:52
 msgid "Admin"
 msgstr "管理后台"
 
-#: templates/base.html:52 templates/trips/invite_notice.html:11
+#: templates/base.html:55
+msgid "Appearance"
+msgstr "外观"
+
+#: templates/base.html:63 templates/trips/invite_notice.html:11
 msgid "Log out"
 msgstr "退出登录"
 
