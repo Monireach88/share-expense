@@ -5,6 +5,7 @@ from pathlib import Path
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.csp import CSP
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -49,6 +50,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.csp.ContentSecurityPolicyMiddleware",
+    "apps.accounts.headers.PermissionsPolicyMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -63,6 +66,35 @@ MIDDLEWARE = [
     "apps.trips.offline.PageCacheMiddleware",
     "axes.middleware.AxesMiddleware",
 ]
+
+# Content-Security-Policy: the browser runs only scripts and styles from this site, so text a
+# member typed can never run as code. The templates have no inline <script> and htmx runs with
+# eval turned off (the htmx-config meta tag in templates/base.html). Inline style="" attributes
+# are allowed, because many templates and the page swaps of htmx and the service worker use
+# them; <style> elements and style sheets must still come from this site. Browsers too old for
+# style-src-elem fall back to style-src.
+# form-action allows Google, because Chrome applies it to the redirect after the "Continue with
+# Google" form posts to this site.
+SECURE_CSP = {
+    "default-src": [CSP.SELF],
+    "script-src": [CSP.SELF],
+    "style-src": [CSP.SELF, CSP.UNSAFE_INLINE],
+    "style-src-elem": [CSP.SELF],
+    "style-src-attr": [CSP.UNSAFE_INLINE],
+    "img-src": [CSP.SELF, "data:"],
+    "font-src": [CSP.SELF],
+    "connect-src": [CSP.SELF],
+    "worker-src": [CSP.SELF],
+    "manifest-src": [CSP.SELF],
+    "object-src": [CSP.NONE],
+    "base-uri": [CSP.SELF],
+    "frame-ancestors": [CSP.NONE],
+    "form-action": [CSP.SELF, "https://accounts.google.com"],
+}
+# Browser features the app never uses (apps/accounts/headers.py).
+PERMISSIONS_POLICY = ["camera", "microphone", "geolocation", "payment", "usb"]
+# The page scripts read the CSRF token from the hx-headers attribute, never from the cookie.
+CSRF_COOKIE_HTTPONLY = True
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
