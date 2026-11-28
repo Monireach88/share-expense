@@ -54,6 +54,8 @@ Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compos
 | `make shell` | Bash in the web container |
 | `make test` | pytest against the real Postgres (dev only) |
 | `make lint` | ruff check + ruff format --check (dev only) |
+| `make messages` | Update `locale/km` and `locale/zh_Hans` `django.po` from the code and templates (runs gettext in Docker; the host needs no gettext) |
+| `make compilemessages` | Compile the `.po` files into `.mo` files on the host with Docker (the dev container, the production image build and CI compile them themselves; `.mo` files are never committed) |
 | `make backup` | Gzipped database dump, keeps the newest 14 |
 | `make clean` | Stop and **delete the database volume** (dev only) |
 

@@ -1,0 +1,2464 @@
+# Simplified Chinese interface text of Share Expense.
+# Edit msgstr only; run `make messages` after the code changes (docs/spec_languages.md).
+msgid ""
+msgstr ""
+"Project-Id-Version: Share Expense\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-28 13:54+0700\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: Simplified Chinese\n"
+"Language: zh-Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: apps/accounts/adapters.py:28 apps/accounts/forms.py:8 apps/trips/invites.py:261
+msgid "This account is closed. Ask the admin to restore it."
+msgstr ""
+
+#: apps/accounts/adapters.py:83
+#, python-format
+msgid "This invite is for %(address)s, but you used another Google account. Sign out of Google, then open the invite link again and choose the invited address."
+msgstr ""
+
+#: apps/accounts/adapters.py:93
+msgid "No account uses this Google account. If you have a username and password, log in with them and link Google from the account menu. To join a trip, ask its Owner for an invite."
+msgstr ""
+
+#: apps/accounts/admin.py:17 templates/trips/people.html:45
+msgid "Closed"
+msgstr ""
+
+#: apps/accounts/admin.py:19
+msgid "closed"
+msgstr ""
+
+#: apps/accounts/admin.py:34
+#, python-format
+msgid "Trip “%(trip)s”, owned by %(user)s: make someone else its Owner first."
+msgstr ""
+
+#: apps/accounts/admin.py:40
+msgid "Approve selected sign-up requests"
+msgstr ""
+
+#: apps/accounts/admin.py:45
+#, python-format
+msgid "%(count)d account(s) approved."
+msgstr ""
+
+#: apps/accounts/admin.py:48
+msgid "Restore selected closed accounts"
+msgstr ""
+
+#: apps/accounts/admin.py:52
+#, python-format
+msgid "%(count)d account(s) restored."
+msgstr ""
+
+#: apps/accounts/closing.py:37
+#, python-format
+msgid "%(trips)s and %(last)s"
+msgstr ""
+
+#: apps/accounts/closing.py:43
+#, python-format
+msgid "You are the Owner of %(trips)s. Make someone else the Owner first."
+msgstr ""
+
+#: apps/accounts/forms.py:41
+msgid "At least 8 characters, not only numbers."
+msgstr ""
+
+#: apps/accounts/forms.py:42
+msgid "Type the new password again."
+msgstr ""
+
+#: apps/accounts/forms.py:48
+msgid "Your username"
+msgstr ""
+
+#: apps/accounts/forms.py:59
+#, python-format
+msgid "Type “%(username)s” to confirm."
+msgstr ""
+
+#: apps/accounts/models.py:20
+msgid "username"
+msgstr ""
+
+#: apps/accounts/models.py:28
+msgid "closed on"
+msgstr ""
+
+#: apps/accounts/models.py:33
+msgid "language"
+msgstr ""
+
+#: apps/accounts/usernames.py:16
+msgid "This username is taken."
+msgstr ""
+
+#: apps/accounts/usernames.py:17
+msgid "Use only the characters listed above."
+msgstr ""
+
+#: apps/accounts/views.py:53
+msgid "Your account is closed."
+msgstr ""
+
+#: apps/disputes/models.py:22
+msgctxt "dispute state"
+msgid "Open"
+msgstr ""
+
+#: apps/disputes/models.py:23
+msgctxt "dispute state"
+msgid "Resolved"
+msgstr ""
+
+#: apps/disputes/models.py:24
+msgctxt "dispute state"
+msgid "Closed"
+msgstr ""
+
+#: apps/disputes/models.py:37
+msgid "reason"
+msgstr ""
+
+#: apps/disputes/models.py:38
+msgid "reason in English"
+msgstr ""
+
+#: apps/disputes/models.py:40
+msgid "reason for closing"
+msgstr ""
+
+#: apps/disputes/models.py:42
+msgid "reason for closing in English"
+msgstr ""
+
+#: apps/disputes/models.py:83
+msgid "message"
+msgstr ""
+
+#: apps/disputes/models.py:84
+msgid "message in English"
+msgstr ""
+
+#. Translators: stands for a person in: "<Owner>, the Owner, closed <someone>'s dispute".
+#: apps/disputes/rules.py:182 apps/trips/history.py:448
+msgid "someone"
+msgstr ""
+
+#: apps/disputes/rules.py:185
+#, python-format
+msgid "%(who)s opened a dispute on %(label)s: %(detail)s"
+msgstr ""
+
+#: apps/disputes/rules.py:187
+#, python-format
+msgid "%(who)s wrote in the dispute on %(label)s: %(detail)s"
+msgstr ""
+
+#: apps/disputes/rules.py:189 apps/trips/history.py:452
+#, python-format
+msgid "%(who)s resolved the dispute on %(label)s"
+msgstr ""
+
+#: apps/disputes/rules.py:191
+#, python-format
+msgid "%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s. Reason: %(detail)s"
+msgstr ""
+
+#: apps/disputes/rules.py:193 apps/trips/history.py:402
+#, python-format
+msgid "%(who)s settled the trip"
+msgstr ""
+
+#: apps/disputes/rules.py:194 apps/trips/history.py:403
+#, python-format
+msgid "%(who)s reopened the trip"
+msgstr ""
+
+#: apps/disputes/rules.py:196
+#, python-format
+msgid "%(who)s added you to the trip"
+msgstr ""
+
+#: apps/disputes/rules.py:197
+#, python-format
+msgid "%(who)s accepted your invite"
+msgstr ""
+
+#: apps/disputes/rules.py:199
+#, python-format
+msgid "%(who)s accepted your invite, but traveler %(detail)s could not be linked. Link the right traveler on the Travelers page."
+msgstr ""
+
+#: apps/disputes/rules.py:223
+msgid "This dispute is resolved, so it takes no new messages."
+msgstr ""
+
+#: apps/disputes/rules.py:225
+msgid "This dispute is closed, so it takes no new messages."
+msgstr ""
+
+#: apps/disputes/rules.py:249
+msgid "Write why you disagree with this expense."
+msgstr ""
+
+#: apps/disputes/rules.py:256
+msgid "You already have an open dispute on this expense."
+msgstr ""
+
+#: apps/disputes/rules.py:292
+msgid "Write a message first."
+msgstr ""
+
+#: apps/disputes/rules.py:347
+msgid "Write the reason for closing this dispute."
+msgstr ""
+
+#: apps/disputes/rules.py:393
+#, python-format
+msgid "%(n)d open dispute"
+msgid_plural "%(n)d open disputes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/disputes/rules.py:401
+msgid "This traveler cannot be removed because an expense they are in has a dispute."
+msgstr ""
+
+#: apps/disputes/rules.py:403
+msgid "This type cannot be removed because an expense of this type has a dispute."
+msgstr ""
+
+#: apps/disputes/rules.py:404
+msgid "This rate cannot be deleted because an expense in this currency has a dispute."
+msgstr ""
+
+#: apps/disputes/views.py:120
+msgid "Dispute opened."
+msgstr ""
+
+#: apps/disputes/views.py:152
+msgid "Dispute resolved."
+msgstr ""
+
+#: apps/disputes/views.py:169
+msgid "Dispute closed."
+msgstr ""
+
+#: apps/expenses/ai_fill.py:83
+msgid "Describe the expense in a sentence."
+msgstr ""
+
+#: apps/expenses/ai_fill.py:102 apps/expenses/ai_fill.py:104 templates/expenses/form.html:118
+msgid "The text could not be read. Try again."
+msgstr ""
+
+#: apps/expenses/ai_fill.py:106
+msgid "This box only adds expenses."
+msgstr ""
+
+#: apps/expenses/ai_fill.py:113
+msgid "the amount"
+msgstr ""
+
+#: apps/expenses/ai_fill.py:119
+msgid "the currency"
+msgstr ""
+
+#: apps/expenses/ai_fill.py:122
+#, python-format
+msgid "the currency (%(code)s has no exchange rate in this trip)"
+msgstr ""
+
+#: apps/expenses/ai_fill.py:131 apps/expenses/ai_fill.py:141
+msgid "who paid"
+msgstr ""
+
+#: apps/expenses/ai_fill.py:138
+#, python-format
+msgid "who paid (no single traveler is called “%(name)s”)"
+msgstr ""
+
+#: apps/expenses/ai_fill.py:153
+#, python-format
+msgid "who it was for (no single traveler is called %(names)s)"
+msgstr ""
+
+#: apps/expenses/ai_fill.py:159
+msgid "who it was for"
+msgstr ""
+
+#: apps/expenses/ai_fill.py:165
+msgid "the type"
+msgstr ""
+
+#: apps/expenses/ai_fill.py:171
+msgid "what was bought"
+msgstr ""
+
+#: apps/expenses/forms.py:41 apps/expenses/report.py:212
+msgid "Description"
+msgstr ""
+
+#: apps/expenses/forms.py:43 apps/expenses/report.py:40 apps/expenses/report.py:214 templates/expenses/_facts.html:9
+msgid "Paid by"
+msgstr ""
+
+#: apps/expenses/forms.py:44 apps/expenses/report.py:215 templates/expenses/_facts.html:10
+msgid "Split between"
+msgstr ""
+
+#: apps/expenses/forms.py:45 apps/expenses/report.py:47 apps/expenses/report.py:213 templates/expenses/_facts.html:11
+msgid "Type"
+msgstr ""
+
+#: apps/expenses/forms.py:46 apps/expenses/report.py:211 templates/expenses/_facts.html:12
+msgid "Date"
+msgstr ""
+
+#: apps/expenses/forms.py:57
+msgid "e.g. Taxi from the airport"
+msgstr ""
+
+#: apps/expenses/forms.py:87
+#, python-format
+msgid "Your account can add and change only expenses paid by %(name)s."
+msgstr ""
+
+#: apps/expenses/forms.py:113
+msgid "Enter an amount above zero."
+msgstr ""
+
+#: apps/expenses/forms.py:120
+msgid "Add an exchange rate for this currency in the trip settings first."
+msgstr ""
+
+#: apps/expenses/forms.py:141
+msgid "Enter a name."
+msgstr ""
+
+#: apps/expenses/forms.py:144
+msgid "This trip already has a type with this name."
+msgstr ""
+
+#: apps/expenses/forms.py:153
+msgid "Choose an icon from the list."
+msgstr ""
+
+#: apps/expenses/models.py:26
+msgctxt "expense type"
+msgid "Transport"
+msgstr ""
+
+#: apps/expenses/models.py:27
+msgctxt "expense type"
+msgid "Accommodation"
+msgstr ""
+
+#: apps/expenses/models.py:28
+msgctxt "expense type"
+msgid "Food & drink"
+msgstr ""
+
+#: apps/expenses/models.py:29
+msgctxt "expense type"
+msgid "Hospital & medicine"
+msgstr ""
+
+#: apps/expenses/models.py:30
+msgctxt "expense type"
+msgid "Translation"
+msgstr ""
+
+#: apps/expenses/models.py:31
+msgctxt "expense type"
+msgid "Shopping"
+msgstr ""
+
+#: apps/expenses/models.py:32
+msgctxt "expense type"
+msgid "Activities"
+msgstr ""
+
+#: apps/expenses/models.py:33
+msgctxt "expense type"
+msgid "Other"
+msgstr ""
+
+#: apps/expenses/models.py:51 apps/trips/models.py:143
+msgid "name"
+msgstr ""
+
+#: apps/expenses/models.py:52
+msgid "name in English"
+msgstr ""
+
+#: apps/expenses/models.py:53
+msgid "icon"
+msgstr ""
+
+#: apps/expenses/models.py:58 apps/expenses/models.py:110 apps/trips/history.py:333
+msgid "type"
+msgstr ""
+
+#: apps/expenses/models.py:94 apps/trips/history.py:330
+msgid "date"
+msgstr ""
+
+#: apps/expenses/models.py:96 apps/trips/history.py:331
+msgid "paid by"
+msgstr ""
+
+#: apps/expenses/models.py:101
+msgid "for whom"
+msgstr ""
+
+#: apps/expenses/models.py:102
+msgid "The amount is split equally among these people."
+msgstr ""
+
+#: apps/expenses/models.py:112 apps/trips/history.py:334
+msgid "description"
+msgstr ""
+
+#: apps/expenses/models.py:113
+msgid "description in English"
+msgstr ""
+
+#: apps/expenses/models.py:114 apps/trips/history.py:335
+msgid "amount"
+msgstr ""
+
+#: apps/expenses/models.py:115 apps/trips/history.py:336 apps/trips/models.py:181
+msgid "currency"
+msgstr ""
+
+#: apps/expenses/report.py:33 apps/trips/forms.py:198
+msgid "Traveler"
+msgstr ""
+
+#. Translators: the first choice of the "Traveler" filter: no filter, all travelers.
+#: apps/expenses/report.py:37 templates/_checks.html:4 templates/expenses/form.html:54 templates/trips/summary.html:37
+msgid "Everyone"
+msgstr ""
+
+#. Translators: the first choice of the "Paid by" filter: no filter, any traveler paid.
+#: apps/expenses/report.py:44
+msgid "Anyone"
+msgstr ""
+
+#: apps/expenses/report.py:50
+msgid "All types"
+msgstr ""
+
+#: apps/expenses/report.py:52
+msgid "From"
+msgstr ""
+
+#: apps/expenses/report.py:53
+msgid "To"
+msgstr ""
+
+#: apps/expenses/report.py:216
+msgid "Amount"
+msgstr ""
+
+#: apps/expenses/report.py:217 templates/trips/_rate_row.html:6
+msgid "Currency"
+msgstr ""
+
+#: apps/expenses/report.py:218
+#, python-format
+msgid "Amount in %(base)s"
+msgstr ""
+
+#: apps/expenses/report.py:222
+#, python-format
+msgid "%(name)s's share in %(base)s"
+msgstr ""
+
+#: apps/expenses/report.py:223
+msgid "Description in English"
+msgstr ""
+
+#: apps/expenses/views.py:169
+msgid "Check the name."
+msgstr ""
+
+#: apps/expenses/views.py:187 apps/expenses/views.py:209 apps/expenses/views.py:242 apps/expenses/views.py:272
+msgid "This trip is settled."
+msgstr ""
+
+#: apps/expenses/views.py:246
+#, python-format
+msgid "“%(name)s” is used by %(n)d expense, so it cannot be removed."
+msgid_plural "“%(name)s” is used by %(n)d expenses, so it cannot be removed."
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/expenses/views.py:257
+msgid "A trip needs at least one type."
+msgstr ""
+
+#: apps/expenses/views.py:274
+msgid "Adding with AI is not set up."
+msgstr ""
+
+#: apps/expenses/views.py:277
+msgid "Too many requests. Try again in a few minutes."
+msgstr ""
+
+#: apps/expenses/views.py:361
+#, python-format
+msgid "%(what)s, %(amount)s %(currency)s (%(payer)s paid)"
+msgstr ""
+
+#: apps/expenses/views.py:395
+#, python-format
+msgid "Added: %(expense)s"
+msgstr ""
+
+#: apps/expenses/views.py:451
+#, python-format
+msgid "Saved: %(expense)s"
+msgstr ""
+
+#: apps/expenses/views.py:483
+#, python-format
+msgid "Deleted: %(expense)s"
+msgstr ""
+
+#: apps/expenses/views.py:493
+msgid "It will be left out of all totals."
+msgstr ""
+
+#: apps/expenses/views.py:494
+msgid "Delete expense"
+msgstr ""
+
+#: apps/expenses/views.py:511
+#, python-format
+msgid "%(share)s %(currency)s each"
+msgstr ""
+
+#: apps/expenses/views.py:514
+#, python-format
+msgid "%(n)d traveler · %(share)s %(currency)s each"
+msgid_plural "%(n)d travelers · %(share)s %(currency)s each"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/expenses/views.py:530 apps/expenses/views.py:579 apps/trips/access.py:15
+msgid "This trip is settled, so its expenses are locked."
+msgstr ""
+
+#: apps/expenses/views.py:533
+msgid "Your account is not linked to a traveler, so you can view expenses but not change them. The trip Owner can link it."
+msgstr ""
+
+#: apps/expenses/views.py:575
+#, python-format
+msgid "%(name)s was removed from the trip, so this expense cannot be restored."
+msgstr ""
+
+#: apps/expenses/views.py:624 apps/trips/history.py:293
+msgid "This expense can no longer be restored."
+msgstr ""
+
+#: apps/expenses/views.py:638
+#, python-format
+msgid "Restored: %(expense)s"
+msgstr ""
+
+#: apps/expenses/views.py:649
+msgid "Only the Owner or an Editor can restore this expense."
+msgstr ""
+
+#: apps/expenses/views.py:650
+msgid "Only the Owner or an Editor can change this expense."
+msgstr ""
+
+#: apps/expenses/views.py:654
+#, python-format
+msgid "Only %(name)s, the Owner or an Editor can restore this expense."
+msgstr ""
+
+#: apps/expenses/views.py:655
+#, python-format
+msgid "Only %(name)s, the Owner or an Editor can change this expense."
+msgstr ""
+
+#: apps/expenses/views.py:664
+#, python-format
+msgid "paid by %(name)s"
+msgstr ""
+
+#: apps/expenses/views.py:671
+#, python-format
+msgid "from %(day)s"
+msgstr ""
+
+#: apps/expenses/views.py:673
+#, python-format
+msgid "until %(day)s"
+msgstr ""
+
+#: apps/settlement/engine.py:84
+#, python-format
+msgid "No exchange rate for %(currency)s"
+msgstr ""
+
+#: apps/settlement/engine.py:155
+msgid "Travelers must be unique."
+msgstr ""
+
+#: apps/settlement/engine.py:162
+#, python-format
+msgid "Unknown sponsor %(name)s"
+msgstr ""
+
+#: apps/settlement/engine.py:165
+#, python-format
+msgid "Sponsor %(name)s is covered by someone else"
+msgstr ""
+
+#: apps/settlement/engine.py:178
+#, python-format
+msgid "Unknown payer %(name)s"
+msgstr ""
+
+#: apps/settlement/engine.py:180
+msgid "An expense needs at least one beneficiary"
+msgstr ""
+
+#: apps/settlement/engine.py:183
+#, python-format
+msgid "Unknown beneficiary %(name)s"
+msgstr ""
+
+#: apps/trips/actions.py:35
+#, python-format
+msgid "The trip cannot be settled: %(reason)s."
+msgstr ""
+
+#: apps/trips/actions.py:42
+#, python-format
+msgid "The trip cannot be settled: %(error)s."
+msgstr ""
+
+#: apps/trips/actions.py:64
+msgid "The Owner's role changes only by making someone else the Owner."
+msgstr ""
+
+#: apps/trips/actions.py:66
+msgid "Choose Member or Editor."
+msgstr ""
+
+#: apps/trips/actions.py:87
+msgid "Only the Owner can do this."
+msgstr ""
+
+#: apps/trips/actions.py:89
+msgid "Choose another account on this trip."
+msgstr ""
+
+#: apps/trips/actions.py:91 apps/trips/views.py:657
+msgid "This account is closed."
+msgstr ""
+
+#: apps/trips/actions.py:93 apps/trips/views.py:661
+msgid "This account is not approved yet."
+msgstr ""
+
+#: apps/trips/actions.py:115
+msgid "The Owner cannot be removed."
+msgstr ""
+
+#: apps/trips/actions.py:133
+msgid "The Owner cannot leave the trip. Make someone else the Owner first."
+msgstr ""
+
+#: apps/trips/actions.py:181 apps/trips/forms.py:236 apps/trips/forms.py:250
+msgid "This person is already on the trip."
+msgstr ""
+
+#: apps/trips/actions.py:184
+msgid "This trip is settled, so its travelers are locked."
+msgstr ""
+
+#: apps/trips/actions.py:186 apps/trips/forms.py:148 apps/trips/forms.py:287
+msgid "Someone on this trip already has this name."
+msgstr ""
+
+#: apps/trips/actions.py:191
+msgid "This traveler is already linked to an account."
+msgstr ""
+
+#: apps/trips/english.py:21 templates/expenses/_dispute_english.html:8
+msgid "Write the English version."
+msgstr ""
+
+#: apps/trips/english.py:24 templates/expenses/_dispute_english.html:5 templates/expenses/form.html:104
+msgctxt "label of the box with the English translation of the text above"
+msgid "English"
+msgstr ""
+
+#: apps/trips/forms.py:28
+msgid "Choose a country (optional)"
+msgstr ""
+
+#: apps/trips/forms.py:37
+msgid "The end date must be on or after the start date."
+msgstr ""
+
+#: apps/trips/forms.py:43
+msgid "Delete the exchange rate for this currency first."
+msgstr ""
+
+#: apps/trips/forms.py:56 templates/trips/_date_range_fields.html:2
+msgid "Choose"
+msgstr ""
+
+#: apps/trips/forms.py:61
+msgid "This is already the trip's base currency."
+msgstr ""
+
+#: apps/trips/forms.py:67
+msgid "Enter a rate above zero."
+msgstr ""
+
+#: apps/trips/forms.py:84
+msgid "This currency already has a rate."
+msgstr ""
+
+#: apps/trips/forms.py:132
+msgid "No account"
+msgstr ""
+
+#: apps/trips/forms.py:134
+msgid "Optional. The linked account sees this traveler's balance and can add the expenses this traveler paid."
+msgstr ""
+
+#: apps/trips/forms.py:137 templates/trips/people.html:26
+msgid "Covered by"
+msgstr ""
+
+#: apps/trips/forms.py:139
+msgid "Travelers who pay this traveler's share. Empty means they pay their own."
+msgstr ""
+
+#: apps/trips/forms.py:160
+#, python-format
+msgid "This account is already linked to %(name)s."
+msgstr ""
+
+#: apps/trips/forms.py:170
+msgid "This person already covers someone else, so they must pay for themselves."
+msgstr ""
+
+#: apps/trips/forms.py:175
+#, python-format
+msgid "%(name)s is covered by someone else and cannot cover another person."
+msgstr ""
+
+#: apps/trips/forms.py:189
+msgid "No account has this username. To invite someone new, type their email address."
+msgstr ""
+
+#: apps/trips/forms.py:193
+msgid "Username or email"
+msgstr ""
+
+#: apps/trips/forms.py:195
+msgid "A username of an approved account, or the email address of a new person."
+msgstr ""
+
+#: apps/trips/forms.py:201
+msgid "New traveler's name"
+msgstr ""
+
+#: apps/trips/forms.py:220
+msgid "A new traveler"
+msgstr ""
+
+#: apps/trips/forms.py:221
+msgid "No traveler (view only)"
+msgstr ""
+
+#: apps/trips/forms.py:258
+msgid "This address already has an invite to this trip."
+msgstr ""
+
+#: apps/trips/forms.py:262
+#, python-format
+msgid "No email can be delivered to %(domain)s. Check the address."
+msgstr ""
+
+#: apps/trips/forms.py:281
+msgid "Type the new traveler's name."
+msgstr ""
+
+#: apps/trips/forms.py:306
+msgid "Role"
+msgstr ""
+
+#: apps/trips/forms.py:308 apps/trips/models.py:67
+msgctxt "trip role"
+msgid "Member"
+msgstr ""
+
+#: apps/trips/forms.py:309 apps/trips/models.py:66
+msgctxt "trip role"
+msgid "Editor"
+msgstr ""
+
+#: apps/trips/forms.py:318
+#, python-format
+msgid "A Member can change only the expenses that %(name)s paid. An Editor can change every expense and mark the trip as settled."
+msgstr ""
+
+#. Translators: used in a History line when an expense is split between all travelers ("split between everyone").
+#: apps/trips/history.py:145
+msgid "everyone"
+msgstr ""
+
+#. Translators: the word that names an expense in History when it has no description, as in: Cara deleted "expense".
+#: apps/trips/history.py:211
+msgid "expense"
+msgstr ""
+
+#: apps/trips/history.py:263
+#, python-format
+msgid "traveler %(name)s"
+msgstr ""
+
+#: apps/trips/history.py:276
+#, python-format
+msgid "type %(name)s"
+msgstr ""
+
+#: apps/trips/history.py:278
+#, python-format
+msgid "the %(currency)s rate"
+msgstr ""
+
+#: apps/trips/history.py:300
+#, python-format
+msgid "Not restored. Add these first: %(problems)s."
+msgstr ""
+
+#: apps/trips/history.py:332
+msgid "split between"
+msgstr ""
+
+#. Translators: the start of a History sentence when the name of the person who acted is unknown ("Someone added ...").
+#: apps/trips/history.py:348
+msgid "Someone"
+msgstr ""
+
+#: apps/trips/history.py:362
+#, python-format
+msgid "%(who)s changed %(label)s: %(changes)s"
+msgstr ""
+
+#: apps/trips/history.py:368
+#, python-format
+msgid "%(amount)s, paid by %(payer)s"
+msgstr ""
+
+#: apps/trips/history.py:373
+#, python-format
+msgid "%(who)s added %(label)s"
+msgstr ""
+
+#: apps/trips/history.py:374
+#, python-format
+msgid "%(who)s deleted %(label)s"
+msgstr ""
+
+#: apps/trips/history.py:375
+#, python-format
+msgid "%(who)s restored %(label)s"
+msgstr ""
+
+#: apps/trips/history.py:380
+#, python-format
+msgid "%(who)s added traveler %(label)s"
+msgstr ""
+
+#: apps/trips/history.py:381
+#, python-format
+msgid "%(who)s renamed traveler %(old)s → %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:382
+#, python-format
+msgid "%(who)s changed who covers %(label)s: %(old)s → %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:383
+#, python-format
+msgid "%(who)s linked traveler %(label)s to account %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:384
+#, python-format
+msgid "%(who)s unlinked traveler %(label)s from account %(old)s"
+msgstr ""
+
+#: apps/trips/history.py:385
+#, python-format
+msgid "%(who)s removed traveler %(label)s"
+msgstr ""
+
+#: apps/trips/history.py:386
+#, python-format
+msgid "%(who)s added %(label)s's account"
+msgstr ""
+
+#: apps/trips/history.py:387
+#, python-format
+msgid "%(who)s changed %(label)s's role: %(old)s → %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:388
+#, python-format
+msgid "%(who)s removed %(label)s's account"
+msgstr ""
+
+#: apps/trips/history.py:389
+#, python-format
+msgid "%(who)s made %(label)s the Owner"
+msgstr ""
+
+#: apps/trips/history.py:390
+#, python-format
+msgid "%(who)s left the trip"
+msgstr ""
+
+#: apps/trips/history.py:391
+#, python-format
+msgid "%(who)s closed their account"
+msgstr ""
+
+#: apps/trips/history.py:392
+#, python-format
+msgid "%(who)s sent the invite for %(label)s again"
+msgstr ""
+
+#: apps/trips/history.py:393
+#, python-format
+msgid "%(who)s cancelled the invite for %(label)s"
+msgstr ""
+
+#: apps/trips/history.py:394
+#, python-format
+msgid "The invite for %(label)s expired"
+msgstr ""
+
+#: apps/trips/history.py:395
+#, python-format
+msgid "%(who)s added the %(label)s rate: %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:396
+#, python-format
+msgid "%(who)s changed the %(label)s rate: %(old)s → %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:397
+#, python-format
+msgid "%(who)s removed the %(label)s rate: %(old)s"
+msgstr ""
+
+#: apps/trips/history.py:398
+#, python-format
+msgid "%(who)s added type %(label)s"
+msgstr ""
+
+#: apps/trips/history.py:399
+#, python-format
+msgid "%(who)s renamed type %(old)s → %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:400
+#, python-format
+msgid "%(who)s changed type %(label)s: icon %(old)s → %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:401
+#, python-format
+msgid "%(who)s removed type %(label)s"
+msgstr ""
+
+#: apps/trips/history.py:404
+#, python-format
+msgid "%(who)s turned the invite link on"
+msgstr ""
+
+#: apps/trips/history.py:405
+#, python-format
+msgid "%(who)s turned the invite link off"
+msgstr ""
+
+#: apps/trips/history.py:406
+#, python-format
+msgid "%(who)s renewed the invite link"
+msgstr ""
+
+#: apps/trips/history.py:407
+#, python-format
+msgid "%(who)s renamed the trip: %(old)s → %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:413
+#, python-format
+msgid "%(who)s joined by link as %(traveler)s"
+msgstr ""
+
+#: apps/trips/history.py:414
+#, python-format
+msgid "%(who)s joined by link (view only)"
+msgstr ""
+
+#: apps/trips/history.py:420
+#, python-format
+msgid "%(who)s changed the trip settings: %(changes)s"
+msgstr ""
+
+#: apps/trips/history.py:434
+#, python-format
+msgid "%(who)s invited %(label)s as %(traveler)s"
+msgstr ""
+
+#: apps/trips/history.py:435
+#, python-format
+msgid "%(who)s accepted the invite for %(label)s as %(traveler)s"
+msgstr ""
+
+#: apps/trips/history.py:439
+#, python-format
+msgid "%(who)s invited %(label)s (view only)"
+msgstr ""
+
+#: apps/trips/history.py:440
+#, python-format
+msgid "%(who)s accepted the invite for %(label)s (view only)"
+msgstr ""
+
+#: apps/trips/history.py:450
+#, python-format
+msgid "%(who)s opened a dispute on %(label)s: %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:451
+#, python-format
+msgid "%(who)s wrote in the dispute on %(label)s: %(new)s"
+msgstr ""
+
+#: apps/trips/history.py:453
+#, python-format
+msgid "%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s: %(new)s"
+msgstr ""
+
+#. Translators: "nobody" is shown when no traveler covers this traveler's share, as in: covered by "nobody" -> "Ann".
+#: apps/trips/history.py:538 apps/trips/history.py:539
+msgid "nobody"
+msgstr ""
+
+#: apps/trips/invite_views.py:43
+#, python-format
+msgid "You are logged in as %(name)s. Log out first, then open this link again."
+msgstr ""
+
+#: apps/trips/invite_views.py:66
+#, python-format
+msgid "You joined %(trip)s."
+msgstr ""
+
+#: apps/trips/invites.py:112 templates/expenses/_disputes.html:16 templates/expenses/_disputes.html:17 templates/notifications.html:15
+#, python-format
+msgid "%(day)s at %(time)s"
+msgstr ""
+
+#: apps/trips/invites.py:181
+msgid "This invite was already used or cancelled."
+msgstr ""
+
+#: apps/trips/invites.py:258
+msgid "This invite no longer works. Ask the Owner of the trip for a new one."
+msgstr ""
+
+#: apps/trips/invites.py:365
+msgid "Email sending is not set up. Copy the link and send it yourself."
+msgstr ""
+
+#: apps/trips/invites.py:370
+msgid "You have sent many invites in the last hour. Copy the link instead, or try again later."
+msgstr ""
+
+#: apps/trips/invites.py:392
+msgid "The email could not be sent. Copy the link and send it yourself."
+msgstr ""
+
+#: apps/trips/invites.py:394
+#, python-format
+msgid "The invite email was sent to %(email)s."
+msgstr ""
+
+#: apps/trips/models.py:16
+msgid "trip name"
+msgstr ""
+
+#: apps/trips/models.py:18
+msgid "trip name in English"
+msgstr ""
+
+#: apps/trips/models.py:19
+msgid "country"
+msgstr ""
+
+#: apps/trips/models.py:20
+msgid "start date"
+msgstr ""
+
+#: apps/trips/models.py:21
+msgid "end date"
+msgstr ""
+
+#: apps/trips/models.py:23
+msgid "base currency"
+msgstr ""
+
+#: apps/trips/models.py:27
+msgid "All totals and balances are shown in this currency."
+msgstr ""
+
+#: apps/trips/models.py:31
+msgid "settled on"
+msgstr ""
+
+#: apps/trips/models.py:65
+msgctxt "trip role"
+msgid "Owner"
+msgstr ""
+
+#: apps/trips/models.py:107
+msgctxt "trip role"
+msgid "Viewer"
+msgstr ""
+
+#: apps/trips/models.py:150
+msgid "linked account"
+msgstr ""
+
+#: apps/trips/models.py:157
+msgid "covered by"
+msgstr ""
+
+#: apps/trips/models.py:158
+msgid "People who pay this person's share. Leave empty if they pay for themselves."
+msgstr ""
+
+#: apps/trips/models.py:182
+msgid "rate"
+msgstr ""
+
+#: apps/trips/models.py:241
+msgid "history entries"
+msgstr ""
+
+#: apps/trips/models.py:265
+msgctxt "invite state"
+msgid "Pending"
+msgstr ""
+
+#: apps/trips/models.py:266
+msgctxt "invite state"
+msgid "Expired"
+msgstr ""
+
+#: apps/trips/models.py:267
+msgctxt "invite state"
+msgid "Accepted"
+msgstr ""
+
+#: apps/trips/models.py:268
+msgctxt "invite state"
+msgid "Cancelled"
+msgstr ""
+
+#: apps/trips/models.py:273
+msgid "email address"
+msgstr ""
+
+#: apps/trips/views.py:67
+msgid "Trip created."
+msgstr ""
+
+#: apps/trips/views.py:124
+msgid "Trip saved."
+msgstr ""
+
+#: apps/trips/views.py:209
+msgid "Exchange rate saved."
+msgstr ""
+
+#: apps/trips/views.py:249
+msgid "Exchange rate deleted."
+msgstr ""
+
+#: apps/trips/views.py:258
+msgid "Expenses use this currency. Change them first."
+msgstr ""
+
+#: apps/trips/views.py:263
+msgid "Delete rate"
+msgstr ""
+
+#: apps/trips/views.py:274
+#, python-format
+msgid "Trip “%(name)s” deleted."
+msgstr ""
+
+#: apps/trips/views.py:283
+msgid "All expenses of this trip are deleted too. This cannot be undone."
+msgstr ""
+
+#: apps/trips/views.py:284 templates/trips/settings.html:60
+msgid "Delete trip"
+msgstr ""
+
+#: apps/trips/views.py:352
+#, python-format
+msgid "%(name)s added."
+msgstr ""
+
+#: apps/trips/views.py:373
+#, python-format
+msgid "%(name)s saved."
+msgstr ""
+
+#: apps/trips/views.py:415
+#, python-format
+msgid "%(name)s removed."
+msgstr ""
+
+#: apps/trips/views.py:424
+msgid "This traveler appears in expenses. Change those expenses first."
+msgstr ""
+
+#: apps/trips/views.py:429 templates/trips/participant_form.html:13
+msgid "Remove traveler"
+msgstr ""
+
+#: apps/trips/views.py:484
+#, python-format
+msgid "%(name)s can now open this trip."
+msgstr ""
+
+#: apps/trips/views.py:510
+#, python-format
+msgid "Add %(name)s (%(username)s) to this trip now?"
+msgstr ""
+
+#: apps/trips/views.py:515
+#, python-format
+msgid "Invite %(email)s?"
+msgstr ""
+
+#: apps/trips/views.py:517 templates/trips/people.html:61
+#, python-format
+msgid "As %(name)s"
+msgstr ""
+
+#: apps/trips/views.py:519
+#, python-format
+msgid "As new traveler %(name)s"
+msgstr ""
+
+#: apps/trips/views.py:521 templates/trips/people.html:61
+msgid "As Viewer"
+msgstr ""
+
+#: apps/trips/views.py:564
+#, python-format
+msgid "The invite for %(email)s is cancelled."
+msgstr ""
+
+#: apps/trips/views.py:578
+#, python-format
+msgid "You left %(trip)s."
+msgstr ""
+
+#: apps/trips/views.py:596
+#, python-format
+msgid "%(name)s can no longer open this trip."
+msgstr ""
+
+#: apps/trips/views.py:624
+#, python-format
+msgid "%(name)s is now an Editor."
+msgstr ""
+
+#: apps/trips/views.py:626
+#, python-format
+msgid "%(name)s is now a Member."
+msgstr ""
+
+#: apps/trips/views.py:646
+#, python-format
+msgid "Remove %(name)s from this trip? %(name)s loses access at once and is no longer linked to %(traveler)s."
+msgstr ""
+
+#: apps/trips/views.py:649
+#, python-format
+msgid "Remove %(name)s from this trip? %(name)s loses access at once."
+msgstr ""
+
+#: apps/trips/views.py:670
+#, python-format
+msgid "%(name)s is now the Owner."
+msgstr ""
+
+#: apps/trips/views.py:680
+#, python-format
+msgid "Make %(name)s the Owner?"
+msgstr ""
+
+#: apps/trips/views.py:682
+#, python-format
+msgid "%(name)s will have full control of this trip. You will become an Editor and cannot undo this yourself; only %(name)s can make you the Owner again."
+msgstr ""
+
+#: apps/trips/views.py:687 templates/trips/member_edit.html:13
+#, python-format
+msgid "Make %(name)s the Owner"
+msgstr ""
+
+#: config/urls.py:9 config/urls.py:10
+msgid "Share Expense admin"
+msgstr ""
+
+#: templates/_bell.html:2
+#, python-format
+msgid "Notifications, %(n)s unread"
+msgid_plural "Notifications, %(n)s unread"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/_bell.html:2 templates/notifications.html:4 templates/notifications.html:7
+msgid "Notifications"
+msgstr ""
+
+#: templates/_english_row.html:9 templates/expenses/_dispute_english.html:7 templates/expenses/form.html:106
+msgid "Shown to people who read in English. Check it and correct it if needed."
+msgstr ""
+
+#: templates/_form_errors.html:5
+#, python-format
+msgid "Please fix 1 thing."
+msgid_plural "Please fix %(n)s things."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/_pager.html:5
+msgid "Load more"
+msgstr ""
+
+#: templates/_pager.html:6
+#, python-format
+msgid "%(shown)s of %(n)s days shown"
+msgstr ""
+
+#: templates/_pager.html:6
+#, python-format
+msgid "%(shown)s of %(n)s shown"
+msgstr ""
+
+#: templates/base.html:10 templates/base.html:28 templates/registration/login.html:7 templates/trips/invite_notice.html:4
+msgid "Share Expense"
+msgstr ""
+
+#: templates/base.html:32
+msgid "Language"
+msgstr ""
+
+#: templates/base.html:43
+msgid "Account menu"
+msgstr ""
+
+#: templates/base.html:46 templates/notifications.html:5 templates/registration/close_account.html:3 templates/registration/password_change_form.html:4 templates/socialaccount/connections.html:5 templates/trips/home.html:4 templates/trips/trip_form.html:3
+msgid "Trips"
+msgstr ""
+
+#: templates/base.html:47 templates/registration/password_change_form.html:2 templates/registration/password_change_form.html:6 templates/registration/password_change_form.html:10
+msgid "Change password"
+msgstr ""
+
+#: templates/base.html:48 templates/socialaccount/connections.html:4 templates/socialaccount/connections.html:7
+msgid "Google account"
+msgstr ""
+
+#: templates/base.html:48
+#, python-format
+msgid "Linked: %(google_email)s"
+msgstr ""
+
+#: templates/base.html:48
+msgid "Not linked"
+msgstr ""
+
+#: templates/base.html:49 templates/registration/close_account.html:2 templates/registration/close_account.html:5
+msgid "Close account"
+msgstr ""
+
+#: templates/base.html:50
+msgid "Admin"
+msgstr ""
+
+#: templates/base.html:52 templates/trips/invite_notice.html:11
+msgid "Log out"
+msgstr ""
+
+#: templates/expenses/_added.html:1
+#, python-format
+msgid "Added by %(who)s on %(when)s."
+msgstr ""
+
+#: templates/expenses/_added.html:1
+#, python-format
+msgid "Added on %(when)s."
+msgstr ""
+
+#: templates/expenses/_added.html:1
+#, python-format
+msgid "Last changed by %(who)s on %(when)s."
+msgstr ""
+
+#: templates/expenses/_days.html:9
+#, python-format
+msgid "%(n)s expense"
+msgid_plural "%(n)s expenses"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/expenses/_disputes.html:7
+msgid "Disputes"
+msgstr ""
+
+#: templates/expenses/_disputes.html:12
+#, python-format
+msgid "Dispute by %(name)s"
+msgstr ""
+
+#: templates/expenses/_disputes.html:19
+#, python-format
+msgid "%(who)s, the Owner, closed this dispute on %(day)s at %(time)s. Reason: %(reason)s"
+msgstr ""
+
+#: templates/expenses/_disputes.html:20
+#, python-format
+msgid "%(who)s marked this dispute resolved on %(day)s at %(time)s."
+msgstr ""
+
+#: templates/expenses/_disputes.html:24
+msgid "Write a message"
+msgstr ""
+
+#: templates/expenses/_disputes.html:26
+msgid "Send"
+msgstr ""
+
+#: templates/expenses/_disputes.html:30
+msgid "Mark your dispute as resolved? It cannot be reopened."
+msgstr ""
+
+#: templates/expenses/_disputes.html:30
+msgid "Mark as resolved"
+msgstr ""
+
+#: templates/expenses/_disputes.html:32
+msgid "Close dispute"
+msgstr ""
+
+#: templates/expenses/_disputes.html:35
+msgid "Reason for closing"
+msgstr ""
+
+#: templates/expenses/_disputes.html:37
+msgid "Everyone on the trip can see the reason in History. A closed dispute cannot be reopened."
+msgstr ""
+
+#: templates/expenses/_disputes.html:39
+msgid "Confirm closing"
+msgstr ""
+
+#: templates/expenses/_disputes.html:47
+msgid "Dispute this expense"
+msgstr ""
+
+#: templates/expenses/_disputes.html:50
+msgid "What is wrong with this expense?"
+msgstr ""
+
+#: templates/expenses/_disputes.html:52
+msgid "The person who recorded this expense and the payer are notified. If neither has an account, the Owner is notified."
+msgstr ""
+
+#: templates/expenses/_disputes.html:54
+msgid "Open dispute"
+msgstr ""
+
+#: templates/expenses/_facts.html:10
+#, python-format
+msgid "Everyone (%(n)s traveler)"
+msgid_plural "Everyone (%(n)s travelers)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/expenses/_row.html:5
+msgid "Disputed"
+msgstr ""
+
+#: templates/expenses/_row.html:6
+#, python-format
+msgid "Paid by %(payer)s"
+msgstr ""
+
+#: templates/expenses/_row.html:7
+msgid "For everyone"
+msgstr ""
+
+#: templates/expenses/_row.html:7
+#, python-format
+msgid "For everyone except %(name)s"
+msgstr ""
+
+#: templates/expenses/_row.html:7
+#, python-format
+msgid "For %(names)s"
+msgstr ""
+
+#: templates/expenses/_row.html:11
+#, python-format
+msgid "Paid %(total)s"
+msgstr ""
+
+#: templates/expenses/_row.html:11
+#, python-format
+msgid "of %(total)s"
+msgstr ""
+
+#: templates/expenses/deleted.html:8
+#, python-format
+msgid "%(who)s deleted this expense on %(day)s at %(time)s."
+msgstr ""
+
+#: templates/expenses/deleted.html:8
+msgid "This expense was deleted."
+msgstr ""
+
+#: templates/expenses/deleted.html:15
+msgid "Restore expense"
+msgstr ""
+
+#: templates/expenses/form.html:2 templates/expenses/form.html:6
+msgid "Edit expense"
+msgstr ""
+
+#: templates/expenses/form.html:2 templates/expenses/form.html:6 templates/expenses/list.html:49 templates/expenses/list.html:55
+msgid "Add expense"
+msgstr ""
+
+#: templates/expenses/form.html:7
+msgid "Fill with AI"
+msgstr ""
+
+#: templates/expenses/form.html:11
+msgid "Pick at least one traveler."
+msgstr ""
+
+#: templates/expenses/form.html:12 templates/expenses/form.html:13 templates/expenses/list.html:4 templates/trips/home.html:14
+#, python-format
+msgid "%(n)s traveler"
+msgid_plural "%(n)s travelers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/expenses/form.html:14
+#, python-format
+msgid "%(amount)s each"
+msgstr ""
+
+#: templates/expenses/form.html:37
+msgid "Suggest a better wording"
+msgstr ""
+
+#: templates/expenses/form.html:40
+msgid "No better wording found."
+msgstr ""
+
+#: templates/expenses/form.html:41
+msgid "Suggestion"
+msgstr ""
+
+#: templates/expenses/form.html:43
+msgid "Accept"
+msgstr ""
+
+#: templates/expenses/form.html:57 templates/expenses/report.html:38
+#, python-format
+msgid "%(name)s is covered by %(by)s."
+msgstr ""
+
+#: templates/expenses/form.html:62
+msgid "The type could not be saved."
+msgstr ""
+
+#: templates/expenses/form.html:63
+msgid "The type could not be removed."
+msgstr ""
+
+#: templates/expenses/form.html:64 templates/expenses/form.html:68
+#, python-format
+msgid "Remove %(name)s"
+msgstr ""
+
+#: templates/expenses/form.html:65
+#, python-format
+msgid "Remove the type “%(name)s”? This cannot be undone."
+msgstr ""
+
+#: templates/expenses/form.html:67 templates/trips/_date_range_fields.html:2
+msgid "Done"
+msgstr ""
+
+#: templates/expenses/form.html:68 templates/expenses/form.html:98
+msgid "Add type"
+msgstr ""
+
+#: templates/expenses/form.html:78 templates/expenses/form.html:80
+msgid "Other date"
+msgstr ""
+
+#: templates/expenses/form.html:90
+msgid "Delete this expense"
+msgstr ""
+
+#: templates/expenses/form.html:98
+msgid "Edit type"
+msgstr ""
+
+#: templates/expenses/form.html:100
+msgid "Icon"
+msgstr ""
+
+#: templates/expenses/form.html:101
+msgid "Name"
+msgstr ""
+
+#: templates/expenses/form.html:111 templates/expenses/form.html:128 templates/expenses/form.html:145 templates/registration/close_account.html:21 templates/trips/confirm_delete.html:26 templates/trips/invite_form.html:36 templates/trips/member_edit.html:21 templates/trips/participant_form.html:20 templates/trips/people.html:66 templates/trips/trip_form.html:35
+msgid "Cancel"
+msgstr ""
+
+#: templates/expenses/form.html:112 templates/expenses/form.html:149 templates/trips/participant_form.html:24
+msgid "Save"
+msgstr ""
+
+#: templates/expenses/form.html:119
+msgid "Filled in. Still missing:"
+msgstr ""
+
+#: templates/expenses/form.html:120
+msgid "All details filled in."
+msgstr ""
+
+#: templates/expenses/form.html:122 templates/expenses/list.html:52
+msgid "Add with AI"
+msgstr ""
+
+#: templates/expenses/form.html:123
+msgid "Include:"
+msgstr ""
+
+#: templates/expenses/form.html:123
+msgid "who paid · for whom · what · amount · currency."
+msgstr ""
+
+#: templates/expenses/form.html:123
+msgid "Date: today if not given."
+msgstr ""
+
+#: templates/expenses/form.html:124
+msgid "e.g. Maly paid 40,000 VND for drinks for Maly and Sophorn yesterday"
+msgstr ""
+
+#: templates/expenses/form.html:124
+msgid "Describe the expense"
+msgstr ""
+
+#: templates/expenses/form.html:129
+msgid "Fill in"
+msgstr ""
+
+#: templates/expenses/form.html:135
+msgid "OK"
+msgstr ""
+
+#: templates/expenses/form.html:146 templates/trips/member_edit.html:22 templates/trips/participant_form.html:21
+msgid "Save changes"
+msgstr ""
+
+#: templates/expenses/form.html:148 templates/trips/participant_form.html:23
+msgid "Save and add another"
+msgstr ""
+
+#: templates/expenses/list.html:6 templates/expenses/report.html:6 templates/trips/summary.html:6
+msgid "Add the rate"
+msgstr ""
+
+#: templates/expenses/list.html:6 templates/expenses/report.html:6 templates/trips/summary.html:6
+msgid "Only the trip owner can add exchange rates."
+msgstr ""
+
+#: templates/expenses/list.html:8
+msgid "Trip summary"
+msgstr ""
+
+#: templates/expenses/list.html:9 templates/trips/summary.html:10
+#, python-format
+msgid "Settled on %(day)s"
+msgstr ""
+
+#: templates/expenses/list.html:10 templates/expenses/report.html:45
+msgid "Total spent"
+msgstr ""
+
+#: templates/expenses/list.html:14
+msgid "Today"
+msgstr ""
+
+#: templates/expenses/list.html:16 templates/trips/summary.html:27
+msgid "Your share"
+msgstr ""
+
+#: templates/expenses/list.html:17 templates/trips/summary.html:21
+msgid "You were owed"
+msgstr ""
+
+#: templates/expenses/list.html:17 templates/trips/summary.html:21
+msgid "You owed"
+msgstr ""
+
+#: templates/expenses/list.html:17 templates/trips/summary.html:21
+msgid "You are owed"
+msgstr ""
+
+#: templates/expenses/list.html:17 templates/trips/summary.html:21
+msgid "You owe"
+msgstr ""
+
+#: templates/expenses/list.html:17 templates/trips/summary.html:21
+msgid "Nothing owed"
+msgstr ""
+
+#: templates/expenses/list.html:26
+msgid "Search expenses"
+msgstr ""
+
+#: templates/expenses/list.html:30
+msgid "Showing only expenses with an open dispute."
+msgstr ""
+
+#: templates/expenses/list.html:30
+msgid "Show all expenses"
+msgstr ""
+
+#: templates/expenses/list.html:30
+msgid "Deleted expenses with an open dispute:"
+msgstr ""
+
+#: templates/expenses/list.html:35
+#, python-format
+msgid "No expenses match “%(q)s”."
+msgstr ""
+
+#: templates/expenses/list.html:37
+msgid "No expense has an open dispute."
+msgstr ""
+
+#: templates/expenses/list.html:41 templates/expenses/report.html:86
+msgid "No expenses yet."
+msgstr ""
+
+#: templates/expenses/list.html:51
+msgid "Add manually"
+msgstr ""
+
+#: templates/expenses/report.html:2 templates/trips/_trip_base.html:11
+msgid "Stats"
+msgstr ""
+
+#: templates/expenses/report.html:10
+msgid "Filter and download"
+msgstr ""
+
+#: templates/expenses/report.html:10
+msgid "Filter"
+msgstr ""
+
+#: templates/expenses/report.html:11
+msgid "Filters"
+msgstr ""
+
+#: templates/expenses/report.html:20
+msgid "Apply"
+msgstr ""
+
+#: templates/expenses/report.html:21 templates/trips/_date_range_fields.html:2
+msgid "Clear"
+msgstr ""
+
+#: templates/expenses/report.html:26
+msgid "Download these expenses"
+msgstr ""
+
+#: templates/expenses/report.html:26
+msgid "Download all expenses"
+msgstr ""
+
+#: templates/expenses/report.html:34
+msgid "Totals"
+msgstr ""
+
+#: templates/expenses/report.html:36
+#, python-format
+msgid "%(name)s’s share paid by %(payer)s"
+msgstr ""
+
+#: templates/expenses/report.html:36
+#, python-format
+msgid "%(name)s’s share"
+msgstr ""
+
+#: templates/expenses/report.html:41 templates/expenses/report.html:48 templates/expenses/report.html:77 templates/trips/_trip_base.html:9 templates/trips/history.html:3
+msgid "Expenses"
+msgstr ""
+
+#: templates/expenses/report.html:42
+#, python-format
+msgid "Paid by %(name)s"
+msgstr ""
+
+#: templates/expenses/report.html:45
+#, python-format
+msgid "Total paid by %(name)s"
+msgstr ""
+
+#: templates/expenses/report.html:49
+msgid "Days with expenses"
+msgstr ""
+
+#: templates/expenses/report.html:56
+msgid "By type"
+msgstr ""
+
+#: templates/expenses/report.html:67
+msgid "By day"
+msgstr ""
+
+#: templates/expenses/report.html:84
+msgid "No expenses match these filters."
+msgstr ""
+
+#: templates/notifications.html:14
+msgctxt "unread notification mark"
+msgid "New"
+msgstr ""
+
+#: templates/notifications.html:26
+msgid "No notifications yet. You receive one when someone disputes an expense you paid or recorded, writes in a dispute you are part of, settles or reopens one of your trips, adds you to a trip, or accepts your invite."
+msgstr ""
+
+#: templates/registration/close_account.html:9
+msgid "Your account will be closed. You will be logged out and cannot log in until the admin restores the account. Your name stays in the records of your trips (expenses, balances and History), because they are shared money records."
+msgstr ""
+
+#: templates/registration/close_account.html:19 templates/trips/confirm_delete.html:3 templates/trips/confirm_delete.html:24
+msgid "Back"
+msgstr ""
+
+#: templates/registration/close_account.html:22
+msgid "Close my account"
+msgstr ""
+
+#: templates/registration/login.html:2 templates/registration/login.html:15
+msgid "Log in"
+msgstr ""
+
+#: templates/registration/login.html:8
+msgid "Split trip expenses and settle up at the end."
+msgstr ""
+
+#: templates/registration/login.html:18
+msgid "or"
+msgstr ""
+
+#: templates/registration/login.html:21 templates/trips/invite.html:22
+msgid "Continue with Google"
+msgstr ""
+
+#: templates/registration/login.html:24
+msgid "No account yet? Ask the Owner of a trip for an invite."
+msgstr ""
+
+#: templates/registration/password_change_done.html:2 templates/registration/password_change_done.html:7
+msgid "Password changed"
+msgstr ""
+
+#: templates/registration/password_change_done.html:8
+msgid "Use the new password next time you log in."
+msgstr ""
+
+#: templates/registration/password_change_done.html:9
+msgid "Back to trips"
+msgstr ""
+
+#: templates/registration/pending.html:2 templates/registration/pending.html:7
+msgid "Waiting for approval"
+msgstr ""
+
+#: templates/registration/pending.html:8
+msgid "The admin has not approved this account yet. You can log in after approval."
+msgstr ""
+
+#: templates/registration/pending.html:9 templates/trips/invite_notice.html:13
+msgid "Back to log in"
+msgstr ""
+
+#: templates/socialaccount/connections.html:11
+msgid "This account can log in with:"
+msgstr ""
+
+#: templates/socialaccount/connections.html:12
+msgid "Remove this Google account? You will log in with your password instead."
+msgstr ""
+
+#: templates/socialaccount/connections.html:17 templates/trips/settings.html:30
+msgid "Remove"
+msgstr ""
+
+#: templates/socialaccount/connections.html:25
+msgid "Not linked. Link a Google account to log in without your password."
+msgstr ""
+
+#: templates/socialaccount/connections.html:27
+msgid "Link Google account"
+msgstr ""
+
+#: templates/trips/_covers.html:5
+#, python-format
+msgid "Also covers %(name)s:"
+msgstr ""
+
+#: templates/trips/_covers.html:5
+#, python-format
+msgid "Covers %(name)s"
+msgstr ""
+
+#: templates/trips/_covers.html:7
+#, python-format
+msgid "Also covers %(n)s traveler:"
+msgid_plural "Also covers %(n)s travelers:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/trips/_covers.html:7
+#, python-format
+msgid "Covers %(n)s traveler"
+msgid_plural "Covers %(n)s travelers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/trips/_date_range_fields.html:2
+msgid "Trip dates"
+msgstr ""
+
+#: templates/trips/_date_range_fields.html:2
+msgid "Tap the first day"
+msgstr ""
+
+#: templates/trips/_date_range_fields.html:2
+msgid "Tap the last day"
+msgstr ""
+
+#: templates/trips/_date_range_fields.html:2
+msgid "Previous month"
+msgstr ""
+
+#: templates/trips/_date_range_fields.html:2
+msgid "Next month"
+msgstr ""
+
+#: templates/trips/_history_days.html:10
+#, python-format
+msgid "%(n)s change"
+msgid_plural "%(n)s changes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/trips/_rate_note.html:2
+msgid "Market rate on"
+msgstr ""
+
+#: templates/trips/_rate_note.html:2
+msgid "Rates by ExchangeRate-API"
+msgstr ""
+
+#: templates/trips/_rate_row.html:3
+msgid "Rate"
+msgstr ""
+
+#: templates/trips/_rate_row.html:8
+msgid "Remove this currency"
+msgstr ""
+
+#: templates/trips/_trip_base.html:5
+msgid "All trips"
+msgstr ""
+
+#: templates/trips/_trip_base.html:6 templates/trips/history.html:2 templates/trips/history.html:5
+msgid "History"
+msgstr ""
+
+#: templates/trips/_trip_base.html:6 templates/trips/settings.html:2 templates/trips/settings.html:5
+msgid "Trip settings"
+msgstr ""
+
+#: templates/trips/_trip_base.html:8
+msgid "Trip sections"
+msgstr ""
+
+#: templates/trips/_trip_base.html:10 templates/trips/summary.html:2
+msgid "Balances"
+msgstr ""
+
+#: templates/trips/_trip_base.html:12 templates/trips/invite_form.html:5 templates/trips/member_edit.html:3 templates/trips/participant_form.html:3 templates/trips/people.html:2
+msgid "Travelers"
+msgstr ""
+
+#: templates/trips/confirm_delete.html:10
+#, python-format
+msgid "%(payer)s paid"
+msgstr ""
+
+#: templates/trips/email/invite.html:4
+#, python-format
+msgid "%(inviter)s invited you to the trip “%(trip)s” on Share Expense, an app that splits trip expenses."
+msgstr ""
+
+#: templates/trips/email/invite.html:5
+msgid "Join the trip"
+msgstr ""
+
+#: templates/trips/email/invite.html:6
+msgid "Or copy this link:"
+msgstr ""
+
+#: templates/trips/email/invite.html:7 templates/trips/email/invite.txt:5
+#, python-format
+msgid "Use the Google account of %(address)s."
+msgstr ""
+
+#: templates/trips/email/invite.html:8 templates/trips/email/invite.txt:7
+#, python-format
+msgid "This link works once and expires on %(expires)s (%(city)s time)."
+msgstr ""
+
+#: templates/trips/email/invite.html:9 templates/trips/email/invite.txt:9
+#, python-format
+msgid "If you do not know %(inviter)s, ignore this email."
+msgstr ""
+
+#: templates/trips/email/invite.txt:1
+#, python-format
+msgid "%(inviter)s invited you to the trip \"%(trip)s\" on Share Expense, an app that splits trip expenses."
+msgstr ""
+
+#: templates/trips/email/invite.txt:3
+msgid "Open this link to join:"
+msgstr ""
+
+#: templates/trips/email/invite_subject.txt:1
+#, python-format
+msgid "%(inviter)s invited you to %(trip)s on Share Expense"
+msgstr ""
+
+#: templates/trips/history.html:8
+msgid "Search History"
+msgstr ""
+
+#: templates/trips/history.html:16
+#, python-format
+msgid "Nothing in History matches “%(q)s”."
+msgstr ""
+
+#: templates/trips/history.html:20
+msgid "Nothing has changed yet."
+msgstr ""
+
+#: templates/trips/history.html:23
+msgid "Show older"
+msgstr ""
+
+#: templates/trips/home.html:18
+msgctxt "trip status"
+msgid "Settled"
+msgstr ""
+
+#: templates/trips/home.html:19
+msgctxt "trip status"
+msgid "Active"
+msgstr ""
+
+#: templates/trips/home.html:31
+msgid "No trips yet."
+msgstr ""
+
+#: templates/trips/home.html:32 templates/trips/home.html:37 templates/trips/trip_form.html:2 templates/trips/trip_form.html:5
+msgid "New trip"
+msgstr ""
+
+#: templates/trips/home.html:33
+msgid "Your username:"
+msgstr ""
+
+#: templates/trips/home.html:33
+msgid "A trip Owner can use it to add you."
+msgstr ""
+
+#: templates/trips/invite.html:10
+#, python-format
+msgid "%(inviter)s invited you to this trip on Share Expense."
+msgstr ""
+
+#: templates/trips/invite.html:14
+#, python-format
+msgid "Join %(trip_name)s"
+msgstr ""
+
+#: templates/trips/invite.html:18
+#, python-format
+msgid "This invite is for %(address)s. Continue with the Google account of this address."
+msgstr ""
+
+#: templates/trips/invite.html:25
+msgid "Log in with Google is not set up yet. Ask the Owner of the trip."
+msgstr ""
+
+#: templates/trips/invite_form.html:4 templates/trips/invite_form.html:7 templates/trips/people.html:87
+msgid "Invite"
+msgstr ""
+
+#: templates/trips/invite_form.html:11
+#, python-format
+msgid "Did you mean %(address)s?"
+msgstr ""
+
+#: templates/trips/invite_form.html:11
+#, python-format
+msgid "Use %(address)s"
+msgstr ""
+
+#: templates/trips/invite_form.html:22
+msgid "Send the invite again"
+msgstr ""
+
+#: templates/trips/invite_form.html:33
+msgctxt "button back to the invite form"
+msgid "Change"
+msgstr ""
+
+#: templates/trips/invite_form.html:34
+msgid "Confirm"
+msgstr ""
+
+#: templates/trips/invite_form.html:37
+msgid "Continue"
+msgstr ""
+
+#: templates/trips/invite_gone.html:2 templates/trips/invite_gone.html:7
+msgid "This invite no longer works"
+msgstr ""
+
+#: templates/trips/invite_gone.html:8
+msgid "Ask the Owner of the trip for a new one."
+msgstr ""
+
+#: templates/trips/invite_gone.html:9
+msgid "Go to my trips"
+msgstr ""
+
+#: templates/trips/member_edit.html:6
+#, python-format
+msgid "Traveler: %(name)s"
+msgstr ""
+
+#: templates/trips/member_edit.html:6
+msgid "No traveler · Viewer"
+msgstr ""
+
+#: templates/trips/member_edit.html:6
+msgid "No traveler"
+msgstr ""
+
+#: templates/trips/member_edit.html:10
+msgid "This account is not linked to a traveler, so as a Member it can only view the trip. To link it, open a traveler on the Travelers page."
+msgstr ""
+
+#: templates/trips/member_edit.html:15
+msgid "Remove from trip"
+msgstr ""
+
+#: templates/trips/participant_form.html:2 templates/trips/participant_form.html:5 templates/trips/people.html:86
+msgid "Add traveler"
+msgstr ""
+
+#: templates/trips/participant_form.html:5
+msgid "Edit traveler"
+msgstr ""
+
+#: templates/trips/participant_form.html:8
+msgid "This trip is settled. You can change only the linked account."
+msgstr ""
+
+#: templates/trips/people.html:7
+#, python-format
+msgid "Invite link for %(email)s"
+msgstr ""
+
+#: templates/trips/people.html:9
+msgid "Invite link"
+msgstr ""
+
+#: templates/trips/people.html:12
+#, python-format
+msgid "This link works once and expires on %(day)s. Only the Google account of this address can use it."
+msgstr ""
+
+#: templates/trips/people.html:13
+msgid "Copied"
+msgstr ""
+
+#: templates/trips/people.html:13 templates/trips/people.html:64
+msgid "Copy link"
+msgstr ""
+
+#: templates/trips/people.html:17
+msgid "All travelers"
+msgstr ""
+
+#: templates/trips/people.html:25 templates/trips/people.html:44 templates/trips/summary.html:43
+msgid "You"
+msgstr ""
+
+#: templates/trips/people.html:26
+msgid "Account"
+msgstr ""
+
+#: templates/trips/people.html:33
+msgid "No travelers yet."
+msgstr ""
+
+#: templates/trips/people.html:38
+msgid "Accounts"
+msgstr ""
+
+#: templates/trips/people.html:55
+msgid "Pending invites"
+msgstr ""
+
+#: templates/trips/people.html:61
+msgid "Expired"
+msgstr ""
+
+#: templates/trips/people.html:61
+#, python-format
+msgid "expires on %(when)s"
+msgstr ""
+
+#: templates/trips/people.html:64
+msgid "Make a new link? The old link will stop working."
+msgstr ""
+
+#: templates/trips/people.html:65
+msgid "Send again"
+msgstr ""
+
+#: templates/trips/people.html:66
+#, python-format
+msgid "Cancel the invite for %(email)s? Its link will stop working."
+msgstr ""
+
+#: templates/trips/people.html:75
+#, python-format
+msgid "Leave this trip? You will no longer see it, and the traveler %(name)s is unlinked from your account. Only the Owner can add you again."
+msgstr ""
+
+#: templates/trips/people.html:75
+msgid "Leave this trip? You will no longer see it. Only the Owner can add you again."
+msgstr ""
+
+#: templates/trips/people.html:76
+msgid "Leave this trip"
+msgstr ""
+
+#: templates/trips/people.html:84
+msgid "Add"
+msgstr ""
+
+#: templates/trips/settings.html:8
+msgid "Trip details"
+msgstr ""
+
+#: templates/trips/settings.html:18
+msgid "Save trip"
+msgstr ""
+
+#: templates/trips/settings.html:23 templates/trips/trip_form.html:16
+msgid "Exchange rates"
+msgstr ""
+
+#: templates/trips/settings.html:24
+#, python-format
+msgid "One fixed rate per currency for the whole trip. Expenses in other currencies are converted to %(base)s."
+msgstr ""
+
+#: templates/trips/settings.html:35
+msgid "No other currencies yet."
+msgstr ""
+
+#: templates/trips/settings.html:37
+msgid "Locked while the trip is settled."
+msgstr ""
+
+#: templates/trips/settings.html:53
+msgid "Save rate"
+msgstr ""
+
+#: templates/trips/settings.html:58
+msgid "Delete this trip"
+msgstr ""
+
+#: templates/trips/settings.html:59
+msgid "This deletes all its expenses too."
+msgstr ""
+
+#: templates/trips/summary.html:9
+msgid "Trip status"
+msgstr ""
+
+#: templates/trips/summary.html:12
+msgid "Reopen this trip? Its expenses can be changed again."
+msgstr ""
+
+#: templates/trips/summary.html:13
+msgid "Reopen trip"
+msgstr ""
+
+#: templates/trips/summary.html:20
+msgid "Your balance"
+msgstr ""
+
+#: templates/trips/summary.html:24
+msgid "Breakdown"
+msgstr ""
+
+#: templates/trips/summary.html:26
+msgid "You paid"
+msgstr ""
+
+#: templates/trips/summary.html:28 templates/trips/summary.html:46
+#, python-format
+msgid "Covered by %(by)s"
+msgstr ""
+
+#: templates/trips/summary.html:29
+#, python-format
+msgid "You cover %(name)s"
+msgstr ""
+
+#: templates/trips/summary.html:30
+msgid "Balance"
+msgstr ""
+
+#: templates/trips/summary.html:37
+msgctxt "heading above the other travelers"
+msgid "Others"
+msgstr ""
+
+#: templates/trips/summary.html:44
+msgctxt "amount a traveler paid"
+msgid "Paid"
+msgstr ""
+
+#: templates/trips/summary.html:45
+msgctxt "traveler's part of the costs"
+msgid "Share"
+msgstr ""
+
+#: templates/trips/summary.html:51
+msgid "was owed"
+msgstr ""
+
+#: templates/trips/summary.html:51
+msgid "owed"
+msgstr ""
+
+#: templates/trips/summary.html:51
+msgid "is owed"
+msgstr ""
+
+#: templates/trips/summary.html:51
+msgid "owes"
+msgstr ""
+
+#: templates/trips/summary.html:51
+msgid "nothing owed"
+msgstr ""
+
+#: templates/trips/summary.html:63
+#, python-format
+msgid "%(n)s open dispute blocks settling"
+msgid_plural "%(n)s open disputes block settling"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/trips/summary.html:65
+msgid "Mark this trip as settled? Its expenses are locked until the trip is reopened."
+msgstr ""
+
+#: templates/trips/summary.html:66
+msgid "Mark as settled"
+msgstr ""
+
+#: templates/trips/trip_form.html:17
+msgid "Optional. One fixed rate per currency for the whole trip."
+msgstr ""
+
+#: templates/trips/trip_form.html:27
+msgid "Add currency"
+msgstr ""
+
+#: templates/trips/trip_form.html:36
+msgid "Create trip"
+msgstr ""

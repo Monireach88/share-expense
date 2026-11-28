@@ -11,6 +11,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY --from=ghcr.io/astral-sh/uv:0.7.13 /uv /usr/local/bin/uv
 
 WORKDIR /app
+# gettext gives compilemessages its msgfmt tool: the .mo files are built here, never committed.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gettext \
+    && apt-get clean
+
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
@@ -23,7 +28,8 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 # ── Production: non-root, static files collected at build time ────────────────
 FROM base AS production
 COPY . .
-RUN DJANGO_SECRET_KEY=collectstatic-only python manage.py collectstatic --noinput \
+RUN DJANGO_SECRET_KEY=collectstatic-only python manage.py compilemessages \
+    && DJANGO_SECRET_KEY=collectstatic-only python manage.py collectstatic --noinput \
     && addgroup --system --gid 1001 app \
     && adduser --system --uid 1001 --ingroup app app
 USER app
