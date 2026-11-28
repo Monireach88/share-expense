@@ -237,11 +237,28 @@ def export_rows(trip: Trip, report: dict) -> tuple[list[str], list[list]]:
     return header, rows
 
 
+FORMULA_STARTS = ("=", "+", "-", "@", "\t", "\r")
+SHEET_NAME_FORBIDDEN = str.maketrans("", "", "/\\?*[]:")
+
+
+def plain_text(value):
+    """Text that Excel or another spreadsheet would run as a formula gets a leading quote.
+
+    A description such as ``=HYPERLINK(...)`` typed by any member would otherwise become a live
+    formula in the file another member opens (CSV or formula injection).
+    """
+    if isinstance(value, str) and value.startswith(FORMULA_STARTS):
+        return "'" + value
+    return value
+
+
 def to_csv(header: list[str], rows: list[list]) -> bytes:
     out = io.StringIO()
     writer = csv.writer(out)
-    writer.writerow(header)
-    writer.writerows([[v.isoformat() if isinstance(v, date) else v for v in r] for r in rows])
+    writer.writerow([plain_text(v) for v in header])
+    writer.writerows(
+        [[v.isoformat() if isinstance(v, date) else plain_text(v) for v in r] for r in rows]
+    )
     # The byte order mark makes Excel open the file as UTF-8, so names with accents survive.
     return ("﻿" + out.getvalue()).encode()
 
@@ -253,12 +270,17 @@ def to_xlsx(title: str, header: list[str], rows: list[list]) -> bytes:
 
     book = Workbook()
     sheet = book.active
-    sheet.title = title[:31] or "Expenses"
-    sheet.append(header)
+    # Excel forbids / \\ ? * [ ] : in a sheet name; openpyxl refuses them.
+    sheet.title = title.translate(SHEET_NAME_FORBIDDEN).strip()[:31] or "Expenses"
+    sheet.append([plain_text(v) for v in header])
     for cell in sheet[1]:
         cell.font = Font(bold=True)
     for row in rows:
-        sheet.append(row)
+        sheet.append([plain_text(v) for v in row])
+    for line in sheet.iter_rows():
+        for cell in line:
+            if isinstance(cell.value, str):
+                cell.data_type = "s"  # Never a formula, even if openpyxl guessed one.
     money = [i for i, name in enumerate(header, 1) if i >= 6 and i != 7]
     for column in money:
         for (cell,) in sheet.iter_rows(min_row=2, min_col=column, max_col=column):
