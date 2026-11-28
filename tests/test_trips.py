@@ -393,6 +393,11 @@ def test_service_worker_is_public_and_versioned(client):
     assert response["Content-Type"].startswith("text/javascript")
     assert 'const VERSION = "' in response.content.decode()
     assert response["Cache-Control"] == "no-cache"
+    # A trip page that answers 403 or 404 loses its stored copy and the page reloads.
+    assert "response.status === 403 || response.status === 404" in response.content.decode()
+    assert 'if (isGoneTripPage(request, response)) return notify(clientId, { type: "reload" })' in (
+        response.content.decode()
+    )
 
 
 def test_spending_share_matches_balances_and_its_rows(owner_client, trip):
