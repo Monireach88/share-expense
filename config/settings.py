@@ -91,6 +91,16 @@ DATABASES = {
     )
 }
 
+# The cache holds the AI request counters. It lives in the database, so every gunicorn worker
+# shares one count and a deploy does not reset it. The table is made by a migration
+# (apps/expenses/migrations/0007_cache_table.py).
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+    }
+}
+
 AUTH_USER_MODEL = "accounts.User"
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
@@ -175,6 +185,9 @@ TIME_ZONE = os.environ.get("TIME_ZONE", "Asia/Phnom_Penh")
 # Writing suggestions for expense descriptions (apps/expenses/suggest.py); empty turns them off.
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
+# How many AI requests (suggestions and "Add with AI") the whole site may make per day, so many
+# accounts together cannot run up costs. Each account also has its own limit (suggest.py).
+DEEPSEEK_DAILY_LIMIT = int(os.environ.get("DEEPSEEK_DAILY_LIMIT", "500"))
 USE_I18N = True
 USE_TZ = True
 

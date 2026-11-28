@@ -74,6 +74,7 @@ Every target takes `ENV=dev` (default) or `ENV=prod`, which picks `docker-compos
 | `CLIENT_IP_HEADER` | `HTTP_X_FORWARDED_FOR` | `HTTP_CF_CONNECTING_IP` | Header with the real visitor IP, so a login lock hits the attacker and not everyone behind the proxy |
 | `DEEPSEEK_API_KEY` | empty | your key | Writing suggestions under the expense description; empty turns them off |
 | `DEEPSEEK_MODEL` | `deepseek-flash` | `deepseek-flash` | DeepSeek model for the suggestions |
+| `DEEPSEEK_DAILY_LIMIT` | `500` | `500` | AI requests (suggestions and "Add with AI" together) the whole site may make per day; over it, the AI features answer "try again later". Each account also has its own limit of 60 per 10 minutes. The counts are kept in the database cache table `django_cache`, shared by every gunicorn worker |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | empty | from Google Cloud | Sign in with Google; empty hides the button. Redirect URI: `https://<domain>/accounts/google/login/callback/` |
 | `EMAIL_HOST` | empty | `smtp.zoho.com` | SMTP server for the personal invite email. Empty turns email off: invites still work, the Owner sends the link themselves, and Django prints emails to the console |
 | `EMAIL_PORT` | `465` | `465` | SMTP port (465 = implicit TLS) |
