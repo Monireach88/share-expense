@@ -171,17 +171,17 @@ msgstr "នរណាម្នាក់"
 #: apps/disputes/rules.py:185
 #, python-format
 msgid "%(who)s opened a dispute on %(label)s: %(detail)s"
-msgstr "%(who)s បានបើកការជំទាស់លើ %(label)s៖ %(detail)s"
+msgstr "%(who)s បានបើកវិវាទលើ %(label)s៖ %(detail)s"
 
 #: apps/disputes/rules.py:187
 #, python-format
 msgid "%(who)s wrote in the dispute on %(label)s: %(detail)s"
-msgstr "%(who)s បានសរសេរក្នុងការជំទាស់លើ %(label)s៖ %(detail)s"
+msgstr "%(who)s បានសរសេរក្នុងវិវាទលើ %(label)s៖ %(detail)s"
 
 #: apps/disputes/rules.py:189 apps/trips/history.py:452
 #, python-format
 msgid "%(who)s resolved the dispute on %(label)s"
-msgstr "%(who)s បានដោះស្រាយការជំទាស់លើ %(label)s"
+msgstr "%(who)s បានដោះស្រាយវិវាទលើ %(label)s"
 
 #: apps/disputes/rules.py:191
 #, python-format
@@ -189,7 +189,7 @@ msgid ""
 "%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s. Reason: "
 "%(detail)s"
 msgstr ""
-"%(who)s ជាម្ចាស់ បានបិទការជំទាស់របស់ %(opener)s លើ %(label)s។ មូលហេតុ៖ "
+"%(who)s ជាម្ចាស់ បានបិទវិវាទរបស់ %(opener)s លើ %(label)s។ មូលហេតុ៖ "
 "%(detail)s"
 
 #: apps/disputes/rules.py:193 apps/trips/history.py:402
@@ -218,16 +218,16 @@ msgid ""
 "%(who)s accepted your invite, but traveler %(detail)s could not be linked. "
 "Link the right traveler on the Travelers page."
 msgstr ""
-"%(who)s បានទទួលយកការអញ្ជើញរបស់អ្នក ប៉ុន្តែមិនអាចភ្ជាប់អ្នកធ្វើដំណើរ "
-"%(detail)s បានទេ។ សូមភ្ជាប់អ្នកធ្វើដំណើរដែលត្រឹមត្រូវនៅទំព័រអ្នកធ្វើដំណើរ។"
+"%(who)s បានទទួលយកការអញ្ជើញរបស់អ្នក ប៉ុន្តែមិនអាចភ្ជាប់អ្នកដំណើរ %(detail)s "
+"បានទេ។ សូមភ្ជាប់អ្នកដំណើរដែលត្រឹមត្រូវនៅទំព័រអ្នកដំណើរ។"
 
 #: apps/disputes/rules.py:223
 msgid "This dispute is resolved, so it takes no new messages."
-msgstr "ការជំទាស់នេះបានដោះស្រាយហើយ ដូច្នេះមិនអាចផ្ញើសារថ្មីបានទៀតទេ។"
+msgstr "វិវាទនេះបានដោះស្រាយហើយ ដូច្នេះមិនអាចផ្ញើសារថ្មីបានទៀតទេ។"
 
 #: apps/disputes/rules.py:225
 msgid "This dispute is closed, so it takes no new messages."
-msgstr "ការជំទាស់នេះត្រូវបានបិទ ដូច្នេះមិនអាចផ្ញើសារថ្មីបានទៀតទេ។"
+msgstr "វិវាទនេះត្រូវបានបិទ ដូច្នេះមិនអាចផ្ញើសារថ្មីបានទៀតទេ។"
 
 #: apps/disputes/rules.py:249
 msgid "Write why you disagree with this expense."
@@ -235,7 +235,7 @@ msgstr "សូមសរសេរពីមូលហេតុដែលអ្នក
 
 #: apps/disputes/rules.py:256
 msgid "You already have an open dispute on this expense."
-msgstr "អ្នកមានការជំទាស់មួយដែលមិនទាន់ដោះស្រាយលើការចំណាយនេះរួចហើយ។"
+msgstr "អ្នកមានវិវាទមួយដែលមិនទាន់ដោះស្រាយលើការចំណាយនេះរួចហើយ។"
 
 #: apps/disputes/rules.py:292
 msgid "Write a message first."
@@ -243,46 +243,44 @@ msgstr "សូមសរសេរសារជាមុនសិន។"
 
 #: apps/disputes/rules.py:347
 msgid "Write the reason for closing this dispute."
-msgstr "សូមសរសេរមូលហេតុនៃការបិទការជំទាស់នេះ។"
+msgstr "សូមសរសេរមូលហេតុនៃការបិទវិវាទនេះ។"
 
 #: apps/disputes/rules.py:393
 #, python-format
 msgid "%(n)d open dispute"
 msgid_plural "%(n)d open disputes"
-msgstr[0] "ការជំទាស់មិនទាន់ដោះស្រាយចំនួន %(n)d"
+msgstr[0] "វិវាទមិនទាន់ដោះស្រាយចំនួន %(n)d"
 
 #: apps/disputes/rules.py:401
 msgid ""
 "This traveler cannot be removed because an expense they are in has a "
 "dispute."
 msgstr ""
-"មិនអាចដកអ្នកធ្វើដំណើរនេះចេញបានទេ "
-"ព្រោះមានការជំទាស់លើការចំណាយមួយដែលពាក់ព័ន្ធនឹងគាត់។"
+"មិនអាចដកអ្នកដំណើរនេះចេញបានទេ ព្រោះមានវិវាទលើការចំណាយមួយដែលពាក់ព័ន្ធនឹងគាត់។"
 
 #: apps/disputes/rules.py:403
 msgid ""
 "This type cannot be removed because an expense of this type has a dispute."
-msgstr "មិនអាចលុបប្រភេទនេះបានទេ ព្រោះការចំណាយមួយនៃប្រភេទនេះមានការជំទាស់។"
+msgstr "មិនអាចលុបប្រភេទនេះបានទេ ព្រោះការចំណាយមួយនៃប្រភេទនេះមានវិវាទ។"
 
 #: apps/disputes/rules.py:404
 msgid ""
 "This rate cannot be deleted because an expense in this currency has a "
 "dispute."
 msgstr ""
-"មិនអាចលុបអត្រាប្ដូរប្រាក់នេះបានទេ "
-"ព្រោះការចំណាយមួយជារូបិយប័ណ្ណនេះមានការជំទាស់។"
+"មិនអាចលុបអត្រាប្ដូរប្រាក់នេះបានទេ ព្រោះការចំណាយមួយជារូបិយប័ណ្ណនេះមានវិវាទ។"
 
 #: apps/disputes/views.py:120
 msgid "Dispute opened."
-msgstr "បានបើកការជំទាស់។"
+msgstr "បានបើកវិវាទ។"
 
 #: apps/disputes/views.py:152
 msgid "Dispute resolved."
-msgstr "បានដោះស្រាយការជំទាស់។"
+msgstr "បានដោះស្រាយវិវាទ។"
 
 #: apps/disputes/views.py:169
 msgid "Dispute closed."
-msgstr "បានបិទការជំទាស់។"
+msgstr "បានបិទវិវាទ។"
 
 #: apps/expenses/ai_fill.py:83
 msgid "Describe the expense in a sentence."
@@ -317,14 +315,13 @@ msgstr "អ្នកដែលបានបង់"
 #: apps/expenses/ai_fill.py:138
 #, python-format
 msgid "who paid (no single traveler is called “%(name)s”)"
-msgstr ""
-"អ្នកដែលបានបង់ (មិនអាចកំណត់អ្នកធ្វើដំណើរតែម្នាក់តាមឈ្មោះ “%(name)s” បានទេ)"
+msgstr "អ្នកដែលបានបង់ (មិនអាចកំណត់អ្នកដំណើរតែម្នាក់តាមឈ្មោះ “%(name)s” បានទេ)"
 
 #: apps/expenses/ai_fill.py:153
 #, python-format
 msgid "who it was for (no single traveler is called %(names)s)"
 msgstr ""
-"ចំណាយសម្រាប់នរណា (មិនអាចកំណត់អ្នកធ្វើដំណើរតែម្នាក់តាមឈ្មោះ %(names)s បានទេ)"
+"ចំណាយសម្រាប់នរណា (មិនអាចកំណត់អ្នកដំណើរតែម្នាក់តាមឈ្មោះ %(names)s បានទេ)"
 
 #: apps/expenses/ai_fill.py:159
 msgid "who it was for"
@@ -486,7 +483,7 @@ msgstr "រូបិយប័ណ្ណ"
 
 #: apps/expenses/report.py:33 apps/trips/forms.py:198
 msgid "Traveler"
-msgstr "អ្នកធ្វើដំណើរ"
+msgstr "អ្នកដំណើរ"
 
 #. Translators: the first choice of the "Traveler" filter: no filter, all
 #. travelers.
@@ -599,7 +596,7 @@ msgstr "ម្នាក់ %(share)s %(currency)s"
 #, python-format
 msgid "%(n)d traveler · %(share)s %(currency)s each"
 msgid_plural "%(n)d travelers · %(share)s %(currency)s each"
-msgstr[0] "អ្នកធ្វើដំណើរ %(n)d នាក់ · ម្នាក់ %(share)s %(currency)s"
+msgstr[0] "អ្នកដំណើរ %(n)d នាក់ · ម្នាក់ %(share)s %(currency)s"
 
 #: apps/expenses/views.py:530 apps/expenses/views.py:579
 #: apps/trips/access.py:15
@@ -612,7 +609,7 @@ msgid ""
 "Your account is not linked to a traveler, so you can view expenses but not "
 "change them. The trip Owner can link it."
 msgstr ""
-"គណនីរបស់អ្នកមិនទាន់ភ្ជាប់ជាមួយអ្នកធ្វើដំណើរណាម្នាក់ទេ "
+"គណនីរបស់អ្នកមិនទាន់ភ្ជាប់ជាមួយអ្នកដំណើរណាម្នាក់ទេ "
 "ដូច្នេះអ្នកអាចមើលការចំណាយបាន ប៉ុន្តែមិនអាចកែប្រែបានទេ។ "
 "ម្ចាស់ដំណើរកម្សាន្តអាចភ្ជាប់វាបាន។"
 
@@ -674,17 +671,17 @@ msgstr "គ្មានអត្រាប្ដូរប្រាក់សម្
 
 #: apps/settlement/engine.py:155
 msgid "Travelers must be unique."
-msgstr "អ្នកធ្វើដំណើរមិនត្រូវស្ទួនគ្នាទេ។"
+msgstr "អ្នកដំណើរមិនត្រូវស្ទួនគ្នាទេ។"
 
 #: apps/settlement/engine.py:162
 #, python-format
 msgid "Unknown sponsor %(name)s"
-msgstr "មិនស្គាល់អ្នកបង់ជំនួស %(name)s"
+msgstr "មិនស្គាល់អ្នកឧបត្ថម្ភ %(name)s"
 
 #: apps/settlement/engine.py:165
 #, python-format
 msgid "Sponsor %(name)s is covered by someone else"
-msgstr "អ្នកបង់ជំនួស %(name)s មានអ្នកផ្សេងបង់ជំនួសខ្លួនរួចហើយ"
+msgstr "អ្នកឧបត្ថម្ភ %(name)s មានអ្នកផ្សេងឧបត្ថម្ភខ្លួនរួចហើយ"
 
 #: apps/settlement/engine.py:178
 #, python-format
@@ -750,8 +747,7 @@ msgstr "អ្នកនេះមាននៅក្នុងដំណើរកម
 #: apps/trips/actions.py:184
 msgid "This trip is settled, so its travelers are locked."
 msgstr ""
-"ដំណើរកម្សាន្តនេះបានទូទាត់បញ្ចប់ហើយ "
-"ដូច្នេះមិនអាចកែប្រែបញ្ជីអ្នកធ្វើដំណើរបានទេ។"
+"ដំណើរកម្សាន្តនេះបានទូទាត់បញ្ចប់ហើយ ដូច្នេះមិនអាចកែប្រែបញ្ជីអ្នកដំណើរបានទេ។"
 
 #: apps/trips/actions.py:186 apps/trips/forms.py:148 apps/trips/forms.py:287
 msgid "Someone on this trip already has this name."
@@ -759,7 +755,7 @@ msgstr "មានអ្នកក្នុងដំណើរកម្សាន្
 
 #: apps/trips/actions.py:191
 msgid "This traveler is already linked to an account."
-msgstr "អ្នកធ្វើដំណើរនេះបានភ្ជាប់ជាមួយគណនីមួយរួចហើយ។"
+msgstr "អ្នកដំណើរនេះបានភ្ជាប់ជាមួយគណនីមួយរួចហើយ។"
 
 #: apps/trips/english.py:21 templates/expenses/_dispute_english.html:8
 msgid "Write the English version."
@@ -809,18 +805,18 @@ msgid ""
 "expenses this traveler paid."
 msgstr ""
 "អ្នកអាចជ្រើសរើសមិនភ្ជាប់គណនីក៏បាន។ "
-"គណនីដែលបានភ្ជាប់អាចមើលសមតុល្យរបស់អ្នកធ្វើដំណើរនេះ "
-"និងអាចបន្ថែមការចំណាយដែលអ្នកធ្វើដំណើរនេះបានបង់។"
+"គណនីដែលបានភ្ជាប់អាចមើលសមតុល្យរបស់អ្នកដំណើរនេះ "
+"និងអាចបន្ថែមការចំណាយដែលអ្នកដំណើរនេះបានបង់។"
 
 #: apps/trips/forms.py:137 templates/trips/people.html:26
 msgid "Covered by"
-msgstr "បង់ជំនួសដោយ"
+msgstr "ឧបត្ថម្ភដោយ"
 
 #: apps/trips/forms.py:139
 msgid ""
 "Travelers who pay this traveler's share. Empty means they pay their own."
 msgstr ""
-"ជ្រើសរើសអ្នកធ្វើដំណើរដែលបង់ចំណែកជំនួសអ្នកធ្វើដំណើរនេះ។ បើទុកទទេ "
+"ជ្រើសរើសអ្នកដំណើរដែលឧបត្ថម្ភអ្នកដំណើរនេះ។ បើទុកទទេ "
 "មានន័យថាគាត់បង់ចំណែកខ្លួនឯង។"
 
 #: apps/trips/forms.py:160
@@ -831,12 +827,12 @@ msgstr "គណនីនេះបានភ្ជាប់ជាមួយ %(name)s
 #: apps/trips/forms.py:170
 msgid ""
 "This person already covers someone else, so they must pay for themselves."
-msgstr "អ្នកនេះកំពុងបង់ជំនួសអ្នកផ្សេង ដូច្នេះគាត់ត្រូវបង់ចំណែកខ្លួនឯង។"
+msgstr "អ្នកនេះកំពុងឧបត្ថម្ភអ្នកផ្សេង ដូច្នេះគាត់ត្រូវបង់ចំណែកខ្លួនឯង។"
 
 #: apps/trips/forms.py:175
 #, python-format
 msgid "%(name)s is covered by someone else and cannot cover another person."
-msgstr "%(name)s មានអ្នកផ្សេងបង់ជំនួស ហើយមិនអាចបង់ជំនួសអ្នកផ្សេងទៀតបានទេ។"
+msgstr "%(name)s មានអ្នកផ្សេងឧបត្ថម្ភ ហើយមិនអាចឧបត្ថម្ភអ្នកផ្សេងទៀតបានទេ។"
 
 #: apps/trips/forms.py:189
 msgid ""
@@ -857,15 +853,15 @@ msgstr "ឈ្មោះអ្នកប្រើនៃគណនីដែលបា
 
 #: apps/trips/forms.py:201
 msgid "New traveler's name"
-msgstr "ឈ្មោះអ្នកធ្វើដំណើរថ្មី"
+msgstr "ឈ្មោះអ្នកដំណើរថ្មី"
 
 #: apps/trips/forms.py:220
 msgid "A new traveler"
-msgstr "អ្នកធ្វើដំណើរថ្មី"
+msgstr "អ្នកដំណើរថ្មី"
 
 #: apps/trips/forms.py:221
 msgid "No traveler (view only)"
-msgstr "គ្មានអ្នកធ្វើដំណើរ (មើលតែប៉ុណ្ណោះ)"
+msgstr "គ្មានអ្នកដំណើរ (មើលតែប៉ុណ្ណោះ)"
 
 #: apps/trips/forms.py:258
 msgid "This address already has an invite to this trip."
@@ -878,7 +874,7 @@ msgstr "មិនអាចផ្ញើអ៊ីមែលទៅ %(domain)s បា
 
 #: apps/trips/forms.py:281
 msgid "Type the new traveler's name."
-msgstr "សូមវាយឈ្មោះអ្នកធ្វើដំណើរថ្មី។"
+msgstr "សូមវាយឈ្មោះអ្នកដំណើរថ្មី។"
 
 #: apps/trips/forms.py:306
 msgid "Role"
@@ -918,7 +914,7 @@ msgstr "ការចំណាយ"
 #: apps/trips/history.py:263
 #, python-format
 msgid "traveler %(name)s"
-msgstr "អ្នកធ្វើដំណើរ %(name)s"
+msgstr "អ្នកដំណើរ %(name)s"
 
 #: apps/trips/history.py:276
 #, python-format
@@ -973,32 +969,32 @@ msgstr "%(who)s បានស្ដារ %(label)s វិញ"
 #: apps/trips/history.py:380
 #, python-format
 msgid "%(who)s added traveler %(label)s"
-msgstr "%(who)s បានបន្ថែមអ្នកធ្វើដំណើរ %(label)s"
+msgstr "%(who)s បានបន្ថែមអ្នកដំណើរ %(label)s"
 
 #: apps/trips/history.py:381
 #, python-format
 msgid "%(who)s renamed traveler %(old)s → %(new)s"
-msgstr "%(who)s បានប្ដូរឈ្មោះអ្នកធ្វើដំណើរ %(old)s → %(new)s"
+msgstr "%(who)s បានប្ដូរឈ្មោះអ្នកដំណើរ %(old)s → %(new)s"
 
 #: apps/trips/history.py:382
 #, python-format
 msgid "%(who)s changed who covers %(label)s: %(old)s → %(new)s"
-msgstr "%(who)s បានប្ដូរអ្នកបង់ជំនួស %(label)s៖ %(old)s → %(new)s"
+msgstr "%(who)s បានប្ដូរអ្នកឧបត្ថម្ភរបស់ %(label)s៖ %(old)s → %(new)s"
 
 #: apps/trips/history.py:383
 #, python-format
 msgid "%(who)s linked traveler %(label)s to account %(new)s"
-msgstr "%(who)s បានភ្ជាប់អ្នកធ្វើដំណើរ %(label)s ជាមួយគណនី %(new)s"
+msgstr "%(who)s បានភ្ជាប់អ្នកដំណើរ %(label)s ជាមួយគណនី %(new)s"
 
 #: apps/trips/history.py:384
 #, python-format
 msgid "%(who)s unlinked traveler %(label)s from account %(old)s"
-msgstr "%(who)s បានផ្ដាច់អ្នកធ្វើដំណើរ %(label)s ពីគណនី %(old)s"
+msgstr "%(who)s បានផ្ដាច់អ្នកដំណើរ %(label)s ពីគណនី %(old)s"
 
 #: apps/trips/history.py:385
 #, python-format
 msgid "%(who)s removed traveler %(label)s"
-msgstr "%(who)s បានដកអ្នកធ្វើដំណើរ %(label)s ចេញ"
+msgstr "%(who)s បានដកអ្នកដំណើរ %(label)s ចេញ"
 
 #: apps/trips/history.py:386
 #, python-format
@@ -1138,17 +1134,17 @@ msgstr "%(who)s បានទទួលយកការអញ្ជើញសម្�
 #: apps/trips/history.py:450
 #, python-format
 msgid "%(who)s opened a dispute on %(label)s: %(new)s"
-msgstr "%(who)s បានបើកការជំទាស់លើ %(label)s៖ %(new)s"
+msgstr "%(who)s បានបើកវិវាទលើ %(label)s៖ %(new)s"
 
 #: apps/trips/history.py:451
 #, python-format
 msgid "%(who)s wrote in the dispute on %(label)s: %(new)s"
-msgstr "%(who)s បានសរសេរក្នុងការជំទាស់លើ %(label)s៖ %(new)s"
+msgstr "%(who)s បានសរសេរក្នុងវិវាទលើ %(label)s៖ %(new)s"
 
 #: apps/trips/history.py:453
 #, python-format
 msgid "%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s: %(new)s"
-msgstr "%(who)s ជាម្ចាស់ បានបិទការជំទាស់របស់ %(opener)s លើ %(label)s៖ %(new)s"
+msgstr "%(who)s ជាម្ចាស់ បានបិទវិវាទរបស់ %(opener)s លើ %(label)s៖ %(new)s"
 
 #. Translators: "nobody" is shown when no traveler covers this traveler's
 #. share, as in: covered by "nobody" -> "Ann".
@@ -1250,13 +1246,12 @@ msgstr "គណនីដែលបានភ្ជាប់"
 
 #: apps/trips/models.py:157
 msgid "covered by"
-msgstr "បង់ជំនួសដោយ"
+msgstr "ឧបត្ថម្ភដោយ"
 
 #: apps/trips/models.py:158
 msgid ""
 "People who pay this person's share. Leave empty if they pay for themselves."
-msgstr ""
-"ជ្រើសរើសអ្នកដែលបង់ចំណែកជំនួសអ្នកនេះ។ ទុកទទេ ប្រសិនបើគាត់បង់ចំណែកខ្លួនឯង។"
+msgstr "ជ្រើសរើសអ្នកដែលឧបត្ថម្ភអ្នកនេះ។ ទុកទទេ ប្រសិនបើគាត់បង់ចំណែកខ្លួនឯង។"
 
 #: apps/trips/models.py:182
 msgid "rate"
@@ -1346,11 +1341,11 @@ msgstr "បានដក %(name)s ចេញ។"
 
 #: apps/trips/views.py:424
 msgid "This traveler appears in expenses. Change those expenses first."
-msgstr "អ្នកធ្វើដំណើរនេះមាននៅក្នុងការចំណាយ។ សូមកែប្រែការចំណាយទាំងនោះជាមុនសិន។"
+msgstr "អ្នកដំណើរនេះមាននៅក្នុងការចំណាយ។ សូមកែប្រែការចំណាយទាំងនោះជាមុនសិន។"
 
 #: apps/trips/views.py:429 templates/trips/participant_form.html:13
 msgid "Remove traveler"
-msgstr "ដកអ្នកធ្វើដំណើរចេញ"
+msgstr "ដកអ្នកដំណើរចេញ"
 
 #: apps/trips/views.py:484
 #, python-format
@@ -1375,7 +1370,7 @@ msgstr "ជា %(name)s"
 #: apps/trips/views.py:519
 #, python-format
 msgid "As new traveler %(name)s"
-msgstr "ជាអ្នកធ្វើដំណើរថ្មី %(name)s"
+msgstr "ជាអ្នកដំណើរថ្មី %(name)s"
 
 #: apps/trips/views.py:521 templates/trips/people.html:61
 msgid "As Viewer"
@@ -1701,7 +1696,7 @@ msgstr "លេខសម្គាល់តែមួយគត់ជាសកល (U
 
 #: config/django_messages.py:78
 msgid "This field is required."
-msgstr "ចាំបាច់បំពេញទិន្នន័យកន្លែងនេះ។"
+msgstr "ចាំបាច់ត្រូវបំពេញ"
 
 #: config/django_messages.py:79
 msgid "Enter a whole number."
@@ -1757,7 +1752,7 @@ msgstr "សូមផ្ញើឯកសារ ឬធីកប្រអប់ល�
 #: config/django_messages.py:94
 #, python-format
 msgid "Select a valid choice. %(value)s is not one of the available choices."
-msgstr "សូមជ្រើសរើសជម្រើសដែលត្រឹមត្រូវ។ %(value)s មិនមែនជាជម្រើសដែលមានទេ។"
+msgstr "សូមជ្រើសរើសជម្រើសដែលត្រឹមត្រូវ មិនមានជម្រើស %(value)s ទេ"
 
 #: config/django_messages.py:95
 msgid "Enter a list of values."
@@ -2130,7 +2125,7 @@ msgstr "សូមបញ្ចូលពាក្យសម្ងាត់ដដែ
 
 #: config/django_messages.py:181
 msgid "This account is inactive."
-msgstr "គណនីនេះមិនសកម្មទេ។"
+msgstr "គណនីនេះត្រូវបានបិទ។"
 
 #: config/django_messages.py:182
 msgid "Email"
@@ -2169,7 +2164,7 @@ msgstr "ពាក្យសម្ងាត់នេះស្រដៀងនឹង
 
 #: config/django_messages.py:196
 msgid "This password is too common."
-msgstr "ពាក្យសម្ងាត់នេះងាយទាយពេក ព្រោះមនុស្សជាច្រើនប្រើវា។"
+msgstr "ពាក្យសម្ងាត់នេះត្រូវបានប្រើទូទៅច្រើនពេក។"
 
 #: config/django_messages.py:197
 msgid "This password is entirely numeric."
@@ -2293,12 +2288,12 @@ msgstr[0] "ការចំណាយ %(n)s"
 
 #: templates/expenses/_disputes.html:7
 msgid "Disputes"
-msgstr "ការជំទាស់"
+msgstr "វិវាទ"
 
 #: templates/expenses/_disputes.html:12
 #, python-format
 msgid "Dispute by %(name)s"
-msgstr "ការជំទាស់ដោយ %(name)s"
+msgstr "វិវាទដោយ %(name)s"
 
 #: templates/expenses/_disputes.html:19
 #, python-format
@@ -2306,13 +2301,12 @@ msgid ""
 "%(who)s, the Owner, closed this dispute on %(day)s at %(time)s. Reason: "
 "%(reason)s"
 msgstr ""
-"%(who)s ជាម្ចាស់ បានបិទការជំទាស់នេះនៅ %(day)s ម៉ោង %(time)s។ មូលហេតុ៖ "
-"%(reason)s"
+"%(who)s ជាម្ចាស់ បានបិទវិវាទនេះនៅ %(day)s ម៉ោង %(time)s។ មូលហេតុ៖ %(reason)s"
 
 #: templates/expenses/_disputes.html:20
 #, python-format
 msgid "%(who)s marked this dispute resolved on %(day)s at %(time)s."
-msgstr "%(who)s បានកំណត់ការជំទាស់នេះថាបានដោះស្រាយនៅ %(day)s ម៉ោង %(time)s។"
+msgstr "%(who)s បានកំណត់វិវាទនេះថាបានដោះស្រាយនៅ %(day)s ម៉ោង %(time)s។"
 
 #: templates/expenses/_disputes.html:24
 msgid "Write a message"
@@ -2324,7 +2318,7 @@ msgstr "ផ្ញើ"
 
 #: templates/expenses/_disputes.html:30
 msgid "Mark your dispute as resolved? It cannot be reopened."
-msgstr "កំណត់ការជំទាស់របស់អ្នកថាបានដោះស្រាយឬ? វាមិនអាចបើកឡើងវិញបានទេ។"
+msgstr "កំណត់វិវាទរបស់អ្នកថាបានដោះស្រាយឬ? វាមិនអាចបើកឡើងវិញបានទេ។"
 
 #: templates/expenses/_disputes.html:30
 msgid "Mark as resolved"
@@ -2332,7 +2326,7 @@ msgstr "កំណត់ថាបានដោះស្រាយ"
 
 #: templates/expenses/_disputes.html:32
 msgid "Close dispute"
-msgstr "បិទការជំទាស់"
+msgstr "បិទវិវាទ"
 
 #: templates/expenses/_disputes.html:35
 msgid "Reason for closing"
@@ -2344,7 +2338,7 @@ msgid ""
 "be reopened."
 msgstr ""
 "អ្នកគ្រប់គ្នាក្នុងដំណើរកម្សាន្តអាចមើលមូលហេតុនៅក្នុងប្រវត្តិ។ "
-"ការជំទាស់ដែលបានបិទមិនអាចបើកឡើងវិញបានទេ។"
+"វិវាទដែលបានបិទមិនអាចបើកឡើងវិញបានទេ។"
 
 #: templates/expenses/_disputes.html:39
 msgid "Confirm closing"
@@ -2375,11 +2369,11 @@ msgstr "ជំទាស់"
 #, python-format
 msgid "Everyone (%(n)s traveler)"
 msgid_plural "Everyone (%(n)s travelers)"
-msgstr[0] "ទាំងអស់គ្នា (អ្នកធ្វើដំណើរ %(n)s នាក់)"
+msgstr[0] "ទាំងអស់គ្នា (អ្នកដំណើរ %(n)s នាក់)"
 
 #: templates/expenses/_row.html:5
 msgid "Disputed"
-msgstr "មានការជំទាស់"
+msgstr "មានវិវាទ"
 
 #: templates/expenses/_row.html:6
 #, python-format
@@ -2438,14 +2432,14 @@ msgstr "បំពេញដោយ AI"
 
 #: templates/expenses/form.html:11
 msgid "Pick at least one traveler."
-msgstr "សូមជ្រើសរើសអ្នកធ្វើដំណើរយ៉ាងហោចណាស់ម្នាក់។"
+msgstr "សូមជ្រើសរើសអ្នកដំណើរយ៉ាងហោចណាស់ម្នាក់។"
 
 #: templates/expenses/form.html:12 templates/expenses/form.html:13
 #: templates/expenses/list.html:4 templates/trips/home.html:14
 #, python-format
 msgid "%(n)s traveler"
 msgid_plural "%(n)s travelers"
-msgstr[0] "អ្នកធ្វើដំណើរ %(n)s នាក់"
+msgstr[0] "អ្នកដំណើរ %(n)s នាក់"
 
 #: templates/expenses/form.html:14
 #, python-format
@@ -2471,7 +2465,7 @@ msgstr "ទទួលយក"
 #: templates/expenses/form.html:57 templates/expenses/report.html:38
 #, python-format
 msgid "%(name)s is covered by %(by)s."
-msgstr "%(by)s បង់ជំនួស %(name)s។"
+msgstr "%(by)s ឧបត្ថម្ភ %(name)s។"
 
 #: templates/expenses/form.html:62
 msgid "The type could not be saved."
@@ -2617,15 +2611,15 @@ msgstr "ចំណែករបស់អ្នក"
 
 #: templates/expenses/list.html:17 templates/trips/summary.html:21
 msgid "You were owed"
-msgstr "អ្នកធ្លាប់ត្រូវទទួលប្រាក់វិញ"
+msgstr "អ្នកត្រូវទទួលកាលមុនទូទាត់"
 
 #: templates/expenses/list.html:17 templates/trips/summary.html:21
 msgid "You owed"
-msgstr "អ្នកធ្លាប់ជំពាក់"
+msgstr "អ្នកជំពាក់កាលមុនទូទាត់"
 
 #: templates/expenses/list.html:17 templates/trips/summary.html:21
 msgid "You are owed"
-msgstr "អ្នកត្រូវទទួលប្រាក់វិញ"
+msgstr "អ្នកត្រូវទទួល"
 
 #: templates/expenses/list.html:17 templates/trips/summary.html:21
 msgid "You owe"
@@ -2641,7 +2635,7 @@ msgstr "ស្វែងរកការចំណាយ"
 
 #: templates/expenses/list.html:30
 msgid "Showing only expenses with an open dispute."
-msgstr "កំពុងបង្ហាញតែការចំណាយដែលមានការជំទាស់មិនទាន់ដោះស្រាយ។"
+msgstr "កំពុងបង្ហាញតែការចំណាយដែលមានវិវាទមិនទាន់ដោះស្រាយ។"
 
 #: templates/expenses/list.html:30
 msgid "Show all expenses"
@@ -2649,7 +2643,7 @@ msgstr "បង្ហាញការចំណាយទាំងអស់"
 
 #: templates/expenses/list.html:30
 msgid "Deleted expenses with an open dispute:"
-msgstr "ការចំណាយដែលបានលុប ហើយមានការជំទាស់មិនទាន់ដោះស្រាយ៖"
+msgstr "ការចំណាយដែលបានលុប ហើយមានវិវាទមិនទាន់ដោះស្រាយ៖"
 
 #: templates/expenses/list.html:35
 #, python-format
@@ -2658,7 +2652,7 @@ msgstr "គ្មានការចំណាយណាត្រូវនឹង �
 
 #: templates/expenses/list.html:37
 msgid "No expense has an open dispute."
-msgstr "គ្មានការចំណាយណាមានការជំទាស់មិនទាន់ដោះស្រាយទេ។"
+msgstr "គ្មានការចំណាយណាមានវិវាទមិនទាន់ដោះស្រាយទេ។"
 
 #: templates/expenses/list.html:41 templates/expenses/report.html:86
 msgid "No expenses yet."
@@ -2759,7 +2753,7 @@ msgid ""
 msgstr ""
 "មិនទាន់មានការជូនដំណឹងនៅឡើយទេ។ អ្នកនឹងទទួលបានការជូនដំណឹង "
 "នៅពេលមាននរណាម្នាក់ជំទាស់ការចំណាយដែលអ្នកបានបង់ ឬបានកត់ត្រា "
-"សរសេរក្នុងការជំទាស់ដែលអ្នកពាក់ព័ន្ធ ទូទាត់បញ្ចប់ "
+"សរសេរក្នុងវិវាទដែលអ្នកពាក់ព័ន្ធ ទូទាត់បញ្ចប់ "
 "ឬបើកដំណើរកម្សាន្តមួយរបស់អ្នកឡើងវិញ បន្ថែមអ្នកទៅក្នុងដំណើរកម្សាន្ត "
 "ឬទទួលយកការអញ្ជើញរបស់អ្នក។"
 
@@ -2859,24 +2853,24 @@ msgstr "ភ្ជាប់គណនី Google"
 #: templates/trips/_covers.html:5
 #, python-format
 msgid "Also covers %(name)s:"
-msgstr "បង់ជំនួស %(name)s ផងដែរ៖"
+msgstr "ឧបត្ថម្ភ %(name)s ផងដែរ៖"
 
 #: templates/trips/_covers.html:5
 #, python-format
 msgid "Covers %(name)s"
-msgstr "បង់ជំនួស %(name)s"
+msgstr "ឧបត្ថម្ភ %(name)s"
 
 #: templates/trips/_covers.html:7
 #, python-format
 msgid "Also covers %(n)s traveler:"
 msgid_plural "Also covers %(n)s travelers:"
-msgstr[0] "បង់ជំនួសអ្នកធ្វើដំណើរ %(n)s នាក់ផងដែរ៖"
+msgstr[0] "ឧបត្ថម្ភអ្នកដំណើរ %(n)s នាក់ផងដែរ៖"
 
 #: templates/trips/_covers.html:7
 #, python-format
 msgid "Covers %(n)s traveler"
 msgid_plural "Covers %(n)s travelers"
-msgstr[0] "បង់ជំនួសអ្នកធ្វើដំណើរ %(n)s នាក់"
+msgstr[0] "ឧបត្ថម្ភអ្នកដំណើរ %(n)s នាក់"
 
 #: templates/trips/_date_range_fields.html:2
 msgid "Trip dates"
@@ -2946,7 +2940,7 @@ msgstr "សមតុល្យ"
 #: templates/trips/member_edit.html:3 templates/trips/participant_form.html:3
 #: templates/trips/people.html:2
 msgid "Travelers"
-msgstr "អ្នកធ្វើដំណើរ"
+msgstr "អ្នកដំណើរ"
 
 #: templates/trips/confirm_delete.html:10
 #, python-format
@@ -3118,24 +3112,24 @@ msgstr "ទៅកាន់ដំណើរកម្សាន្តរបស់ខ
 #: templates/trips/member_edit.html:6
 #, python-format
 msgid "Traveler: %(name)s"
-msgstr "អ្នកធ្វើដំណើរ៖ %(name)s"
+msgstr "អ្នកដំណើរ៖ %(name)s"
 
 #: templates/trips/member_edit.html:6
 msgid "No traveler · Viewer"
-msgstr "គ្មានអ្នកធ្វើដំណើរ · អ្នកមើល"
+msgstr "គ្មានអ្នកដំណើរ · អ្នកមើល"
 
 #: templates/trips/member_edit.html:6
 msgid "No traveler"
-msgstr "គ្មានអ្នកធ្វើដំណើរ"
+msgstr "គ្មានអ្នកដំណើរ"
 
 #: templates/trips/member_edit.html:10
 msgid ""
 "This account is not linked to a traveler, so as a Member it can only view "
 "the trip. To link it, open a traveler on the Travelers page."
 msgstr ""
-"គណនីនេះមិនទាន់ភ្ជាប់ជាមួយអ្នកធ្វើដំណើរណាម្នាក់ទេ ដូច្នេះក្នុងនាមជាសមាជិក "
+"គណនីនេះមិនទាន់ភ្ជាប់ជាមួយអ្នកដំណើរណាម្នាក់ទេ ដូច្នេះក្នុងនាមជាសមាជិក "
 "វាអាចមើលដំណើរកម្សាន្តបានតែប៉ុណ្ណោះ។ ដើម្បីភ្ជាប់វា "
-"សូមបើកព័ត៌មានរបស់អ្នកធ្វើដំណើរម្នាក់នៅទំព័រអ្នកធ្វើដំណើរ។"
+"សូមបើកព័ត៌មានរបស់អ្នកដំណើរម្នាក់នៅទំព័រអ្នកដំណើរ។"
 
 #: templates/trips/member_edit.html:15
 msgid "Remove from trip"
@@ -3144,11 +3138,11 @@ msgstr "ដកចេញពីដំណើរកម្សាន្ត"
 #: templates/trips/participant_form.html:2
 #: templates/trips/participant_form.html:5 templates/trips/people.html:86
 msgid "Add traveler"
-msgstr "បន្ថែមអ្នកធ្វើដំណើរ"
+msgstr "បន្ថែមអ្នកដំណើរ"
 
 #: templates/trips/participant_form.html:5
 msgid "Edit traveler"
-msgstr "កែអ្នកធ្វើដំណើរ"
+msgstr "កែអ្នកដំណើរ"
 
 #: templates/trips/participant_form.html:8
 msgid "This trip is settled. You can change only the linked account."
@@ -3184,7 +3178,7 @@ msgstr "ចម្លងតំណ"
 
 #: templates/trips/people.html:17
 msgid "All travelers"
-msgstr "អ្នកធ្វើដំណើរទាំងអស់"
+msgstr "អ្នកដំណើរទាំងអស់"
 
 #: templates/trips/people.html:25 templates/trips/people.html:44
 #: templates/trips/summary.html:43
@@ -3197,7 +3191,7 @@ msgstr "គណនី"
 
 #: templates/trips/people.html:33
 msgid "No travelers yet."
-msgstr "មិនទាន់មានអ្នកធ្វើដំណើរនៅឡើយទេ។"
+msgstr "មិនទាន់មានអ្នកដំណើរនៅឡើយទេ។"
 
 #: templates/trips/people.html:38
 msgid "Accounts"
@@ -3235,7 +3229,7 @@ msgid ""
 "Leave this trip? You will no longer see it, and the traveler %(name)s is "
 "unlinked from your account. Only the Owner can add you again."
 msgstr ""
-"ចាកចេញពីដំណើរកម្សាន្តនេះឬ? អ្នកនឹងលែងឃើញវាទៀត ហើយអ្នកធ្វើដំណើរ %(name)s "
+"ចាកចេញពីដំណើរកម្សាន្តនេះឬ? អ្នកនឹងលែងឃើញវាទៀត ហើយអ្នកដំណើរ %(name)s "
 "នឹងត្រូវផ្ដាច់ពីគណនីរបស់អ្នក។ មានតែម្ចាស់ប៉ុណ្ណោះដែលអាចបន្ថែមអ្នកវិញបាន។"
 
 #: templates/trips/people.html:75
@@ -3322,12 +3316,12 @@ msgstr "អ្នកបានបង់"
 #: templates/trips/summary.html:28 templates/trips/summary.html:46
 #, python-format
 msgid "Covered by %(by)s"
-msgstr "បង់ជំនួសដោយ %(by)s"
+msgstr "ឧបត្ថម្ភដោយ %(by)s"
 
 #: templates/trips/summary.html:29
 #, python-format
 msgid "You cover %(name)s"
-msgstr "អ្នកបង់ជំនួស %(name)s"
+msgstr "អ្នកឧបត្ថម្ភ %(name)s"
 
 #: templates/trips/summary.html:30
 msgid "Balance"
@@ -3350,15 +3344,15 @@ msgstr "ចំណែក"
 
 #: templates/trips/summary.html:51
 msgid "was owed"
-msgstr "ធ្លាប់ត្រូវទទួលប្រាក់វិញ"
+msgstr "ត្រូវទទួលកាលមុនទូទាត់"
 
 #: templates/trips/summary.html:51
 msgid "owed"
-msgstr "ធ្លាប់ជំពាក់"
+msgstr "ជំពាក់កាលមុនទូទាត់"
 
 #: templates/trips/summary.html:51
 msgid "is owed"
-msgstr "ត្រូវទទួលប្រាក់វិញ"
+msgstr "ត្រូវទទួល"
 
 #: templates/trips/summary.html:51
 msgid "owes"
@@ -3373,7 +3367,7 @@ msgstr "សមតុល្យស្មើសូន្យ"
 msgid "%(n)s open dispute blocks settling"
 msgid_plural "%(n)s open disputes block settling"
 msgstr[0] ""
-"មិនអាចទូទាត់បញ្ចប់បានទេ ដោយសារមានការជំទាស់ %(n)s ករណីដែលមិនទាន់បានដោះស្រាយ"
+"មិនអាចទូទាត់បញ្ចប់បានទេ ដោយសារមានវិវាទ %(n)s ករណីដែលមិនទាន់បានដោះស្រាយ"
 
 #: templates/trips/summary.html:65
 msgid ""

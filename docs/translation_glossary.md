@@ -13,6 +13,8 @@ Every translation follows this table: one term, one translation, everywhere. A t
 
 ## Terms
 
+Khmer terms for traveler, is owed, dispute (noun), cover, sponsor and was owed/owed were chosen by the owner on 2026-11-28.
+
 Checked on 2026-11-28: Khmer by GPT-6 Astra (5 changes taken), Chinese by DeepSeek (1 change taken, plus 出行人 for traveler and 普通成员 for the Member role from its remarks).
 
 | English | Meaning in this app | Khmer | Chinese |
@@ -20,7 +22,7 @@ Checked on 2026-11-28: Khmer by GPT-6 Astra (5 changes taken), Chinese by DeepSe
 | trip | one journey whose costs are shared | ដំណើរកម្សាន្ត | 行程 |
 | expense | one payment made during a trip | ការចំណាយ | 费用 |
 | total spent | sum of all expenses | ចំណាយសរុប | 总支出 |
-| traveler | a person whose costs are counted in the trip (may have no account) | អ្នកធ្វើដំណើរ | 出行人 |
+| traveler | a person whose costs are counted in the trip (may have no account) | អ្នកដំណើរ | 出行人 |
 | member | a person with an account who can open the trip | សមាជិក | 成员 |
 | Owner (role) | the one person in charge of the trip | ម្ចាស់ | 所有者 |
 | Editor (role) | can change every expense, settle and reopen | អ្នកកែសម្រួល | 编辑者 |
@@ -30,12 +32,12 @@ Checked on 2026-11-28: Khmer by GPT-6 Astra (5 changes taken), Chinese by DeepSe
 | split between | the travelers who share the cost | ចែកចំណាយរវាង | 分摊给 |
 | share (your share) | the part of a cost one traveler carries | ចំណែក | 分摊额 |
 | owes / owe | has to pay money back | ជំពាក់ | 欠 |
-| is owed / are owed | should receive money back | ត្រូវទទួលប្រាក់វិញ | 应收 |
+| is owed / are owed | should receive money back | ត្រូវទទួល | 应收 |
 | nothing owed | balance is zero | សមតុល្យស្មើសូន្យ | 无欠款 |
 | balances | who owes and who is owed | សមតុល្យ | 结余 |
 | settle / settled (trip) | the trip is closed: everyone has paid back | ទូទាត់បញ្ចប់ / បានទូទាត់បញ្ចប់ | 结清 / 已结清 |
 | reopen | undo settled | បើកឡើងវិញ | 重新开启 |
-| dispute (noun) | a written objection to one expense | ការជំទាស់ | 异议 |
+| dispute (noun) | a written objection to one expense | វិវាទ | 异议 |
 | dispute (verb) | open such an objection | ជំទាស់ | 提出异议 |
 | resolved | the opener says the dispute is done | បានដោះស្រាយ | 已解决 |
 | history | the log of every change | ប្រវត្តិ | 历史记录 |
@@ -51,9 +53,9 @@ Checked on 2026-11-28: Khmer by GPT-6 Astra (5 changes taken), Chinese by DeepSe
 | notification | | ការជូនដំណឹង | 通知 |
 | appearance | light / dark / system | រូបរាង | 外观 |
 | light / dark / system | | ភ្លឺ / ងងឹត / តាមប្រព័ន្ធ | 浅色 / 深色 / 跟随系统 |
-| cover / covered by | one traveler pays another traveler's share | បង់ជំនួស | 代付 |
-| sponsor | the traveler who covers someone | អ្នកបង់ជំនួស | 代付人 |
+| cover / covered by | one traveler pays another traveler's share | ឧបត្ថម្ភ | 代付 |
+| sponsor | the traveler who covers someone | អ្នកឧបត្ថម្ភ | 代付人 |
 | open (dispute state) | not yet resolved | មិនទាន់ដោះស្រាយ | 未解决 |
-| was owed / owed (settled trip) | the balance before settling | ធ្លាប់ត្រូវទទួលប្រាក់វិញ / ធ្លាប់ជំពាក់ | 之前应收 / 之前欠 |
+| was owed / owed (settled trip) | the balance before settling | ត្រូវទទួលកាលមុនទូទាត់ / ជំពាក់កាលមុនទូទាត់ | 之前应收 / 之前欠 |
 | English (label of the English-copy box) | not the language menu | ភាសាអង់គ្លេស | 英文 |
 | password | | ពាក្យសម្ងាត់ | 密码 |
