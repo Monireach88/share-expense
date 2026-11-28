@@ -51,3 +51,9 @@ Checked on 2026-11-28: Khmer by GPT-6 Astra (5 changes taken), Chinese by DeepSe
 | notification | | ការជូនដំណឹង | 通知 |
 | appearance | light / dark / system | រូបរាង | 外观 |
 | light / dark / system | | ភ្លឺ / ងងឹត / តាមប្រព័ន្ធ | 浅色 / 深色 / 跟随系统 |
+| cover / covered by | one traveler pays another traveler's share | បង់ជំនួស | 代付 |
+| sponsor | the traveler who covers someone | អ្នកបង់ជំនួស | 代付人 |
+| open (dispute state) | not yet resolved | មិនទាន់ដោះស្រាយ | 未解决 |
+| was owed / owed (settled trip) | the balance before settling | ធ្លាប់ត្រូវទទួលប្រាក់វិញ / ធ្លាប់ជំពាក់ | 之前应收 / 之前欠 |
+| English (label of the English-copy box) | not the language menu | ភាសាអង់គ្លេស | 英文 |
+| password | | ពាក្យសម្ងាត់ | 密码 |

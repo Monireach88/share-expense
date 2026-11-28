@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Share Expense\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-28 13:54+0700\n"
+"POT-Creation-Date: 2026-11-28 14:35+0700\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Simplified Chinese\n"
@@ -14,2451 +14,3297 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: apps/accounts/adapters.py:28 apps/accounts/forms.py:8 apps/trips/invites.py:261
+#: apps/accounts/adapters.py:28 apps/accounts/forms.py:8
+#: apps/trips/invites.py:261
 msgid "This account is closed. Ask the admin to restore it."
-msgstr ""
+msgstr "此账户已关闭。请联系管理员恢复。"
 
 #: apps/accounts/adapters.py:83
 #, python-format
-msgid "This invite is for %(address)s, but you used another Google account. Sign out of Google, then open the invite link again and choose the invited address."
-msgstr ""
+msgid ""
+"This invite is for %(address)s, but you used another Google account. Sign "
+"out of Google, then open the invite link again and choose the invited "
+"address."
+msgstr "此邀请发给%(address)s，但你使用了另一个Google账户。请先退出Google账户，再重新打开邀请链接，并选择受邀的邮箱地址。"
 
 #: apps/accounts/adapters.py:93
-msgid "No account uses this Google account. If you have a username and password, log in with them and link Google from the account menu. To join a trip, ask its Owner for an invite."
-msgstr ""
+msgid ""
+"No account uses this Google account. If you have a username and password, "
+"log in with them and link Google from the account menu. To join a trip, ask "
+"its Owner for an invite."
+msgstr "没有账户关联此Google账户。如果你有用户名和密码，请用它们登录，再在账户菜单中关联Google。要加入行程，请向行程所有者索取邀请。"
 
 #: apps/accounts/admin.py:17 templates/trips/people.html:45
 msgid "Closed"
-msgstr ""
+msgstr "已关闭"
 
 #: apps/accounts/admin.py:19
 msgid "closed"
-msgstr ""
+msgstr "已关闭"
 
 #: apps/accounts/admin.py:34
 #, python-format
 msgid "Trip “%(trip)s”, owned by %(user)s: make someone else its Owner first."
-msgstr ""
+msgstr "行程“%(trip)s”的所有者是%(user)s：请先将其他人设为所有者。"
 
 #: apps/accounts/admin.py:40
 msgid "Approve selected sign-up requests"
-msgstr ""
+msgstr "批准选中的注册申请"
 
 #: apps/accounts/admin.py:45
 #, python-format
 msgid "%(count)d account(s) approved."
-msgstr ""
+msgstr "已批准%(count)d个账户。"
 
 #: apps/accounts/admin.py:48
 msgid "Restore selected closed accounts"
-msgstr ""
+msgstr "恢复选中的已关闭账户"
 
 #: apps/accounts/admin.py:52
 #, python-format
 msgid "%(count)d account(s) restored."
-msgstr ""
+msgstr "已恢复%(count)d个账户。"
 
 #: apps/accounts/closing.py:37
 #, python-format
 msgid "%(trips)s and %(last)s"
-msgstr ""
+msgstr "%(trips)s和%(last)s"
 
 #: apps/accounts/closing.py:43
 #, python-format
 msgid "You are the Owner of %(trips)s. Make someone else the Owner first."
-msgstr ""
+msgstr "你是%(trips)s的所有者。请先将其他人设为所有者。"
 
 #: apps/accounts/forms.py:41
 msgid "At least 8 characters, not only numbers."
-msgstr ""
+msgstr "至少8个字符，不能只有数字。"
 
 #: apps/accounts/forms.py:42
 msgid "Type the new password again."
-msgstr ""
+msgstr "再次输入新密码。"
 
 #: apps/accounts/forms.py:48
 msgid "Your username"
-msgstr ""
+msgstr "你的用户名"
 
 #: apps/accounts/forms.py:59
 #, python-format
 msgid "Type “%(username)s” to confirm."
-msgstr ""
+msgstr "输入“%(username)s”以确认。"
 
-#: apps/accounts/models.py:20
+#: apps/accounts/models.py:20 config/django_messages.py:188
 msgid "username"
-msgstr ""
+msgstr "用户名"
 
 #: apps/accounts/models.py:28
 msgid "closed on"
-msgstr ""
+msgstr "关闭时间"
 
 #: apps/accounts/models.py:33
 msgid "language"
-msgstr ""
+msgstr "语言"
 
 #: apps/accounts/usernames.py:16
 msgid "This username is taken."
-msgstr ""
+msgstr "此用户名已被占用。"
 
 #: apps/accounts/usernames.py:17
 msgid "Use only the characters listed above."
-msgstr ""
+msgstr "只能使用上面列出的字符。"
 
 #: apps/accounts/views.py:53
 msgid "Your account is closed."
-msgstr ""
+msgstr "你的账户已关闭。"
 
 #: apps/disputes/models.py:22
 msgctxt "dispute state"
 msgid "Open"
-msgstr ""
+msgstr "进行中"
 
 #: apps/disputes/models.py:23
 msgctxt "dispute state"
 msgid "Resolved"
-msgstr ""
+msgstr "已解决"
 
 #: apps/disputes/models.py:24
 msgctxt "dispute state"
 msgid "Closed"
-msgstr ""
+msgstr "已关闭"
 
 #: apps/disputes/models.py:37
 msgid "reason"
-msgstr ""
+msgstr "原因"
 
 #: apps/disputes/models.py:38
 msgid "reason in English"
-msgstr ""
+msgstr "原因（英文）"
 
 #: apps/disputes/models.py:40
 msgid "reason for closing"
-msgstr ""
+msgstr "关闭原因"
 
 #: apps/disputes/models.py:42
 msgid "reason for closing in English"
-msgstr ""
+msgstr "关闭原因（英文）"
 
 #: apps/disputes/models.py:83
 msgid "message"
-msgstr ""
+msgstr "消息"
 
 #: apps/disputes/models.py:84
 msgid "message in English"
-msgstr ""
+msgstr "消息（英文）"
 
-#. Translators: stands for a person in: "<Owner>, the Owner, closed <someone>'s dispute".
+#. Translators: stands for a person in: "<Owner>, the Owner, closed
+#. <someone>'s dispute".
 #: apps/disputes/rules.py:182 apps/trips/history.py:448
 msgid "someone"
-msgstr ""
+msgstr "某人"
 
 #: apps/disputes/rules.py:185
 #, python-format
 msgid "%(who)s opened a dispute on %(label)s: %(detail)s"
-msgstr ""
+msgstr "%(who)s对%(label)s提出了异议：%(detail)s"
 
 #: apps/disputes/rules.py:187
 #, python-format
 msgid "%(who)s wrote in the dispute on %(label)s: %(detail)s"
-msgstr ""
+msgstr "%(who)s在%(label)s的异议中留言：%(detail)s"
 
 #: apps/disputes/rules.py:189 apps/trips/history.py:452
 #, python-format
 msgid "%(who)s resolved the dispute on %(label)s"
-msgstr ""
+msgstr "%(who)s将%(label)s的异议标记为已解决"
 
 #: apps/disputes/rules.py:191
 #, python-format
-msgid "%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s. Reason: %(detail)s"
-msgstr ""
+msgid ""
+"%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s. Reason: "
+"%(detail)s"
+msgstr "所有者%(who)s关闭了%(opener)s对%(label)s提出的异议。原因：%(detail)s"
 
 #: apps/disputes/rules.py:193 apps/trips/history.py:402
 #, python-format
 msgid "%(who)s settled the trip"
-msgstr ""
+msgstr "%(who)s结清了行程"
 
 #: apps/disputes/rules.py:194 apps/trips/history.py:403
 #, python-format
 msgid "%(who)s reopened the trip"
-msgstr ""
+msgstr "%(who)s重新开启了行程"
 
 #: apps/disputes/rules.py:196
 #, python-format
 msgid "%(who)s added you to the trip"
-msgstr ""
+msgstr "%(who)s把你加入了行程"
 
 #: apps/disputes/rules.py:197
 #, python-format
 msgid "%(who)s accepted your invite"
-msgstr ""
+msgstr "%(who)s接受了你的邀请"
 
 #: apps/disputes/rules.py:199
 #, python-format
-msgid "%(who)s accepted your invite, but traveler %(detail)s could not be linked. Link the right traveler on the Travelers page."
-msgstr ""
+msgid ""
+"%(who)s accepted your invite, but traveler %(detail)s could not be linked. "
+"Link the right traveler on the Travelers page."
+msgstr "%(who)s接受了你的邀请，但无法关联出行人%(detail)s。请在“出行人”页面关联正确的出行人。"
 
 #: apps/disputes/rules.py:223
 msgid "This dispute is resolved, so it takes no new messages."
-msgstr ""
+msgstr "此异议已解决，无法再发送消息。"
 
 #: apps/disputes/rules.py:225
 msgid "This dispute is closed, so it takes no new messages."
-msgstr ""
+msgstr "此异议已关闭，无法再发送消息。"
 
 #: apps/disputes/rules.py:249
 msgid "Write why you disagree with this expense."
-msgstr ""
+msgstr "请写下你不同意这笔费用的原因。"
 
 #: apps/disputes/rules.py:256
 msgid "You already have an open dispute on this expense."
-msgstr ""
+msgstr "你对这笔费用已有一个进行中的异议。"
 
 #: apps/disputes/rules.py:292
 msgid "Write a message first."
-msgstr ""
+msgstr "请先输入消息。"
 
 #: apps/disputes/rules.py:347
 msgid "Write the reason for closing this dispute."
-msgstr ""
+msgstr "请填写关闭此异议的原因。"
 
 #: apps/disputes/rules.py:393
 #, python-format
 msgid "%(n)d open dispute"
 msgid_plural "%(n)d open disputes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)d个进行中的异议"
 
 #: apps/disputes/rules.py:401
-msgid "This traveler cannot be removed because an expense they are in has a dispute."
-msgstr ""
+msgid ""
+"This traveler cannot be removed because an expense they are in has a "
+"dispute."
+msgstr "无法移除此出行人，因为其参与的一笔费用存在异议。"
 
 #: apps/disputes/rules.py:403
-msgid "This type cannot be removed because an expense of this type has a dispute."
-msgstr ""
+msgid ""
+"This type cannot be removed because an expense of this type has a dispute."
+msgstr "无法移除此类别，因为该类别下的一笔费用存在异议。"
 
 #: apps/disputes/rules.py:404
-msgid "This rate cannot be deleted because an expense in this currency has a dispute."
-msgstr ""
+msgid ""
+"This rate cannot be deleted because an expense in this currency has a "
+"dispute."
+msgstr "无法删除此汇率，因为使用该货币的一笔费用存在异议。"
 
 #: apps/disputes/views.py:120
 msgid "Dispute opened."
-msgstr ""
+msgstr "已提出异议。"
 
 #: apps/disputes/views.py:152
 msgid "Dispute resolved."
-msgstr ""
+msgstr "异议已解决。"
 
 #: apps/disputes/views.py:169
 msgid "Dispute closed."
-msgstr ""
+msgstr "异议已关闭。"
 
 #: apps/expenses/ai_fill.py:83
 msgid "Describe the expense in a sentence."
-msgstr ""
+msgstr "用一句话描述这笔费用。"
 
-#: apps/expenses/ai_fill.py:102 apps/expenses/ai_fill.py:104 templates/expenses/form.html:118
+#: apps/expenses/ai_fill.py:102 apps/expenses/ai_fill.py:104
+#: templates/expenses/form.html:118
 msgid "The text could not be read. Try again."
-msgstr ""
+msgstr "无法识别这段文字，请重试。"
 
 #: apps/expenses/ai_fill.py:106
 msgid "This box only adds expenses."
-msgstr ""
+msgstr "此输入框只能添加费用。"
 
 #: apps/expenses/ai_fill.py:113
 msgid "the amount"
-msgstr ""
+msgstr "金额"
 
 #: apps/expenses/ai_fill.py:119
 msgid "the currency"
-msgstr ""
+msgstr "货币"
 
 #: apps/expenses/ai_fill.py:122
 #, python-format
 msgid "the currency (%(code)s has no exchange rate in this trip)"
-msgstr ""
+msgstr "货币（本行程没有%(code)s的汇率）"
 
 #: apps/expenses/ai_fill.py:131 apps/expenses/ai_fill.py:141
 msgid "who paid"
-msgstr ""
+msgstr "付款人"
 
 #: apps/expenses/ai_fill.py:138
 #, python-format
 msgid "who paid (no single traveler is called “%(name)s”)"
-msgstr ""
+msgstr "付款人（找不到唯一名为“%(name)s”的出行人）"
 
 #: apps/expenses/ai_fill.py:153
 #, python-format
 msgid "who it was for (no single traveler is called %(names)s)"
-msgstr ""
+msgstr "分摊对象（找不到唯一名为%(names)s的出行人）"
 
 #: apps/expenses/ai_fill.py:159
 msgid "who it was for"
-msgstr ""
+msgstr "分摊对象"
 
 #: apps/expenses/ai_fill.py:165
 msgid "the type"
-msgstr ""
+msgstr "类别"
 
 #: apps/expenses/ai_fill.py:171
 msgid "what was bought"
-msgstr ""
+msgstr "购买内容"
 
 #: apps/expenses/forms.py:41 apps/expenses/report.py:212
 msgid "Description"
-msgstr ""
+msgstr "描述"
 
-#: apps/expenses/forms.py:43 apps/expenses/report.py:40 apps/expenses/report.py:214 templates/expenses/_facts.html:9
+#: apps/expenses/forms.py:43 apps/expenses/report.py:40
+#: apps/expenses/report.py:214 templates/expenses/_facts.html:9
 msgid "Paid by"
-msgstr ""
+msgstr "付款人"
 
-#: apps/expenses/forms.py:44 apps/expenses/report.py:215 templates/expenses/_facts.html:10
+#: apps/expenses/forms.py:44 apps/expenses/report.py:215
+#: templates/expenses/_facts.html:10
 msgid "Split between"
-msgstr ""
+msgstr "分摊给"
 
-#: apps/expenses/forms.py:45 apps/expenses/report.py:47 apps/expenses/report.py:213 templates/expenses/_facts.html:11
+#: apps/expenses/forms.py:45 apps/expenses/report.py:47
+#: apps/expenses/report.py:213 templates/expenses/_facts.html:11
 msgid "Type"
-msgstr ""
+msgstr "类别"
 
-#: apps/expenses/forms.py:46 apps/expenses/report.py:211 templates/expenses/_facts.html:12
+#: apps/expenses/forms.py:46 apps/expenses/report.py:211
+#: templates/expenses/_facts.html:12
 msgid "Date"
-msgstr ""
+msgstr "日期"
 
 #: apps/expenses/forms.py:57
 msgid "e.g. Taxi from the airport"
-msgstr ""
+msgstr "例如：机场打车"
 
 #: apps/expenses/forms.py:87
 #, python-format
 msgid "Your account can add and change only expenses paid by %(name)s."
-msgstr ""
+msgstr "你的账户只能添加和修改由%(name)s付款的费用。"
 
 #: apps/expenses/forms.py:113
 msgid "Enter an amount above zero."
-msgstr ""
+msgstr "请输入大于0的金额。"
 
 #: apps/expenses/forms.py:120
 msgid "Add an exchange rate for this currency in the trip settings first."
-msgstr ""
+msgstr "请先在行程设置中为此货币添加汇率。"
 
 #: apps/expenses/forms.py:141
 msgid "Enter a name."
-msgstr ""
+msgstr "请输入名称。"
 
 #: apps/expenses/forms.py:144
 msgid "This trip already has a type with this name."
-msgstr ""
+msgstr "此行程已有同名类别。"
 
 #: apps/expenses/forms.py:153
 msgid "Choose an icon from the list."
-msgstr ""
+msgstr "请从列表中选择图标。"
 
 #: apps/expenses/models.py:26
 msgctxt "expense type"
 msgid "Transport"
-msgstr ""
+msgstr "交通"
 
 #: apps/expenses/models.py:27
 msgctxt "expense type"
 msgid "Accommodation"
-msgstr ""
+msgstr "住宿"
 
 #: apps/expenses/models.py:28
 msgctxt "expense type"
 msgid "Food & drink"
-msgstr ""
+msgstr "餐饮"
 
 #: apps/expenses/models.py:29
 msgctxt "expense type"
 msgid "Hospital & medicine"
-msgstr ""
+msgstr "医疗"
 
 #: apps/expenses/models.py:30
 msgctxt "expense type"
 msgid "Translation"
-msgstr ""
+msgstr "翻译"
 
 #: apps/expenses/models.py:31
 msgctxt "expense type"
 msgid "Shopping"
-msgstr ""
+msgstr "购物"
 
 #: apps/expenses/models.py:32
 msgctxt "expense type"
 msgid "Activities"
-msgstr ""
+msgstr "活动"
 
 #: apps/expenses/models.py:33
 msgctxt "expense type"
 msgid "Other"
-msgstr ""
+msgstr "其他"
 
 #: apps/expenses/models.py:51 apps/trips/models.py:143
+#: config/django_messages.py:187
 msgid "name"
-msgstr ""
+msgstr "名称"
 
 #: apps/expenses/models.py:52
 msgid "name in English"
-msgstr ""
+msgstr "名称（英文）"
 
 #: apps/expenses/models.py:53
 msgid "icon"
-msgstr ""
+msgstr "图标"
 
-#: apps/expenses/models.py:58 apps/expenses/models.py:110 apps/trips/history.py:333
+#: apps/expenses/models.py:58 apps/expenses/models.py:110
+#: apps/trips/history.py:333
 msgid "type"
-msgstr ""
+msgstr "类别"
 
 #: apps/expenses/models.py:94 apps/trips/history.py:330
 msgid "date"
-msgstr ""
+msgstr "日期"
 
 #: apps/expenses/models.py:96 apps/trips/history.py:331
 msgid "paid by"
-msgstr ""
+msgstr "付款人"
 
 #: apps/expenses/models.py:101
 msgid "for whom"
-msgstr ""
+msgstr "分摊对象"
 
 #: apps/expenses/models.py:102
 msgid "The amount is split equally among these people."
-msgstr ""
+msgstr "金额由这些人平均分摊。"
 
 #: apps/expenses/models.py:112 apps/trips/history.py:334
 msgid "description"
-msgstr ""
+msgstr "描述"
 
 #: apps/expenses/models.py:113
 msgid "description in English"
-msgstr ""
+msgstr "描述（英文）"
 
 #: apps/expenses/models.py:114 apps/trips/history.py:335
 msgid "amount"
-msgstr ""
+msgstr "金额"
 
-#: apps/expenses/models.py:115 apps/trips/history.py:336 apps/trips/models.py:181
+#: apps/expenses/models.py:115 apps/trips/history.py:336
+#: apps/trips/models.py:181
 msgid "currency"
-msgstr ""
+msgstr "货币"
 
 #: apps/expenses/report.py:33 apps/trips/forms.py:198
 msgid "Traveler"
-msgstr ""
+msgstr "出行人"
 
-#. Translators: the first choice of the "Traveler" filter: no filter, all travelers.
-#: apps/expenses/report.py:37 templates/_checks.html:4 templates/expenses/form.html:54 templates/trips/summary.html:37
+#. Translators: the first choice of the "Traveler" filter: no filter, all
+#. travelers.
+#: apps/expenses/report.py:37 templates/_checks.html:4
+#: templates/expenses/form.html:54 templates/trips/summary.html:37
 msgid "Everyone"
-msgstr ""
+msgstr "全部"
 
-#. Translators: the first choice of the "Paid by" filter: no filter, any traveler paid.
+#. Translators: the first choice of the "Paid by" filter: no filter, any
+#. traveler paid.
 #: apps/expenses/report.py:44
 msgid "Anyone"
-msgstr ""
+msgstr "全部"
 
 #: apps/expenses/report.py:50
 msgid "All types"
-msgstr ""
+msgstr "全部类别"
 
 #: apps/expenses/report.py:52
 msgid "From"
-msgstr ""
+msgstr "从"
 
 #: apps/expenses/report.py:53
 msgid "To"
-msgstr ""
+msgstr "到"
 
 #: apps/expenses/report.py:216
 msgid "Amount"
-msgstr ""
+msgstr "金额"
 
 #: apps/expenses/report.py:217 templates/trips/_rate_row.html:6
 msgid "Currency"
-msgstr ""
+msgstr "货币"
 
 #: apps/expenses/report.py:218
 #, python-format
 msgid "Amount in %(base)s"
-msgstr ""
+msgstr "金额（%(base)s）"
 
 #: apps/expenses/report.py:222
 #, python-format
 msgid "%(name)s's share in %(base)s"
-msgstr ""
+msgstr "%(name)s的分摊额（%(base)s）"
 
 #: apps/expenses/report.py:223
 msgid "Description in English"
-msgstr ""
+msgstr "描述（英文）"
 
 #: apps/expenses/views.py:169
 msgid "Check the name."
-msgstr ""
+msgstr "请检查名称。"
 
-#: apps/expenses/views.py:187 apps/expenses/views.py:209 apps/expenses/views.py:242 apps/expenses/views.py:272
+#: apps/expenses/views.py:187 apps/expenses/views.py:209
+#: apps/expenses/views.py:242 apps/expenses/views.py:272
 msgid "This trip is settled."
-msgstr ""
+msgstr "此行程已结清。"
 
 #: apps/expenses/views.py:246
 #, python-format
 msgid "“%(name)s” is used by %(n)d expense, so it cannot be removed."
 msgid_plural "“%(name)s” is used by %(n)d expenses, so it cannot be removed."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "“%(name)s”已被%(n)d笔费用使用，无法移除。"
 
 #: apps/expenses/views.py:257
 msgid "A trip needs at least one type."
-msgstr ""
+msgstr "一个行程至少需要一个类别。"
 
 #: apps/expenses/views.py:274
 msgid "Adding with AI is not set up."
-msgstr ""
+msgstr "尚未设置AI添加功能。"
 
 #: apps/expenses/views.py:277
 msgid "Too many requests. Try again in a few minutes."
-msgstr ""
+msgstr "请求过于频繁，请几分钟后再试。"
 
 #: apps/expenses/views.py:361
 #, python-format
 msgid "%(what)s, %(amount)s %(currency)s (%(payer)s paid)"
-msgstr ""
+msgstr "%(what)s，%(amount)s %(currency)s（%(payer)s付款）"
 
 #: apps/expenses/views.py:395
 #, python-format
 msgid "Added: %(expense)s"
-msgstr ""
+msgstr "已添加：%(expense)s"
 
 #: apps/expenses/views.py:451
 #, python-format
 msgid "Saved: %(expense)s"
-msgstr ""
+msgstr "已保存：%(expense)s"
 
 #: apps/expenses/views.py:483
 #, python-format
 msgid "Deleted: %(expense)s"
-msgstr ""
+msgstr "已删除：%(expense)s"
 
 #: apps/expenses/views.py:493
 msgid "It will be left out of all totals."
-msgstr ""
+msgstr "删除后将不计入任何合计。"
 
 #: apps/expenses/views.py:494
 msgid "Delete expense"
-msgstr ""
+msgstr "删除费用"
 
 #: apps/expenses/views.py:511
 #, python-format
 msgid "%(share)s %(currency)s each"
-msgstr ""
+msgstr "每人%(share)s %(currency)s"
 
 #: apps/expenses/views.py:514
 #, python-format
 msgid "%(n)d traveler · %(share)s %(currency)s each"
 msgid_plural "%(n)d travelers · %(share)s %(currency)s each"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)d位出行人 · 每人%(share)s %(currency)s"
 
-#: apps/expenses/views.py:530 apps/expenses/views.py:579 apps/trips/access.py:15
+#: apps/expenses/views.py:530 apps/expenses/views.py:579
+#: apps/trips/access.py:15
 msgid "This trip is settled, so its expenses are locked."
-msgstr ""
+msgstr "此行程已结清，费用已锁定。"
 
 #: apps/expenses/views.py:533
-msgid "Your account is not linked to a traveler, so you can view expenses but not change them. The trip Owner can link it."
-msgstr ""
+msgid ""
+"Your account is not linked to a traveler, so you can view expenses but not "
+"change them. The trip Owner can link it."
+msgstr "你的账户未关联出行人，因此只能查看费用，不能修改。行程所有者可以为你关联。"
 
 #: apps/expenses/views.py:575
 #, python-format
-msgid "%(name)s was removed from the trip, so this expense cannot be restored."
-msgstr ""
+msgid ""
+"%(name)s was removed from the trip, so this expense cannot be restored."
+msgstr "%(name)s已被移出行程，因此无法恢复这笔费用。"
 
 #: apps/expenses/views.py:624 apps/trips/history.py:293
 msgid "This expense can no longer be restored."
-msgstr ""
+msgstr "这笔费用已无法恢复。"
 
 #: apps/expenses/views.py:638
 #, python-format
 msgid "Restored: %(expense)s"
-msgstr ""
+msgstr "已恢复：%(expense)s"
 
 #: apps/expenses/views.py:649
 msgid "Only the Owner or an Editor can restore this expense."
-msgstr ""
+msgstr "只有所有者或编辑者可以恢复这笔费用。"
 
 #: apps/expenses/views.py:650
 msgid "Only the Owner or an Editor can change this expense."
-msgstr ""
+msgstr "只有所有者或编辑者可以修改这笔费用。"
 
 #: apps/expenses/views.py:654
 #, python-format
 msgid "Only %(name)s, the Owner or an Editor can restore this expense."
-msgstr ""
+msgstr "只有%(name)s、所有者或编辑者可以恢复这笔费用。"
 
 #: apps/expenses/views.py:655
 #, python-format
 msgid "Only %(name)s, the Owner or an Editor can change this expense."
-msgstr ""
+msgstr "只有%(name)s、所有者或编辑者可以修改这笔费用。"
 
 #: apps/expenses/views.py:664
 #, python-format
 msgid "paid by %(name)s"
-msgstr ""
+msgstr "付款人：%(name)s"
 
 #: apps/expenses/views.py:671
 #, python-format
 msgid "from %(day)s"
-msgstr ""
+msgstr "%(day)s起"
 
 #: apps/expenses/views.py:673
 #, python-format
 msgid "until %(day)s"
-msgstr ""
+msgstr "截至%(day)s"
 
 #: apps/settlement/engine.py:84
 #, python-format
 msgid "No exchange rate for %(currency)s"
-msgstr ""
+msgstr "%(currency)s没有汇率"
 
 #: apps/settlement/engine.py:155
 msgid "Travelers must be unique."
-msgstr ""
+msgstr "出行人不能重复。"
 
 #: apps/settlement/engine.py:162
 #, python-format
 msgid "Unknown sponsor %(name)s"
-msgstr ""
+msgstr "未知的代付人%(name)s"
 
 #: apps/settlement/engine.py:165
 #, python-format
 msgid "Sponsor %(name)s is covered by someone else"
-msgstr ""
+msgstr "代付人%(name)s本身由他人代付"
 
 #: apps/settlement/engine.py:178
 #, python-format
 msgid "Unknown payer %(name)s"
-msgstr ""
+msgstr "未知的付款人%(name)s"
 
 #: apps/settlement/engine.py:180
 msgid "An expense needs at least one beneficiary"
-msgstr ""
+msgstr "一笔费用至少需要一个分摊对象"
 
 #: apps/settlement/engine.py:183
 #, python-format
 msgid "Unknown beneficiary %(name)s"
-msgstr ""
+msgstr "未知的分摊对象%(name)s"
 
 #: apps/trips/actions.py:35
 #, python-format
 msgid "The trip cannot be settled: %(reason)s."
-msgstr ""
+msgstr "无法结清行程：%(reason)s。"
 
 #: apps/trips/actions.py:42
 #, python-format
 msgid "The trip cannot be settled: %(error)s."
-msgstr ""
+msgstr "无法结清行程：%(error)s。"
 
 #: apps/trips/actions.py:64
 msgid "The Owner's role changes only by making someone else the Owner."
-msgstr ""
+msgstr "所有者的角色只能通过将其他人设为所有者来变更。"
 
 #: apps/trips/actions.py:66
 msgid "Choose Member or Editor."
-msgstr ""
+msgstr "请选择普通成员或编辑者。"
 
 #: apps/trips/actions.py:87
 msgid "Only the Owner can do this."
-msgstr ""
+msgstr "只有所有者可以执行此操作。"
 
 #: apps/trips/actions.py:89
 msgid "Choose another account on this trip."
-msgstr ""
+msgstr "请选择此行程中的另一个账户。"
 
 #: apps/trips/actions.py:91 apps/trips/views.py:657
 msgid "This account is closed."
-msgstr ""
+msgstr "此账户已关闭。"
 
 #: apps/trips/actions.py:93 apps/trips/views.py:661
 msgid "This account is not approved yet."
-msgstr ""
+msgstr "此账户尚未获批准。"
 
 #: apps/trips/actions.py:115
 msgid "The Owner cannot be removed."
-msgstr ""
+msgstr "不能移除所有者。"
 
 #: apps/trips/actions.py:133
 msgid "The Owner cannot leave the trip. Make someone else the Owner first."
-msgstr ""
+msgstr "所有者不能退出行程。请先将其他人设为所有者。"
 
 #: apps/trips/actions.py:181 apps/trips/forms.py:236 apps/trips/forms.py:250
 msgid "This person is already on the trip."
-msgstr ""
+msgstr "此人已在行程中。"
 
 #: apps/trips/actions.py:184
 msgid "This trip is settled, so its travelers are locked."
-msgstr ""
+msgstr "此行程已结清，出行人已锁定。"
 
 #: apps/trips/actions.py:186 apps/trips/forms.py:148 apps/trips/forms.py:287
 msgid "Someone on this trip already has this name."
-msgstr ""
+msgstr "此行程中已有人使用这个名字。"
 
 #: apps/trips/actions.py:191
 msgid "This traveler is already linked to an account."
-msgstr ""
+msgstr "此出行人已关联账户。"
 
 #: apps/trips/english.py:21 templates/expenses/_dispute_english.html:8
 msgid "Write the English version."
-msgstr ""
+msgstr "请填写英文版本。"
 
-#: apps/trips/english.py:24 templates/expenses/_dispute_english.html:5 templates/expenses/form.html:104
+#: apps/trips/english.py:24 templates/expenses/_dispute_english.html:5
+#: templates/expenses/form.html:104
 msgctxt "label of the box with the English translation of the text above"
 msgid "English"
-msgstr ""
+msgstr "英文"
 
 #: apps/trips/forms.py:28
 msgid "Choose a country (optional)"
-msgstr ""
+msgstr "选择国家（可选）"
 
 #: apps/trips/forms.py:37
 msgid "The end date must be on or after the start date."
-msgstr ""
+msgstr "结束日期不能早于开始日期。"
 
 #: apps/trips/forms.py:43
 msgid "Delete the exchange rate for this currency first."
-msgstr ""
+msgstr "请先删除此货币的汇率。"
 
 #: apps/trips/forms.py:56 templates/trips/_date_range_fields.html:2
 msgid "Choose"
-msgstr ""
+msgstr "请选择"
 
 #: apps/trips/forms.py:61
 msgid "This is already the trip's base currency."
-msgstr ""
+msgstr "这已是本行程的基础货币。"
 
 #: apps/trips/forms.py:67
 msgid "Enter a rate above zero."
-msgstr ""
+msgstr "请输入大于0的汇率。"
 
 #: apps/trips/forms.py:84
 msgid "This currency already has a rate."
-msgstr ""
+msgstr "此货币已有汇率。"
 
 #: apps/trips/forms.py:132
 msgid "No account"
-msgstr ""
+msgstr "无账户"
 
 #: apps/trips/forms.py:134
-msgid "Optional. The linked account sees this traveler's balance and can add the expenses this traveler paid."
-msgstr ""
+msgid ""
+"Optional. The linked account sees this traveler's balance and can add the "
+"expenses this traveler paid."
+msgstr "可选。关联账户可以查看此出行人的结余，并添加此出行人支付的费用。"
 
 #: apps/trips/forms.py:137 templates/trips/people.html:26
 msgid "Covered by"
-msgstr ""
+msgstr "代付人"
 
 #: apps/trips/forms.py:139
-msgid "Travelers who pay this traveler's share. Empty means they pay their own."
-msgstr ""
+msgid ""
+"Travelers who pay this traveler's share. Empty means they pay their own."
+msgstr "为此出行人支付分摊额的出行人。留空表示自己支付。"
 
 #: apps/trips/forms.py:160
 #, python-format
 msgid "This account is already linked to %(name)s."
-msgstr ""
+msgstr "此账户已关联到%(name)s。"
 
 #: apps/trips/forms.py:170
-msgid "This person already covers someone else, so they must pay for themselves."
-msgstr ""
+msgid ""
+"This person already covers someone else, so they must pay for themselves."
+msgstr "此人已在为他人代付，因此必须自己支付。"
 
 #: apps/trips/forms.py:175
 #, python-format
 msgid "%(name)s is covered by someone else and cannot cover another person."
-msgstr ""
+msgstr "%(name)s由他人代付，不能再为别人代付。"
 
 #: apps/trips/forms.py:189
-msgid "No account has this username. To invite someone new, type their email address."
-msgstr ""
+msgid ""
+"No account has this username. To invite someone new, type their email "
+"address."
+msgstr "没有使用此用户名的账户。要邀请新用户，请输入对方的邮箱地址。"
 
 #: apps/trips/forms.py:193
 msgid "Username or email"
-msgstr ""
+msgstr "用户名或邮箱"
 
 #: apps/trips/forms.py:195
-msgid "A username of an approved account, or the email address of a new person."
-msgstr ""
+msgid ""
+"A username of an approved account, or the email address of a new person."
+msgstr "已获批准账户的用户名，或新用户的邮箱地址。"
 
 #: apps/trips/forms.py:201
 msgid "New traveler's name"
-msgstr ""
+msgstr "新出行人的名字"
 
 #: apps/trips/forms.py:220
 msgid "A new traveler"
-msgstr ""
+msgstr "新出行人"
 
 #: apps/trips/forms.py:221
 msgid "No traveler (view only)"
-msgstr ""
+msgstr "不关联出行人（仅查看）"
 
 #: apps/trips/forms.py:258
 msgid "This address already has an invite to this trip."
-msgstr ""
+msgstr "此邮箱地址已收到本行程的邀请。"
 
 #: apps/trips/forms.py:262
 #, python-format
 msgid "No email can be delivered to %(domain)s. Check the address."
-msgstr ""
+msgstr "无法向%(domain)s发送邮件，请检查地址。"
 
 #: apps/trips/forms.py:281
 msgid "Type the new traveler's name."
-msgstr ""
+msgstr "请输入新出行人的名字。"
 
 #: apps/trips/forms.py:306
 msgid "Role"
-msgstr ""
+msgstr "角色"
 
 #: apps/trips/forms.py:308 apps/trips/models.py:67
 msgctxt "trip role"
 msgid "Member"
-msgstr ""
+msgstr "普通成员"
 
 #: apps/trips/forms.py:309 apps/trips/models.py:66
 msgctxt "trip role"
 msgid "Editor"
-msgstr ""
+msgstr "编辑者"
 
 #: apps/trips/forms.py:318
 #, python-format
-msgid "A Member can change only the expenses that %(name)s paid. An Editor can change every expense and mark the trip as settled."
-msgstr ""
+msgid ""
+"A Member can change only the expenses that %(name)s paid. An Editor can "
+"change every expense and mark the trip as settled."
+msgstr "普通成员只能修改由%(name)s支付的费用。编辑者可以修改所有费用，并将行程标记为已结清。"
 
-#. Translators: used in a History line when an expense is split between all travelers ("split between everyone").
+#. Translators: used in a History line when an expense is split between all
+#. travelers ("split between everyone").
 #: apps/trips/history.py:145
 msgid "everyone"
-msgstr ""
+msgstr "所有人"
 
-#. Translators: the word that names an expense in History when it has no description, as in: Cara deleted "expense".
+#. Translators: the word that names an expense in History when it has no
+#. description, as in: Cara deleted "expense".
 #: apps/trips/history.py:211
 msgid "expense"
-msgstr ""
+msgstr "费用"
 
 #: apps/trips/history.py:263
 #, python-format
 msgid "traveler %(name)s"
-msgstr ""
+msgstr "出行人%(name)s"
 
 #: apps/trips/history.py:276
 #, python-format
 msgid "type %(name)s"
-msgstr ""
+msgstr "类别%(name)s"
 
 #: apps/trips/history.py:278
 #, python-format
 msgid "the %(currency)s rate"
-msgstr ""
+msgstr "%(currency)s汇率"
 
 #: apps/trips/history.py:300
 #, python-format
 msgid "Not restored. Add these first: %(problems)s."
-msgstr ""
+msgstr "未恢复。请先添加：%(problems)s。"
 
 #: apps/trips/history.py:332
 msgid "split between"
-msgstr ""
+msgstr "分摊给"
 
-#. Translators: the start of a History sentence when the name of the person who acted is unknown ("Someone added ...").
+#. Translators: the start of a History sentence when the name of the person
+#. who acted is unknown ("Someone added ...").
 #: apps/trips/history.py:348
 msgid "Someone"
-msgstr ""
+msgstr "有人"
 
 #: apps/trips/history.py:362
 #, python-format
 msgid "%(who)s changed %(label)s: %(changes)s"
-msgstr ""
+msgstr "%(who)s修改了%(label)s：%(changes)s"
 
 #: apps/trips/history.py:368
 #, python-format
 msgid "%(amount)s, paid by %(payer)s"
-msgstr ""
+msgstr "%(amount)s，付款人：%(payer)s"
 
 #: apps/trips/history.py:373
 #, python-format
 msgid "%(who)s added %(label)s"
-msgstr ""
+msgstr "%(who)s添加了%(label)s"
 
 #: apps/trips/history.py:374
 #, python-format
 msgid "%(who)s deleted %(label)s"
-msgstr ""
+msgstr "%(who)s删除了%(label)s"
 
 #: apps/trips/history.py:375
 #, python-format
 msgid "%(who)s restored %(label)s"
-msgstr ""
+msgstr "%(who)s恢复了%(label)s"
 
 #: apps/trips/history.py:380
 #, python-format
 msgid "%(who)s added traveler %(label)s"
-msgstr ""
+msgstr "%(who)s添加了出行人%(label)s"
 
 #: apps/trips/history.py:381
 #, python-format
 msgid "%(who)s renamed traveler %(old)s → %(new)s"
-msgstr ""
+msgstr "%(who)s重命名了出行人：%(old)s → %(new)s"
 
 #: apps/trips/history.py:382
 #, python-format
 msgid "%(who)s changed who covers %(label)s: %(old)s → %(new)s"
-msgstr ""
+msgstr "%(who)s修改了%(label)s的代付人：%(old)s → %(new)s"
 
 #: apps/trips/history.py:383
 #, python-format
 msgid "%(who)s linked traveler %(label)s to account %(new)s"
-msgstr ""
+msgstr "%(who)s将出行人%(label)s关联到账户%(new)s"
 
 #: apps/trips/history.py:384
 #, python-format
 msgid "%(who)s unlinked traveler %(label)s from account %(old)s"
-msgstr ""
+msgstr "%(who)s解除了出行人%(label)s与账户%(old)s的关联"
 
 #: apps/trips/history.py:385
 #, python-format
 msgid "%(who)s removed traveler %(label)s"
-msgstr ""
+msgstr "%(who)s移除了出行人%(label)s"
 
 #: apps/trips/history.py:386
 #, python-format
 msgid "%(who)s added %(label)s's account"
-msgstr ""
+msgstr "%(who)s添加了%(label)s的账户"
 
 #: apps/trips/history.py:387
 #, python-format
 msgid "%(who)s changed %(label)s's role: %(old)s → %(new)s"
-msgstr ""
+msgstr "%(who)s修改了%(label)s的角色：%(old)s → %(new)s"
 
 #: apps/trips/history.py:388
 #, python-format
 msgid "%(who)s removed %(label)s's account"
-msgstr ""
+msgstr "%(who)s移除了%(label)s的账户"
 
 #: apps/trips/history.py:389
 #, python-format
 msgid "%(who)s made %(label)s the Owner"
-msgstr ""
+msgstr "%(who)s将%(label)s设为所有者"
 
 #: apps/trips/history.py:390
 #, python-format
 msgid "%(who)s left the trip"
-msgstr ""
+msgstr "%(who)s退出了行程"
 
 #: apps/trips/history.py:391
 #, python-format
 msgid "%(who)s closed their account"
-msgstr ""
+msgstr "%(who)s关闭了自己的账户"
 
 #: apps/trips/history.py:392
 #, python-format
 msgid "%(who)s sent the invite for %(label)s again"
-msgstr ""
+msgstr "%(who)s重新向%(label)s发送了邀请"
 
 #: apps/trips/history.py:393
 #, python-format
 msgid "%(who)s cancelled the invite for %(label)s"
-msgstr ""
+msgstr "%(who)s取消了给%(label)s的邀请"
 
 #: apps/trips/history.py:394
 #, python-format
 msgid "The invite for %(label)s expired"
-msgstr ""
+msgstr "给%(label)s的邀请已过期"
 
 #: apps/trips/history.py:395
 #, python-format
 msgid "%(who)s added the %(label)s rate: %(new)s"
-msgstr ""
+msgstr "%(who)s添加了%(label)s汇率：%(new)s"
 
 #: apps/trips/history.py:396
 #, python-format
 msgid "%(who)s changed the %(label)s rate: %(old)s → %(new)s"
-msgstr ""
+msgstr "%(who)s修改了%(label)s汇率：%(old)s → %(new)s"
 
 #: apps/trips/history.py:397
 #, python-format
 msgid "%(who)s removed the %(label)s rate: %(old)s"
-msgstr ""
+msgstr "%(who)s删除了%(label)s汇率：%(old)s"
 
 #: apps/trips/history.py:398
 #, python-format
 msgid "%(who)s added type %(label)s"
-msgstr ""
+msgstr "%(who)s添加了类别%(label)s"
 
 #: apps/trips/history.py:399
 #, python-format
 msgid "%(who)s renamed type %(old)s → %(new)s"
-msgstr ""
+msgstr "%(who)s重命名了类别：%(old)s → %(new)s"
 
 #: apps/trips/history.py:400
 #, python-format
 msgid "%(who)s changed type %(label)s: icon %(old)s → %(new)s"
-msgstr ""
+msgstr "%(who)s修改了类别%(label)s的图标：%(old)s → %(new)s"
 
 #: apps/trips/history.py:401
 #, python-format
 msgid "%(who)s removed type %(label)s"
-msgstr ""
+msgstr "%(who)s移除了类别%(label)s"
 
 #: apps/trips/history.py:404
 #, python-format
 msgid "%(who)s turned the invite link on"
-msgstr ""
+msgstr "%(who)s开启了邀请链接"
 
 #: apps/trips/history.py:405
 #, python-format
 msgid "%(who)s turned the invite link off"
-msgstr ""
+msgstr "%(who)s关闭了邀请链接"
 
 #: apps/trips/history.py:406
 #, python-format
 msgid "%(who)s renewed the invite link"
-msgstr ""
+msgstr "%(who)s重新生成了邀请链接"
 
 #: apps/trips/history.py:407
 #, python-format
 msgid "%(who)s renamed the trip: %(old)s → %(new)s"
-msgstr ""
+msgstr "%(who)s重命名了行程：%(old)s → %(new)s"
 
 #: apps/trips/history.py:413
 #, python-format
 msgid "%(who)s joined by link as %(traveler)s"
-msgstr ""
+msgstr "%(who)s以出行人%(traveler)s的身份通过链接加入"
 
 #: apps/trips/history.py:414
 #, python-format
 msgid "%(who)s joined by link (view only)"
-msgstr ""
+msgstr "%(who)s通过链接加入（仅查看）"
 
 #: apps/trips/history.py:420
 #, python-format
 msgid "%(who)s changed the trip settings: %(changes)s"
-msgstr ""
+msgstr "%(who)s修改了行程设置：%(changes)s"
 
 #: apps/trips/history.py:434
 #, python-format
 msgid "%(who)s invited %(label)s as %(traveler)s"
-msgstr ""
+msgstr "%(who)s邀请%(label)s作为出行人%(traveler)s加入"
 
 #: apps/trips/history.py:435
 #, python-format
 msgid "%(who)s accepted the invite for %(label)s as %(traveler)s"
-msgstr ""
+msgstr "%(who)s以出行人%(traveler)s的身份接受了发给%(label)s的邀请"
 
 #: apps/trips/history.py:439
 #, python-format
 msgid "%(who)s invited %(label)s (view only)"
-msgstr ""
+msgstr "%(who)s邀请了%(label)s（仅查看）"
 
 #: apps/trips/history.py:440
 #, python-format
 msgid "%(who)s accepted the invite for %(label)s (view only)"
-msgstr ""
+msgstr "%(who)s接受了给%(label)s的邀请（仅查看）"
 
 #: apps/trips/history.py:450
 #, python-format
 msgid "%(who)s opened a dispute on %(label)s: %(new)s"
-msgstr ""
+msgstr "%(who)s对%(label)s提出了异议：%(new)s"
 
 #: apps/trips/history.py:451
 #, python-format
 msgid "%(who)s wrote in the dispute on %(label)s: %(new)s"
-msgstr ""
+msgstr "%(who)s在%(label)s的异议中留言：%(new)s"
 
 #: apps/trips/history.py:453
 #, python-format
 msgid "%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s: %(new)s"
-msgstr ""
+msgstr "所有者%(who)s关闭了%(opener)s对%(label)s提出的异议：%(new)s"
 
-#. Translators: "nobody" is shown when no traveler covers this traveler's share, as in: covered by "nobody" -> "Ann".
+#. Translators: "nobody" is shown when no traveler covers this traveler's
+#. share, as in: covered by "nobody" -> "Ann".
 #: apps/trips/history.py:538 apps/trips/history.py:539
 msgid "nobody"
-msgstr ""
+msgstr "无人"
 
 #: apps/trips/invite_views.py:43
 #, python-format
-msgid "You are logged in as %(name)s. Log out first, then open this link again."
-msgstr ""
+msgid ""
+"You are logged in as %(name)s. Log out first, then open this link again."
+msgstr "你已以%(name)s的身份登录。请先退出登录，再重新打开此链接。"
 
 #: apps/trips/invite_views.py:66
 #, python-format
 msgid "You joined %(trip)s."
-msgstr ""
+msgstr "你已加入%(trip)s。"
 
-#: apps/trips/invites.py:112 templates/expenses/_disputes.html:16 templates/expenses/_disputes.html:17 templates/notifications.html:15
+#: apps/trips/invites.py:112 templates/expenses/_disputes.html:16
+#: templates/expenses/_disputes.html:17 templates/notifications.html:15
 #, python-format
 msgid "%(day)s at %(time)s"
-msgstr ""
+msgstr "%(day)s %(time)s"
 
 #: apps/trips/invites.py:181
 msgid "This invite was already used or cancelled."
-msgstr ""
+msgstr "此邀请已被使用或已取消。"
 
 #: apps/trips/invites.py:258
 msgid "This invite no longer works. Ask the Owner of the trip for a new one."
-msgstr ""
+msgstr "此邀请已失效。请向行程所有者索取新的邀请。"
 
 #: apps/trips/invites.py:365
 msgid "Email sending is not set up. Copy the link and send it yourself."
-msgstr ""
+msgstr "邮件发送功能尚未设置。请复制链接自行发送。"
 
 #: apps/trips/invites.py:370
-msgid "You have sent many invites in the last hour. Copy the link instead, or try again later."
-msgstr ""
+msgid ""
+"You have sent many invites in the last hour. Copy the link instead, or try "
+"again later."
+msgstr "你在过去一小时内发送了太多邀请。请改为复制链接，或稍后再试。"
 
 #: apps/trips/invites.py:392
 msgid "The email could not be sent. Copy the link and send it yourself."
-msgstr ""
+msgstr "邮件发送失败。请复制链接自行发送。"
 
 #: apps/trips/invites.py:394
 #, python-format
 msgid "The invite email was sent to %(email)s."
-msgstr ""
+msgstr "邀请邮件已发送至%(email)s。"
 
 #: apps/trips/models.py:16
 msgid "trip name"
-msgstr ""
+msgstr "行程名称"
 
 #: apps/trips/models.py:18
 msgid "trip name in English"
-msgstr ""
+msgstr "行程名称（英文）"
 
 #: apps/trips/models.py:19
 msgid "country"
-msgstr ""
+msgstr "国家"
 
 #: apps/trips/models.py:20
 msgid "start date"
-msgstr ""
+msgstr "开始日期"
 
 #: apps/trips/models.py:21
 msgid "end date"
-msgstr ""
+msgstr "结束日期"
 
 #: apps/trips/models.py:23
 msgid "base currency"
-msgstr ""
+msgstr "基础货币"
 
 #: apps/trips/models.py:27
 msgid "All totals and balances are shown in this currency."
-msgstr ""
+msgstr "所有总额和结余都以此货币显示。"
 
 #: apps/trips/models.py:31
 msgid "settled on"
-msgstr ""
+msgstr "结清时间"
 
 #: apps/trips/models.py:65
 msgctxt "trip role"
 msgid "Owner"
-msgstr ""
+msgstr "所有者"
 
 #: apps/trips/models.py:107
 msgctxt "trip role"
 msgid "Viewer"
-msgstr ""
+msgstr "查看者"
 
 #: apps/trips/models.py:150
 msgid "linked account"
-msgstr ""
+msgstr "关联账户"
 
 #: apps/trips/models.py:157
 msgid "covered by"
-msgstr ""
+msgstr "代付人"
 
 #: apps/trips/models.py:158
-msgid "People who pay this person's share. Leave empty if they pay for themselves."
-msgstr ""
+msgid ""
+"People who pay this person's share. Leave empty if they pay for themselves."
+msgstr "为此人支付分摊额的人。如果自己支付，请留空。"
 
 #: apps/trips/models.py:182
 msgid "rate"
-msgstr ""
+msgstr "汇率"
 
 #: apps/trips/models.py:241
 msgid "history entries"
-msgstr ""
+msgstr "历史记录"
 
 #: apps/trips/models.py:265
 msgctxt "invite state"
 msgid "Pending"
-msgstr ""
+msgstr "待接受"
 
 #: apps/trips/models.py:266
 msgctxt "invite state"
 msgid "Expired"
-msgstr ""
+msgstr "已过期"
 
 #: apps/trips/models.py:267
 msgctxt "invite state"
 msgid "Accepted"
-msgstr ""
+msgstr "已接受"
 
 #: apps/trips/models.py:268
 msgctxt "invite state"
 msgid "Cancelled"
-msgstr ""
+msgstr "已取消"
 
 #: apps/trips/models.py:273
 msgid "email address"
-msgstr ""
+msgstr "邮箱地址"
 
 #: apps/trips/views.py:67
 msgid "Trip created."
-msgstr ""
+msgstr "行程已创建。"
 
 #: apps/trips/views.py:124
 msgid "Trip saved."
-msgstr ""
+msgstr "行程已保存。"
 
 #: apps/trips/views.py:209
 msgid "Exchange rate saved."
-msgstr ""
+msgstr "汇率已保存。"
 
 #: apps/trips/views.py:249
 msgid "Exchange rate deleted."
-msgstr ""
+msgstr "汇率已删除。"
 
 #: apps/trips/views.py:258
 msgid "Expenses use this currency. Change them first."
-msgstr ""
+msgstr "有费用正在使用此货币。请先修改这些费用。"
 
 #: apps/trips/views.py:263
 msgid "Delete rate"
-msgstr ""
+msgstr "删除汇率"
 
 #: apps/trips/views.py:274
 #, python-format
 msgid "Trip “%(name)s” deleted."
-msgstr ""
+msgstr "行程“%(name)s”已删除。"
 
 #: apps/trips/views.py:283
 msgid "All expenses of this trip are deleted too. This cannot be undone."
-msgstr ""
+msgstr "此行程的所有费用也将被删除。此操作无法撤销。"
 
 #: apps/trips/views.py:284 templates/trips/settings.html:60
 msgid "Delete trip"
-msgstr ""
+msgstr "删除行程"
 
 #: apps/trips/views.py:352
 #, python-format
 msgid "%(name)s added."
-msgstr ""
+msgstr "已添加%(name)s。"
 
 #: apps/trips/views.py:373
 #, python-format
 msgid "%(name)s saved."
-msgstr ""
+msgstr "已保存%(name)s。"
 
 #: apps/trips/views.py:415
 #, python-format
 msgid "%(name)s removed."
-msgstr ""
+msgstr "已移除%(name)s。"
 
 #: apps/trips/views.py:424
 msgid "This traveler appears in expenses. Change those expenses first."
-msgstr ""
+msgstr "有费用涉及此出行人。请先修改这些费用。"
 
 #: apps/trips/views.py:429 templates/trips/participant_form.html:13
 msgid "Remove traveler"
-msgstr ""
+msgstr "移除出行人"
 
 #: apps/trips/views.py:484
 #, python-format
 msgid "%(name)s can now open this trip."
-msgstr ""
+msgstr "%(name)s现在可以打开此行程了。"
 
 #: apps/trips/views.py:510
 #, python-format
 msgid "Add %(name)s (%(username)s) to this trip now?"
-msgstr ""
+msgstr "现在将%(name)s（%(username)s）加入此行程吗？"
 
 #: apps/trips/views.py:515
 #, python-format
 msgid "Invite %(email)s?"
-msgstr ""
+msgstr "邀请%(email)s吗？"
 
 #: apps/trips/views.py:517 templates/trips/people.html:61
 #, python-format
 msgid "As %(name)s"
-msgstr ""
+msgstr "以%(name)s身份"
 
 #: apps/trips/views.py:519
 #, python-format
 msgid "As new traveler %(name)s"
-msgstr ""
+msgstr "作为新出行人%(name)s"
 
 #: apps/trips/views.py:521 templates/trips/people.html:61
 msgid "As Viewer"
-msgstr ""
+msgstr "作为查看者"
 
 #: apps/trips/views.py:564
 #, python-format
 msgid "The invite for %(email)s is cancelled."
-msgstr ""
+msgstr "已取消给%(email)s的邀请。"
 
 #: apps/trips/views.py:578
 #, python-format
 msgid "You left %(trip)s."
-msgstr ""
+msgstr "你已退出%(trip)s。"
 
 #: apps/trips/views.py:596
 #, python-format
 msgid "%(name)s can no longer open this trip."
-msgstr ""
+msgstr "%(name)s已无法再打开此行程。"
 
 #: apps/trips/views.py:624
 #, python-format
 msgid "%(name)s is now an Editor."
-msgstr ""
+msgstr "%(name)s现在是编辑者。"
 
 #: apps/trips/views.py:626
 #, python-format
 msgid "%(name)s is now a Member."
-msgstr ""
+msgstr "%(name)s现在是普通成员。"
 
 #: apps/trips/views.py:646
 #, python-format
-msgid "Remove %(name)s from this trip? %(name)s loses access at once and is no longer linked to %(traveler)s."
-msgstr ""
+msgid ""
+"Remove %(name)s from this trip? %(name)s loses access at once and is no "
+"longer linked to %(traveler)s."
+msgstr "将%(name)s移出此行程吗？%(name)s将立即失去访问权限，并且不再关联到%(traveler)s。"
 
 #: apps/trips/views.py:649
 #, python-format
 msgid "Remove %(name)s from this trip? %(name)s loses access at once."
-msgstr ""
+msgstr "将%(name)s移出此行程吗？%(name)s将立即失去访问权限。"
 
 #: apps/trips/views.py:670
 #, python-format
 msgid "%(name)s is now the Owner."
-msgstr ""
+msgstr "%(name)s现在是所有者。"
 
 #: apps/trips/views.py:680
 #, python-format
 msgid "Make %(name)s the Owner?"
-msgstr ""
+msgstr "将%(name)s设为所有者吗？"
 
 #: apps/trips/views.py:682
 #, python-format
-msgid "%(name)s will have full control of this trip. You will become an Editor and cannot undo this yourself; only %(name)s can make you the Owner again."
-msgstr ""
+msgid ""
+"%(name)s will have full control of this trip. You will become an Editor and "
+"cannot undo this yourself; only %(name)s can make you the Owner again."
+msgstr "%(name)s将拥有此行程的全部控制权。你将成为编辑者，且无法自行撤销此操作；只有%(name)s能将你重新设为所有者。"
 
 #: apps/trips/views.py:687 templates/trips/member_edit.html:13
 #, python-format
 msgid "Make %(name)s the Owner"
-msgstr ""
+msgstr "将%(name)s设为所有者"
+
+#: config/django_messages.py:12
+msgid "Enter a valid value."
+msgstr "输入一个有效的值。"
+
+#: config/django_messages.py:13
+msgid "Enter a valid domain name."
+msgstr "输入一个有效的域名。"
+
+#: config/django_messages.py:14
+msgid "Enter a valid URL."
+msgstr "输入一个有效的 URL。"
+
+#: config/django_messages.py:15
+msgid "Enter a valid integer."
+msgstr "输入一个有效的整数。"
+
+#: config/django_messages.py:16
+msgid "Enter a valid email address."
+msgstr "输入一个有效的电子邮件地址。"
+
+#: config/django_messages.py:17
+msgid ""
+"Enter a valid “slug” consisting of letters, numbers, underscores or hyphens."
+msgstr "输入由字母、数字、下划线或连字符组成的有效“slug”。"
+
+#: config/django_messages.py:18
+#, python-format
+msgid "Enter a valid %(protocol)s address."
+msgstr "输入一个有效的 %(protocol)s 地址。"
+
+#: config/django_messages.py:19
+msgid "IPv4"
+msgstr "IPv4"
+
+#: config/django_messages.py:20
+msgid "IPv6"
+msgstr "IPv6"
+
+#: config/django_messages.py:21
+msgid "IPv4 or IPv6"
+msgstr "IPv4 或 IPv6"
+
+#: config/django_messages.py:22
+msgid "Enter only digits separated by commas."
+msgstr "只能输入用逗号分隔的数字。"
+
+#: config/django_messages.py:23
+#, python-format
+msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
+msgstr "确保该值为 %(limit_value)s（当前为 %(show_value)s）。"
+
+#: config/django_messages.py:24
+#, python-format
+msgid "Ensure this value is less than or equal to %(limit_value)s."
+msgstr "确保该值小于或等于%(limit_value)s。"
+
+#: config/django_messages.py:25
+#, python-format
+msgid "Ensure this value is greater than or equal to %(limit_value)s."
+msgstr "确保该值大于或等于%(limit_value)s。"
+
+#: config/django_messages.py:26
+#, python-format
+msgid "Ensure this value is a multiple of step size %(limit_value)s."
+msgstr "确保该值是步长 %(limit_value)s 的倍数。"
+
+#: config/django_messages.py:27
+msgid "Enter a number."
+msgstr "输入一个数字。"
+
+#: config/django_messages.py:29
+#, python-format
+msgid "Ensure that there are no more than %(max)s digit in total."
+msgid_plural "Ensure that there are no more than %(max)s digits in total."
+msgstr[0] "确保总位数不超过 %(max)s 位。"
+
+#: config/django_messages.py:34
+#, python-format
+msgid "Ensure that there are no more than %(max)s decimal place."
+msgid_plural "Ensure that there are no more than %(max)s decimal places."
+msgstr[0] "确保小数位数不超过 %(max)s 位。"
+
+#: config/django_messages.py:38
+msgid "Null characters are not allowed."
+msgstr "不允许包含空字符。"
+
+#: config/django_messages.py:39
+msgid "and"
+msgstr "和"
+
+#: config/django_messages.py:40
+#, python-format
+msgid "Value %(value)r is not a valid choice."
+msgstr "值 %(value)r 不是有效选项。"
+
+#: config/django_messages.py:41
+msgid "This field cannot be null."
+msgstr "该字段不能为 null。"
+
+#: config/django_messages.py:42
+msgid "This field cannot be blank."
+msgstr "此字段不能为空。"
+
+#: config/django_messages.py:43
+#, python-format
+msgid "%(model_name)s with this %(field_label)s already exists."
+msgstr "具有 %(field_label)s 的 %(model_name)s 已存在。"
+
+#: config/django_messages.py:44
+#, python-format
+msgid "Field of type: %(field_type)s"
+msgstr "字段类型：%(field_type)s"
+
+#: config/django_messages.py:45
+#, python-format
+msgid "“%(value)s” value must be either True or False."
+msgstr "“%(value)s”的值必须为 True 或 False。"
+
+#: config/django_messages.py:46
+#, python-format
+msgid "“%(value)s” value must be either True, False, or None."
+msgstr "“%(value)s”的值必须为 True、False 或 None。"
+
+#: config/django_messages.py:47
+msgid "Boolean (Either True or False)"
+msgstr "布尔值（True 或 False）"
+
+#: config/django_messages.py:48
+#, python-format
+msgid "String (up to %(max_length)s)"
+msgstr "字符串（最长 %(max_length)s 位）"
+
+#: config/django_messages.py:49
+msgid "String (unlimited)"
+msgstr "字符串（不限长度）"
+
+#: config/django_messages.py:50
+msgid "Comma-separated integers"
+msgstr "逗号分隔的整数"
+
+#: config/django_messages.py:51
+msgid "Date (without time)"
+msgstr "日期（不含时间）"
+
+#: config/django_messages.py:52
+msgid "Date (with time)"
+msgstr "日期（含时间）"
+
+#: config/django_messages.py:53
+#, python-format
+msgid "“%(value)s” value must be a decimal number."
+msgstr "“%(value)s”的值必须是一个小数。"
+
+#: config/django_messages.py:54
+msgid "Decimal number"
+msgstr "小数"
+
+#: config/django_messages.py:55
+msgid "Duration"
+msgstr "时长"
+
+#: config/django_messages.py:56
+msgid "Email address"
+msgstr "电子邮件地址"
+
+#: config/django_messages.py:57
+msgid "File path"
+msgstr "文件路径"
+
+#: config/django_messages.py:58
+#, python-format
+msgid "“%(value)s” value must be a float."
+msgstr "“%(value)s”的值必须是一个浮点数。"
+
+#: config/django_messages.py:59
+msgid "Floating point number"
+msgstr "浮点数"
+
+#: config/django_messages.py:60
+#, python-format
+msgid "“%(value)s” value must be an integer."
+msgstr "“%(value)s”的值必须是一个整数。"
+
+#: config/django_messages.py:61
+msgid "Integer"
+msgstr "整数"
+
+#: config/django_messages.py:62
+msgid "Big (8 byte) integer"
+msgstr "大整数（8 字节）"
+
+#: config/django_messages.py:63
+msgid "Small integer"
+msgstr "小整数"
+
+#: config/django_messages.py:64
+msgid "IPv4 address"
+msgstr "IPv4 地址"
+
+#: config/django_messages.py:65
+msgid "IP address"
+msgstr "IP 地址"
+
+#: config/django_messages.py:66
+#, python-format
+msgid "“%(value)s” value must be either None, True or False."
+msgstr "“%(value)s”的值必须为 None、True 或 False。"
+
+#: config/django_messages.py:67
+msgid "Boolean (Either True, False or None)"
+msgstr "布尔值（True、False 或 None）"
+
+#: config/django_messages.py:68
+msgid "Positive big integer"
+msgstr "大正整数"
+
+#: config/django_messages.py:69
+msgid "Positive integer"
+msgstr "正整数"
+
+#: config/django_messages.py:70
+msgid "Positive small integer"
+msgstr "小正整数"
+
+#: config/django_messages.py:71
+#, python-format
+msgid "Slug (up to %(max_length)s)"
+msgstr "Slug（最长 %(max_length)s 个字符）"
+
+#: config/django_messages.py:72
+msgid "Text"
+msgstr "文本"
+
+#: config/django_messages.py:73
+msgid "Time"
+msgstr "时间"
+
+#: config/django_messages.py:74
+msgid "URL"
+msgstr "URL"
+
+#: config/django_messages.py:75
+msgid "Raw binary data"
+msgstr "原始二进制数据"
+
+#: config/django_messages.py:76
+#, python-format
+msgid "“%(value)s” is not a valid UUID."
+msgstr "“%(value)s”不是有效的 UUID。"
+
+#: config/django_messages.py:77
+msgid "Universally unique identifier"
+msgstr "通用唯一识别码"
+
+#: config/django_messages.py:78
+msgid "This field is required."
+msgstr "这个字段是必填项。"
+
+#: config/django_messages.py:79
+msgid "Enter a whole number."
+msgstr "输入整数。"
+
+#: config/django_messages.py:80
+msgid "Enter a valid date."
+msgstr "输入一个有效的日期。"
+
+#: config/django_messages.py:81
+msgid "Enter a valid time."
+msgstr "输入一个有效的时间。"
+
+#: config/django_messages.py:82
+msgid "Enter a valid date/time."
+msgstr "输入一个有效的日期/时间。"
+
+#: config/django_messages.py:83
+msgid "Enter a valid duration."
+msgstr "请输入有效的时长。"
+
+#: config/django_messages.py:84
+#, python-brace-format
+msgid "The number of days must be between {min_days} and {max_days}."
+msgstr "天数必须在 {min_days} 和 {max_days} 之间。"
+
+#: config/django_messages.py:85
+msgid "No file was submitted. Check the encoding type on the form."
+msgstr "未提交文件。请检查表单的编码类型。"
+
+#: config/django_messages.py:86
+msgid "No file was submitted."
+msgstr "没有提交文件。"
+
+#: config/django_messages.py:87
+msgid "The submitted file is empty."
+msgstr "所提交的是空文件。"
+
+#: config/django_messages.py:89
+#, python-format
+msgid ""
+"Ensure this filename has at most %(max)d character (it has %(length)d)."
+msgid_plural ""
+"Ensure this filename has at most %(max)d characters (it has %(length)d)."
+msgstr[0] "确保该文件名长度不超过 %(max)d 个字符（当前为 %(length)d 个字符）。"
+
+#: config/django_messages.py:93
+msgid "Please either submit a file or check the clear checkbox, not both."
+msgstr "请提交文件或勾选清除复选框，不能两者都选。"
+
+#: config/django_messages.py:94
+#, python-format
+msgid "Select a valid choice. %(value)s is not one of the available choices."
+msgstr "选择一个有效的选项。 %(value)s 不在可用的选项中。"
+
+#: config/django_messages.py:95
+msgid "Enter a list of values."
+msgstr "输入一系列值。"
+
+#: config/django_messages.py:96
+msgid "Enter a complete value."
+msgstr "请输入完整的值。"
+
+#: config/django_messages.py:97
+msgid "Enter a valid UUID."
+msgstr "请输入有效的 UUID。"
+
+#: config/django_messages.py:98
+msgid "Enter a valid JSON."
+msgstr "输入一个有效的JSON。"
+
+#: config/django_messages.py:99
+msgid ":"
+msgstr "："
+
+#: config/django_messages.py:100
+#, python-format
+msgid "(Hidden field %(name)s) %(error)s"
+msgstr "（隐藏字段 %(name)s）%(error)s"
+
+#: config/django_messages.py:101
+#, python-format
+msgid "Please submit at most %(num)d form."
+msgid_plural "Please submit at most %(num)d forms."
+msgstr[0] "请最多提交 %(num)d 个表单。"
+
+#: config/django_messages.py:103
+#, python-format
+msgid "Please submit at least %(num)d form."
+msgid_plural "Please submit at least %(num)d forms."
+msgstr[0] "请至少提交 %(num)d 个表单。"
+
+#: config/django_messages.py:105
+msgid "Order"
+msgstr "排序"
+
+#: config/django_messages.py:106
+msgid "Delete"
+msgstr "删除"
+
+#: config/django_messages.py:107
+#, python-format
+msgid "Please correct the duplicate data for %(field)s."
+msgstr "请修正 %(field)s 的重复数据。"
+
+#: config/django_messages.py:108
+#, python-format
+msgid "Please correct the duplicate data for %(field)s, which must be unique."
+msgstr "请修正 %(field)s 的重复数据。该字段必须唯一。"
+
+#: config/django_messages.py:109
+msgid "Please correct the duplicate values below."
+msgstr "请修正下方的重复值。"
+
+#: config/django_messages.py:110
+msgid "The inline value did not match the parent instance."
+msgstr "内联值与父实例不匹配。"
+
+#: config/django_messages.py:111
+msgid ""
+"Select a valid choice. That choice is not one of the available choices."
+msgstr "选择一个有效的选项：该选项不在可用的选项中。"
+
+#: config/django_messages.py:112
+#, python-format
+msgid "“%(pk)s” is not a valid value."
+msgstr "“%(pk)s”不是有效的值。"
+
+#: config/django_messages.py:113
+msgid "Unknown"
+msgstr "未知"
+
+#: config/django_messages.py:114
+msgid "Monday"
+msgstr "星期一"
+
+#: config/django_messages.py:115
+msgid "Tuesday"
+msgstr "星期二"
+
+#: config/django_messages.py:116
+msgid "Wednesday"
+msgstr "星期三"
+
+#: config/django_messages.py:117
+msgid "Thursday"
+msgstr "星期四"
+
+#: config/django_messages.py:118
+msgid "Friday"
+msgstr "星期五"
+
+#: config/django_messages.py:119
+msgid "Saturday"
+msgstr "星期六"
+
+#: config/django_messages.py:120
+msgid "Sunday"
+msgstr "星期日"
+
+#: config/django_messages.py:121
+msgid "Mon"
+msgstr "星期一"
+
+#: config/django_messages.py:122
+msgid "Tue"
+msgstr "星期二"
+
+#: config/django_messages.py:123
+msgid "Wed"
+msgstr "星期三"
+
+#: config/django_messages.py:124
+msgid "Thu"
+msgstr "星期四"
+
+#: config/django_messages.py:125
+msgid "Fri"
+msgstr "星期五"
+
+#: config/django_messages.py:126
+msgid "Sat"
+msgstr "星期六"
+
+#: config/django_messages.py:127
+msgid "Sun"
+msgstr "星期日"
+
+#: config/django_messages.py:128
+msgid "January"
+msgstr "一月"
+
+#: config/django_messages.py:129
+msgid "February"
+msgstr "二月"
+
+#: config/django_messages.py:130
+msgid "March"
+msgstr "三月"
+
+#: config/django_messages.py:131
+msgid "April"
+msgstr "四月"
+
+#: config/django_messages.py:132
+msgid "May"
+msgstr "五月"
+
+#: config/django_messages.py:133
+msgid "June"
+msgstr "六月"
+
+#: config/django_messages.py:134
+msgid "July"
+msgstr "七月"
+
+#: config/django_messages.py:135
+msgid "August"
+msgstr "八月"
+
+#: config/django_messages.py:136
+msgid "September"
+msgstr "九月"
+
+#: config/django_messages.py:137
+msgid "October"
+msgstr "十月"
+
+#: config/django_messages.py:138
+msgid "November"
+msgstr "十一月"
+
+#: config/django_messages.py:139
+msgid "December"
+msgstr "十二月"
+
+#: config/django_messages.py:140
+msgid "jan"
+msgstr "一月"
+
+#: config/django_messages.py:141
+msgid "feb"
+msgstr "二月"
+
+#: config/django_messages.py:142
+msgid "mar"
+msgstr "三月"
+
+#: config/django_messages.py:143
+msgid "apr"
+msgstr "四月"
+
+#: config/django_messages.py:144
+msgid "may"
+msgstr "五月"
+
+#: config/django_messages.py:145
+msgid "jun"
+msgstr "六月"
+
+#: config/django_messages.py:146
+msgid "jul"
+msgstr "七月"
+
+#: config/django_messages.py:147
+msgid "aug"
+msgstr "八月"
+
+#: config/django_messages.py:148
+msgid "sep"
+msgstr "九月"
+
+#: config/django_messages.py:149
+msgid "oct"
+msgstr "十月"
+
+#: config/django_messages.py:150
+msgid "nov"
+msgstr "十一月"
+
+#: config/django_messages.py:151
+msgid "dec"
+msgstr "十二月"
+
+#: config/django_messages.py:152
+msgctxt "abbrev. month"
+msgid "Jan."
+msgstr "一月"
+
+#: config/django_messages.py:153
+msgctxt "abbrev. month"
+msgid "Feb."
+msgstr "二月"
+
+#: config/django_messages.py:154
+msgctxt "abbrev. month"
+msgid "March"
+msgstr "三月"
+
+#: config/django_messages.py:155
+msgctxt "abbrev. month"
+msgid "April"
+msgstr "四月"
+
+#: config/django_messages.py:156
+msgctxt "abbrev. month"
+msgid "May"
+msgstr "五月"
+
+#: config/django_messages.py:157
+msgctxt "abbrev. month"
+msgid "June"
+msgstr "六月"
+
+#: config/django_messages.py:158
+msgctxt "abbrev. month"
+msgid "July"
+msgstr "七月"
+
+#: config/django_messages.py:159
+msgctxt "abbrev. month"
+msgid "Aug."
+msgstr "八月"
+
+#: config/django_messages.py:160
+msgctxt "abbrev. month"
+msgid "Sept."
+msgstr "九月"
+
+#: config/django_messages.py:161
+msgctxt "abbrev. month"
+msgid "Oct."
+msgstr "十月"
+
+#: config/django_messages.py:162
+msgctxt "abbrev. month"
+msgid "Nov."
+msgstr "十一月"
+
+#: config/django_messages.py:163
+msgctxt "abbrev. month"
+msgid "Dec."
+msgstr "十二月"
+
+#: config/django_messages.py:164
+msgctxt "alt. month"
+msgid "January"
+msgstr "一月"
+
+#: config/django_messages.py:165
+msgctxt "alt. month"
+msgid "February"
+msgstr "二月"
+
+#: config/django_messages.py:166
+msgctxt "alt. month"
+msgid "March"
+msgstr "三月"
+
+#: config/django_messages.py:167
+msgctxt "alt. month"
+msgid "April"
+msgstr "四月"
+
+#: config/django_messages.py:168
+msgctxt "alt. month"
+msgid "May"
+msgstr "五月"
+
+#: config/django_messages.py:169
+msgctxt "alt. month"
+msgid "June"
+msgstr "六月"
+
+#: config/django_messages.py:170
+msgctxt "alt. month"
+msgid "July"
+msgstr "七月"
+
+#: config/django_messages.py:171
+msgctxt "alt. month"
+msgid "August"
+msgstr "八月"
+
+#: config/django_messages.py:172
+msgctxt "alt. month"
+msgid "September"
+msgstr "九月"
+
+#: config/django_messages.py:173
+msgctxt "alt. month"
+msgid "October"
+msgstr "十月"
+
+#: config/django_messages.py:174
+msgctxt "alt. month"
+msgid "November"
+msgstr "十一月"
+
+#: config/django_messages.py:175
+msgctxt "alt. month"
+msgid "December"
+msgstr "十二月"
+
+#: config/django_messages.py:176
+msgid ", "
+msgstr "、"
+
+#: config/django_messages.py:177
+msgid "password"
+msgstr "密码"
+
+#: config/django_messages.py:178
+msgid "Password"
+msgstr "密码"
+
+#: config/django_messages.py:179
+msgid "Password confirmation"
+msgstr "密码确认"
+
+#: config/django_messages.py:180
+msgid "Enter the same password as before, for verification."
+msgstr "为了校验，请输入与上面相同的密码。"
+
+#: config/django_messages.py:181
+msgid "This account is inactive."
+msgstr "该账户未激活。"
+
+#: config/django_messages.py:182
+msgid "Email"
+msgstr "电子邮件"
+
+#: config/django_messages.py:183
+msgid "New password"
+msgstr "新密码"
+
+#: config/django_messages.py:184
+msgid "New password confirmation"
+msgstr "新密码确认"
+
+#: config/django_messages.py:185
+msgid "Your old password was entered incorrectly. Please enter it again."
+msgstr "你的旧密码不正确。请重新输入。"
+
+#: config/django_messages.py:186
+msgid "Old password"
+msgstr "旧密码"
+
+#: config/django_messages.py:189
+msgid "user"
+msgstr "用户"
+
+#: config/django_messages.py:191
+#, python-format
+msgid "Your password must contain at least %(min_length)d character."
+msgid_plural "Your password must contain at least %(min_length)d characters."
+msgstr[0] "你的密码必须包含至少 %(min_length)d 个字符。"
+
+#: config/django_messages.py:195
+#, python-format
+msgid "The password is too similar to the %(verbose_name)s."
+msgstr "密码跟 %(verbose_name)s 太相似了。"
+
+#: config/django_messages.py:196
+msgid "This password is too common."
+msgstr "这个密码太常见了。"
+
+#: config/django_messages.py:197
+msgid "This password is entirely numeric."
+msgstr "密码只包含数字。"
 
 #: config/urls.py:9 config/urls.py:10
 msgid "Share Expense admin"
-msgstr ""
+msgstr "Share Expense管理后台"
 
 #: templates/_bell.html:2
 #, python-format
 msgid "Notifications, %(n)s unread"
 msgid_plural "Notifications, %(n)s unread"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "通知，%(n)s条未读"
 
-#: templates/_bell.html:2 templates/notifications.html:4 templates/notifications.html:7
+#: templates/_bell.html:2 templates/notifications.html:4
+#: templates/notifications.html:7
 msgid "Notifications"
-msgstr ""
+msgstr "通知"
 
-#: templates/_english_row.html:9 templates/expenses/_dispute_english.html:7 templates/expenses/form.html:106
-msgid "Shown to people who read in English. Check it and correct it if needed."
-msgstr ""
+#: templates/_english_row.html:9 templates/expenses/_dispute_english.html:7
+#: templates/expenses/form.html:106
+msgid ""
+"Shown to people who read in English. Check it and correct it if needed."
+msgstr "将显示给阅读英文的用户。请检查，如有需要请修改。"
 
 #: templates/_form_errors.html:5
 #, python-format
 msgid "Please fix 1 thing."
 msgid_plural "Please fix %(n)s things."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "请修改%(n)s处问题。"
 
 #: templates/_pager.html:5
 msgid "Load more"
-msgstr ""
+msgstr "加载更多"
 
 #: templates/_pager.html:6
 #, python-format
 msgid "%(shown)s of %(n)s days shown"
-msgstr ""
+msgstr "已显示%(n)s天中的%(shown)s天"
 
 #: templates/_pager.html:6
 #, python-format
 msgid "%(shown)s of %(n)s shown"
-msgstr ""
+msgstr "已显示%(n)s条中的%(shown)s条"
 
-#: templates/base.html:10 templates/base.html:28 templates/registration/login.html:7 templates/trips/invite_notice.html:4
+#: templates/base.html:10 templates/base.html:28
+#: templates/registration/login.html:7 templates/trips/invite_notice.html:4
 msgid "Share Expense"
-msgstr ""
+msgstr "Share Expense"
 
 #: templates/base.html:32
 msgid "Language"
-msgstr ""
+msgstr "语言"
 
 #: templates/base.html:43
 msgid "Account menu"
-msgstr ""
+msgstr "账户菜单"
 
-#: templates/base.html:46 templates/notifications.html:5 templates/registration/close_account.html:3 templates/registration/password_change_form.html:4 templates/socialaccount/connections.html:5 templates/trips/home.html:4 templates/trips/trip_form.html:3
+#: templates/base.html:46 templates/notifications.html:5
+#: templates/registration/close_account.html:3
+#: templates/registration/password_change_form.html:4
+#: templates/socialaccount/connections.html:5 templates/trips/home.html:4
+#: templates/trips/trip_form.html:3
 msgid "Trips"
-msgstr ""
+msgstr "行程"
 
-#: templates/base.html:47 templates/registration/password_change_form.html:2 templates/registration/password_change_form.html:6 templates/registration/password_change_form.html:10
+#: templates/base.html:47 templates/registration/password_change_form.html:2
+#: templates/registration/password_change_form.html:6
+#: templates/registration/password_change_form.html:10
 msgid "Change password"
-msgstr ""
+msgstr "修改密码"
 
-#: templates/base.html:48 templates/socialaccount/connections.html:4 templates/socialaccount/connections.html:7
+#: templates/base.html:48 templates/socialaccount/connections.html:4
+#: templates/socialaccount/connections.html:7
 msgid "Google account"
-msgstr ""
+msgstr "Google账户"
 
 #: templates/base.html:48
 #, python-format
 msgid "Linked: %(google_email)s"
-msgstr ""
+msgstr "已关联：%(google_email)s"
 
 #: templates/base.html:48
 msgid "Not linked"
-msgstr ""
+msgstr "未关联"
 
-#: templates/base.html:49 templates/registration/close_account.html:2 templates/registration/close_account.html:5
+#: templates/base.html:49 templates/registration/close_account.html:2
+#: templates/registration/close_account.html:5
 msgid "Close account"
-msgstr ""
+msgstr "关闭账户"
 
 #: templates/base.html:50
 msgid "Admin"
-msgstr ""
+msgstr "管理后台"
 
 #: templates/base.html:52 templates/trips/invite_notice.html:11
 msgid "Log out"
-msgstr ""
+msgstr "退出登录"
 
 #: templates/expenses/_added.html:1
 #, python-format
 msgid "Added by %(who)s on %(when)s."
-msgstr ""
+msgstr "由%(who)s于%(when)s添加。"
 
 #: templates/expenses/_added.html:1
 #, python-format
 msgid "Added on %(when)s."
-msgstr ""
+msgstr "添加于%(when)s。"
 
 #: templates/expenses/_added.html:1
 #, python-format
 msgid "Last changed by %(who)s on %(when)s."
-msgstr ""
+msgstr "最后由%(who)s于%(when)s修改。"
 
 #: templates/expenses/_days.html:9
 #, python-format
 msgid "%(n)s expense"
 msgid_plural "%(n)s expenses"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s笔费用"
 
 #: templates/expenses/_disputes.html:7
 msgid "Disputes"
-msgstr ""
+msgstr "异议"
 
 #: templates/expenses/_disputes.html:12
 #, python-format
 msgid "Dispute by %(name)s"
-msgstr ""
+msgstr "%(name)s提出的异议"
 
 #: templates/expenses/_disputes.html:19
 #, python-format
-msgid "%(who)s, the Owner, closed this dispute on %(day)s at %(time)s. Reason: %(reason)s"
-msgstr ""
+msgid ""
+"%(who)s, the Owner, closed this dispute on %(day)s at %(time)s. Reason: "
+"%(reason)s"
+msgstr "所有者%(who)s于%(day)s %(time)s关闭了此异议。原因：%(reason)s"
 
 #: templates/expenses/_disputes.html:20
 #, python-format
 msgid "%(who)s marked this dispute resolved on %(day)s at %(time)s."
-msgstr ""
+msgstr "%(who)s于%(day)s %(time)s将此异议标记为已解决。"
 
 #: templates/expenses/_disputes.html:24
 msgid "Write a message"
-msgstr ""
+msgstr "输入消息"
 
 #: templates/expenses/_disputes.html:26
 msgid "Send"
-msgstr ""
+msgstr "发送"
 
 #: templates/expenses/_disputes.html:30
 msgid "Mark your dispute as resolved? It cannot be reopened."
-msgstr ""
+msgstr "将你的异议标记为已解决吗？标记后无法重新开启。"
 
 #: templates/expenses/_disputes.html:30
 msgid "Mark as resolved"
-msgstr ""
+msgstr "标记为已解决"
 
 #: templates/expenses/_disputes.html:32
 msgid "Close dispute"
-msgstr ""
+msgstr "关闭异议"
 
 #: templates/expenses/_disputes.html:35
 msgid "Reason for closing"
-msgstr ""
+msgstr "关闭原因"
 
 #: templates/expenses/_disputes.html:37
-msgid "Everyone on the trip can see the reason in History. A closed dispute cannot be reopened."
-msgstr ""
+msgid ""
+"Everyone on the trip can see the reason in History. A closed dispute cannot "
+"be reopened."
+msgstr "行程中的所有人都能在历史记录中看到原因。异议关闭后无法重新开启。"
 
 #: templates/expenses/_disputes.html:39
 msgid "Confirm closing"
-msgstr ""
+msgstr "确认关闭"
 
 #: templates/expenses/_disputes.html:47
 msgid "Dispute this expense"
-msgstr ""
+msgstr "对这笔费用提出异议"
 
 #: templates/expenses/_disputes.html:50
 msgid "What is wrong with this expense?"
-msgstr ""
+msgstr "这笔费用有什么问题？"
 
 #: templates/expenses/_disputes.html:52
-msgid "The person who recorded this expense and the payer are notified. If neither has an account, the Owner is notified."
-msgstr ""
+msgid ""
+"The person who recorded this expense and the payer are notified. If neither "
+"has an account, the Owner is notified."
+msgstr "记录这笔费用的人和付款人会收到通知。如果两人都没有账户，则通知所有者。"
 
 #: templates/expenses/_disputes.html:54
 msgid "Open dispute"
-msgstr ""
+msgstr "提出异议"
 
 #: templates/expenses/_facts.html:10
 #, python-format
 msgid "Everyone (%(n)s traveler)"
 msgid_plural "Everyone (%(n)s travelers)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "所有人（%(n)s位出行人）"
 
 #: templates/expenses/_row.html:5
 msgid "Disputed"
-msgstr ""
+msgstr "有异议"
 
 #: templates/expenses/_row.html:6
 #, python-format
 msgid "Paid by %(payer)s"
-msgstr ""
+msgstr "付款人：%(payer)s"
 
 #: templates/expenses/_row.html:7
 msgid "For everyone"
-msgstr ""
+msgstr "分摊给所有人"
 
 #: templates/expenses/_row.html:7
 #, python-format
 msgid "For everyone except %(name)s"
-msgstr ""
+msgstr "分摊给除%(name)s外的所有人"
 
 #: templates/expenses/_row.html:7
 #, python-format
 msgid "For %(names)s"
-msgstr ""
+msgstr "分摊给%(names)s"
 
 #: templates/expenses/_row.html:11
 #, python-format
 msgid "Paid %(total)s"
-msgstr ""
+msgstr "已付%(total)s"
 
 #: templates/expenses/_row.html:11
 #, python-format
 msgid "of %(total)s"
-msgstr ""
+msgstr "总额%(total)s"
 
 #: templates/expenses/deleted.html:8
 #, python-format
 msgid "%(who)s deleted this expense on %(day)s at %(time)s."
-msgstr ""
+msgstr "%(who)s于%(day)s %(time)s删除了这笔费用。"
 
 #: templates/expenses/deleted.html:8
 msgid "This expense was deleted."
-msgstr ""
+msgstr "这笔费用已被删除。"
 
 #: templates/expenses/deleted.html:15
 msgid "Restore expense"
-msgstr ""
+msgstr "恢复费用"
 
 #: templates/expenses/form.html:2 templates/expenses/form.html:6
 msgid "Edit expense"
-msgstr ""
+msgstr "编辑费用"
 
-#: templates/expenses/form.html:2 templates/expenses/form.html:6 templates/expenses/list.html:49 templates/expenses/list.html:55
+#: templates/expenses/form.html:2 templates/expenses/form.html:6
+#: templates/expenses/list.html:49 templates/expenses/list.html:55
 msgid "Add expense"
-msgstr ""
+msgstr "添加费用"
 
 #: templates/expenses/form.html:7
 msgid "Fill with AI"
-msgstr ""
+msgstr "AI填写"
 
 #: templates/expenses/form.html:11
 msgid "Pick at least one traveler."
-msgstr ""
+msgstr "请至少选择一位出行人。"
 
-#: templates/expenses/form.html:12 templates/expenses/form.html:13 templates/expenses/list.html:4 templates/trips/home.html:14
+#: templates/expenses/form.html:12 templates/expenses/form.html:13
+#: templates/expenses/list.html:4 templates/trips/home.html:14
 #, python-format
 msgid "%(n)s traveler"
 msgid_plural "%(n)s travelers"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s位出行人"
 
 #: templates/expenses/form.html:14
 #, python-format
 msgid "%(amount)s each"
-msgstr ""
+msgstr "每人%(amount)s"
 
 #: templates/expenses/form.html:37
 msgid "Suggest a better wording"
-msgstr ""
+msgstr "优化表述"
 
 #: templates/expenses/form.html:40
 msgid "No better wording found."
-msgstr ""
+msgstr "没有找到更好的表述。"
 
 #: templates/expenses/form.html:41
 msgid "Suggestion"
-msgstr ""
+msgstr "建议"
 
 #: templates/expenses/form.html:43
 msgid "Accept"
-msgstr ""
+msgstr "采用"
 
 #: templates/expenses/form.html:57 templates/expenses/report.html:38
 #, python-format
 msgid "%(name)s is covered by %(by)s."
-msgstr ""
+msgstr "%(name)s由%(by)s代付。"
 
 #: templates/expenses/form.html:62
 msgid "The type could not be saved."
-msgstr ""
+msgstr "类别保存失败。"
 
 #: templates/expenses/form.html:63
 msgid "The type could not be removed."
-msgstr ""
+msgstr "类别移除失败。"
 
 #: templates/expenses/form.html:64 templates/expenses/form.html:68
 #, python-format
 msgid "Remove %(name)s"
-msgstr ""
+msgstr "移除%(name)s"
 
 #: templates/expenses/form.html:65
 #, python-format
 msgid "Remove the type “%(name)s”? This cannot be undone."
-msgstr ""
+msgstr "移除类别“%(name)s”吗？此操作无法撤销。"
 
 #: templates/expenses/form.html:67 templates/trips/_date_range_fields.html:2
 msgid "Done"
-msgstr ""
+msgstr "完成"
 
 #: templates/expenses/form.html:68 templates/expenses/form.html:98
 msgid "Add type"
-msgstr ""
+msgstr "添加类别"
 
 #: templates/expenses/form.html:78 templates/expenses/form.html:80
 msgid "Other date"
-msgstr ""
+msgstr "其他日期"
 
 #: templates/expenses/form.html:90
 msgid "Delete this expense"
-msgstr ""
+msgstr "删除这笔费用"
 
 #: templates/expenses/form.html:98
 msgid "Edit type"
-msgstr ""
+msgstr "编辑类别"
 
 #: templates/expenses/form.html:100
 msgid "Icon"
-msgstr ""
+msgstr "图标"
 
 #: templates/expenses/form.html:101
 msgid "Name"
-msgstr ""
+msgstr "名称"
 
-#: templates/expenses/form.html:111 templates/expenses/form.html:128 templates/expenses/form.html:145 templates/registration/close_account.html:21 templates/trips/confirm_delete.html:26 templates/trips/invite_form.html:36 templates/trips/member_edit.html:21 templates/trips/participant_form.html:20 templates/trips/people.html:66 templates/trips/trip_form.html:35
+#: templates/expenses/form.html:111 templates/expenses/form.html:128
+#: templates/expenses/form.html:145
+#: templates/registration/close_account.html:21
+#: templates/trips/confirm_delete.html:26 templates/trips/invite_form.html:36
+#: templates/trips/member_edit.html:21
+#: templates/trips/participant_form.html:20 templates/trips/people.html:66
+#: templates/trips/trip_form.html:35
 msgid "Cancel"
-msgstr ""
+msgstr "取消"
 
-#: templates/expenses/form.html:112 templates/expenses/form.html:149 templates/trips/participant_form.html:24
+#: templates/expenses/form.html:112 templates/expenses/form.html:149
+#: templates/trips/participant_form.html:24
 msgid "Save"
-msgstr ""
+msgstr "保存"
 
 #: templates/expenses/form.html:119
 msgid "Filled in. Still missing:"
-msgstr ""
+msgstr "已填写。仍缺少："
 
 #: templates/expenses/form.html:120
 msgid "All details filled in."
-msgstr ""
+msgstr "已填写全部信息。"
 
 #: templates/expenses/form.html:122 templates/expenses/list.html:52
 msgid "Add with AI"
-msgstr ""
+msgstr "用AI添加"
 
 #: templates/expenses/form.html:123
 msgid "Include:"
-msgstr ""
+msgstr "请包含："
 
 #: templates/expenses/form.html:123
 msgid "who paid · for whom · what · amount · currency."
-msgstr ""
+msgstr "谁付款 · 为谁付 · 买了什么 · 金额 · 货币。"
 
 #: templates/expenses/form.html:123
 msgid "Date: today if not given."
-msgstr ""
+msgstr "日期：未提供则为今天。"
 
 #: templates/expenses/form.html:124
 msgid "e.g. Maly paid 40,000 VND for drinks for Maly and Sophorn yesterday"
-msgstr ""
+msgstr "例如：Maly昨天为Maly和Sophorn买饮料付了40,000 VND"
 
 #: templates/expenses/form.html:124
 msgid "Describe the expense"
-msgstr ""
+msgstr "描述这笔费用"
 
 #: templates/expenses/form.html:129
 msgid "Fill in"
-msgstr ""
+msgstr "填写"
 
 #: templates/expenses/form.html:135
 msgid "OK"
-msgstr ""
+msgstr "确定"
 
-#: templates/expenses/form.html:146 templates/trips/member_edit.html:22 templates/trips/participant_form.html:21
+#: templates/expenses/form.html:146 templates/trips/member_edit.html:22
+#: templates/trips/participant_form.html:21
 msgid "Save changes"
-msgstr ""
+msgstr "保存修改"
 
 #: templates/expenses/form.html:148 templates/trips/participant_form.html:23
 msgid "Save and add another"
-msgstr ""
+msgstr "保存并继续添加"
 
-#: templates/expenses/list.html:6 templates/expenses/report.html:6 templates/trips/summary.html:6
+#: templates/expenses/list.html:6 templates/expenses/report.html:6
+#: templates/trips/summary.html:6
 msgid "Add the rate"
-msgstr ""
+msgstr "添加汇率"
 
-#: templates/expenses/list.html:6 templates/expenses/report.html:6 templates/trips/summary.html:6
+#: templates/expenses/list.html:6 templates/expenses/report.html:6
+#: templates/trips/summary.html:6
 msgid "Only the trip owner can add exchange rates."
-msgstr ""
+msgstr "只有行程所有者可以添加汇率。"
 
 #: templates/expenses/list.html:8
 msgid "Trip summary"
-msgstr ""
+msgstr "行程概览"
 
 #: templates/expenses/list.html:9 templates/trips/summary.html:10
 #, python-format
 msgid "Settled on %(day)s"
-msgstr ""
+msgstr "已于%(day)s结清"
 
 #: templates/expenses/list.html:10 templates/expenses/report.html:45
 msgid "Total spent"
-msgstr ""
+msgstr "总支出"
 
 #: templates/expenses/list.html:14
 msgid "Today"
-msgstr ""
+msgstr "今天"
 
 #: templates/expenses/list.html:16 templates/trips/summary.html:27
 msgid "Your share"
-msgstr ""
+msgstr "你的分摊额"
 
 #: templates/expenses/list.html:17 templates/trips/summary.html:21
 msgid "You were owed"
-msgstr ""
+msgstr "你之前应收"
 
 #: templates/expenses/list.html:17 templates/trips/summary.html:21
 msgid "You owed"
-msgstr ""
+msgstr "你之前欠"
 
 #: templates/expenses/list.html:17 templates/trips/summary.html:21
 msgid "You are owed"
-msgstr ""
+msgstr "你应收"
 
 #: templates/expenses/list.html:17 templates/trips/summary.html:21
 msgid "You owe"
-msgstr ""
+msgstr "你欠"
 
 #: templates/expenses/list.html:17 templates/trips/summary.html:21
 msgid "Nothing owed"
-msgstr ""
+msgstr "无欠款"
 
 #: templates/expenses/list.html:26
 msgid "Search expenses"
-msgstr ""
+msgstr "搜索费用"
 
 #: templates/expenses/list.html:30
 msgid "Showing only expenses with an open dispute."
-msgstr ""
+msgstr "仅显示有未解决异议的费用。"
 
 #: templates/expenses/list.html:30
 msgid "Show all expenses"
-msgstr ""
+msgstr "显示全部费用"
 
 #: templates/expenses/list.html:30
 msgid "Deleted expenses with an open dispute:"
-msgstr ""
+msgstr "有未解决异议的已删除费用："
 
 #: templates/expenses/list.html:35
 #, python-format
 msgid "No expenses match “%(q)s”."
-msgstr ""
+msgstr "没有与“%(q)s”匹配的费用。"
 
 #: templates/expenses/list.html:37
 msgid "No expense has an open dispute."
-msgstr ""
+msgstr "没有任何费用有未解决异议。"
 
 #: templates/expenses/list.html:41 templates/expenses/report.html:86
 msgid "No expenses yet."
-msgstr ""
+msgstr "还没有费用。"
 
 #: templates/expenses/list.html:51
 msgid "Add manually"
-msgstr ""
+msgstr "手动添加"
 
 #: templates/expenses/report.html:2 templates/trips/_trip_base.html:11
 msgid "Stats"
-msgstr ""
+msgstr "统计"
 
 #: templates/expenses/report.html:10
 msgid "Filter and download"
-msgstr ""
+msgstr "筛选和下载"
 
 #: templates/expenses/report.html:10
 msgid "Filter"
-msgstr ""
+msgstr "筛选"
 
 #: templates/expenses/report.html:11
 msgid "Filters"
-msgstr ""
+msgstr "筛选条件"
 
 #: templates/expenses/report.html:20
 msgid "Apply"
-msgstr ""
+msgstr "应用"
 
 #: templates/expenses/report.html:21 templates/trips/_date_range_fields.html:2
 msgid "Clear"
-msgstr ""
+msgstr "清除"
 
 #: templates/expenses/report.html:26
 msgid "Download these expenses"
-msgstr ""
+msgstr "下载这些费用"
 
 #: templates/expenses/report.html:26
 msgid "Download all expenses"
-msgstr ""
+msgstr "下载全部费用"
 
 #: templates/expenses/report.html:34
 msgid "Totals"
-msgstr ""
+msgstr "合计"
 
 #: templates/expenses/report.html:36
 #, python-format
 msgid "%(name)s’s share paid by %(payer)s"
-msgstr ""
+msgstr "%(payer)s代付%(name)s的分摊额"
 
 #: templates/expenses/report.html:36
 #, python-format
 msgid "%(name)s’s share"
-msgstr ""
+msgstr "%(name)s的分摊额"
 
-#: templates/expenses/report.html:41 templates/expenses/report.html:48 templates/expenses/report.html:77 templates/trips/_trip_base.html:9 templates/trips/history.html:3
+#: templates/expenses/report.html:41 templates/expenses/report.html:48
+#: templates/expenses/report.html:77 templates/trips/_trip_base.html:9
+#: templates/trips/history.html:3
 msgid "Expenses"
-msgstr ""
+msgstr "费用"
 
 #: templates/expenses/report.html:42
 #, python-format
 msgid "Paid by %(name)s"
-msgstr ""
+msgstr "付款人：%(name)s"
 
 #: templates/expenses/report.html:45
 #, python-format
 msgid "Total paid by %(name)s"
-msgstr ""
+msgstr "%(name)s付款合计"
 
 #: templates/expenses/report.html:49
 msgid "Days with expenses"
-msgstr ""
+msgstr "有费用的天数"
 
 #: templates/expenses/report.html:56
 msgid "By type"
-msgstr ""
+msgstr "按类别"
 
 #: templates/expenses/report.html:67
 msgid "By day"
-msgstr ""
+msgstr "按日期"
 
 #: templates/expenses/report.html:84
 msgid "No expenses match these filters."
-msgstr ""
+msgstr "没有符合筛选条件的费用。"
 
 #: templates/notifications.html:14
 msgctxt "unread notification mark"
 msgid "New"
-msgstr ""
+msgstr "新"
 
 #: templates/notifications.html:26
-msgid "No notifications yet. You receive one when someone disputes an expense you paid or recorded, writes in a dispute you are part of, settles or reopens one of your trips, adds you to a trip, or accepts your invite."
+msgid ""
+"No notifications yet. You receive one when someone disputes an expense you "
+"paid or recorded, writes in a dispute you are part of, settles or reopens "
+"one of your trips, adds you to a trip, or accepts your invite."
 msgstr ""
+"还没有通知。当有人对你支付或记录的费用提出异议、在你参与的异议中留言、结清或重新开启你的行程、将你加入行程，或接受你的邀请时，你会收到通知。"
 
 #: templates/registration/close_account.html:9
-msgid "Your account will be closed. You will be logged out and cannot log in until the admin restores the account. Your name stays in the records of your trips (expenses, balances and History), because they are shared money records."
+msgid ""
+"Your account will be closed. You will be logged out and cannot log in until "
+"the admin restores the account. Your name stays in the records of your trips"
+" (expenses, balances and History), because they are shared money records."
 msgstr ""
+"你的账户将被关闭。你会退出登录，并且在管理员恢复账户之前无法登录。你的名字会保留在你所参与的行程的记录中（费用、结余和历史记录），因为这些是共享的账目记录。"
 
-#: templates/registration/close_account.html:19 templates/trips/confirm_delete.html:3 templates/trips/confirm_delete.html:24
+#: templates/registration/close_account.html:19
+#: templates/trips/confirm_delete.html:3
+#: templates/trips/confirm_delete.html:24
 msgid "Back"
-msgstr ""
+msgstr "返回"
 
 #: templates/registration/close_account.html:22
 msgid "Close my account"
-msgstr ""
+msgstr "关闭我的账户"
 
 #: templates/registration/login.html:2 templates/registration/login.html:15
 msgid "Log in"
-msgstr ""
+msgstr "登录"
 
 #: templates/registration/login.html:8
 msgid "Split trip expenses and settle up at the end."
-msgstr ""
+msgstr "分摊行程费用，最后一起结清。"
 
 #: templates/registration/login.html:18
 msgid "or"
-msgstr ""
+msgstr "或"
 
 #: templates/registration/login.html:21 templates/trips/invite.html:22
 msgid "Continue with Google"
-msgstr ""
+msgstr "使用Google继续"
 
 #: templates/registration/login.html:24
 msgid "No account yet? Ask the Owner of a trip for an invite."
-msgstr ""
+msgstr "还没有账户？请向行程所有者索取邀请。"
 
-#: templates/registration/password_change_done.html:2 templates/registration/password_change_done.html:7
+#: templates/registration/password_change_done.html:2
+#: templates/registration/password_change_done.html:7
 msgid "Password changed"
-msgstr ""
+msgstr "密码已修改"
 
 #: templates/registration/password_change_done.html:8
 msgid "Use the new password next time you log in."
-msgstr ""
+msgstr "下次登录时请使用新密码。"
 
 #: templates/registration/password_change_done.html:9
 msgid "Back to trips"
-msgstr ""
+msgstr "返回行程列表"
 
 #: templates/registration/pending.html:2 templates/registration/pending.html:7
 msgid "Waiting for approval"
-msgstr ""
+msgstr "等待批准"
 
 #: templates/registration/pending.html:8
-msgid "The admin has not approved this account yet. You can log in after approval."
-msgstr ""
+msgid ""
+"The admin has not approved this account yet. You can log in after approval."
+msgstr "管理员尚未批准此账户。批准后即可登录。"
 
 #: templates/registration/pending.html:9 templates/trips/invite_notice.html:13
 msgid "Back to log in"
-msgstr ""
+msgstr "返回登录"
 
 #: templates/socialaccount/connections.html:11
 msgid "This account can log in with:"
-msgstr ""
+msgstr "此账户可通过以下方式登录："
 
 #: templates/socialaccount/connections.html:12
-msgid "Remove this Google account? You will log in with your password instead."
-msgstr ""
+msgid ""
+"Remove this Google account? You will log in with your password instead."
+msgstr "移除此Google账户吗？之后你将使用密码登录。"
 
-#: templates/socialaccount/connections.html:17 templates/trips/settings.html:30
+#: templates/socialaccount/connections.html:17
+#: templates/trips/settings.html:30
 msgid "Remove"
-msgstr ""
+msgstr "移除"
 
 #: templates/socialaccount/connections.html:25
 msgid "Not linked. Link a Google account to log in without your password."
-msgstr ""
+msgstr "未关联。关联Google账户后，无需密码即可登录。"
 
 #: templates/socialaccount/connections.html:27
 msgid "Link Google account"
-msgstr ""
+msgstr "关联Google账户"
 
 #: templates/trips/_covers.html:5
 #, python-format
 msgid "Also covers %(name)s:"
-msgstr ""
+msgstr "还为%(name)s代付："
 
 #: templates/trips/_covers.html:5
 #, python-format
 msgid "Covers %(name)s"
-msgstr ""
+msgstr "为%(name)s代付"
 
 #: templates/trips/_covers.html:7
 #, python-format
 msgid "Also covers %(n)s traveler:"
 msgid_plural "Also covers %(n)s travelers:"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "还为%(n)s位出行人代付："
 
 #: templates/trips/_covers.html:7
 #, python-format
 msgid "Covers %(n)s traveler"
 msgid_plural "Covers %(n)s travelers"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "为%(n)s位出行人代付"
 
 #: templates/trips/_date_range_fields.html:2
 msgid "Trip dates"
-msgstr ""
+msgstr "行程日期"
 
 #: templates/trips/_date_range_fields.html:2
 msgid "Tap the first day"
-msgstr ""
+msgstr "选择第一天"
 
 #: templates/trips/_date_range_fields.html:2
 msgid "Tap the last day"
-msgstr ""
+msgstr "选择最后一天"
 
 #: templates/trips/_date_range_fields.html:2
 msgid "Previous month"
-msgstr ""
+msgstr "上个月"
 
 #: templates/trips/_date_range_fields.html:2
 msgid "Next month"
-msgstr ""
+msgstr "下个月"
 
 #: templates/trips/_history_days.html:10
 #, python-format
 msgid "%(n)s change"
 msgid_plural "%(n)s changes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s项修改"
 
 #: templates/trips/_rate_note.html:2
-msgid "Market rate on"
-msgstr ""
+msgid "Market rate on <span data-day></span>"
+msgstr "<span data-day></span>市场汇率"
 
 #: templates/trips/_rate_note.html:2
 msgid "Rates by ExchangeRate-API"
-msgstr ""
+msgstr "汇率由ExchangeRate-API提供"
 
 #: templates/trips/_rate_row.html:3
 msgid "Rate"
-msgstr ""
+msgstr "汇率"
 
 #: templates/trips/_rate_row.html:8
 msgid "Remove this currency"
-msgstr ""
+msgstr "移除此货币"
 
 #: templates/trips/_trip_base.html:5
 msgid "All trips"
-msgstr ""
+msgstr "全部行程"
 
-#: templates/trips/_trip_base.html:6 templates/trips/history.html:2 templates/trips/history.html:5
+#: templates/trips/_trip_base.html:6 templates/trips/history.html:2
+#: templates/trips/history.html:5
 msgid "History"
-msgstr ""
+msgstr "历史记录"
 
-#: templates/trips/_trip_base.html:6 templates/trips/settings.html:2 templates/trips/settings.html:5
+#: templates/trips/_trip_base.html:6 templates/trips/settings.html:2
+#: templates/trips/settings.html:5
 msgid "Trip settings"
-msgstr ""
+msgstr "行程设置"
 
 #: templates/trips/_trip_base.html:8
 msgid "Trip sections"
-msgstr ""
+msgstr "行程栏目"
 
 #: templates/trips/_trip_base.html:10 templates/trips/summary.html:2
 msgid "Balances"
-msgstr ""
+msgstr "结余"
 
-#: templates/trips/_trip_base.html:12 templates/trips/invite_form.html:5 templates/trips/member_edit.html:3 templates/trips/participant_form.html:3 templates/trips/people.html:2
+#: templates/trips/_trip_base.html:12 templates/trips/invite_form.html:5
+#: templates/trips/member_edit.html:3 templates/trips/participant_form.html:3
+#: templates/trips/people.html:2
 msgid "Travelers"
-msgstr ""
+msgstr "出行人"
 
 #: templates/trips/confirm_delete.html:10
 #, python-format
 msgid "%(payer)s paid"
-msgstr ""
+msgstr "%(payer)s已付"
 
 #: templates/trips/email/invite.html:4
 #, python-format
-msgid "%(inviter)s invited you to the trip “%(trip)s” on Share Expense, an app that splits trip expenses."
+msgid ""
+"%(inviter)s invited you to the trip “%(trip)s” on Share Expense, an app that"
+" splits trip expenses."
 msgstr ""
+"%(inviter)s邀请你加入Share Expense上的行程“%(trip)s”。Share Expense是一款分摊行程费用的应用。"
 
 #: templates/trips/email/invite.html:5
 msgid "Join the trip"
-msgstr ""
+msgstr "加入行程"
 
 #: templates/trips/email/invite.html:6
 msgid "Or copy this link:"
-msgstr ""
+msgstr "或复制此链接："
 
 #: templates/trips/email/invite.html:7 templates/trips/email/invite.txt:5
 #, python-format
 msgid "Use the Google account of %(address)s."
-msgstr ""
+msgstr "请使用%(address)s的Google账户。"
 
 #: templates/trips/email/invite.html:8 templates/trips/email/invite.txt:7
 #, python-format
 msgid "This link works once and expires on %(expires)s (%(city)s time)."
-msgstr ""
+msgstr "此链接只能使用一次，将于%(expires)s（%(city)s时间）过期。"
 
 #: templates/trips/email/invite.html:9 templates/trips/email/invite.txt:9
 #, python-format
 msgid "If you do not know %(inviter)s, ignore this email."
-msgstr ""
+msgstr "如果你不认识%(inviter)s，请忽略此邮件。"
 
 #: templates/trips/email/invite.txt:1
 #, python-format
-msgid "%(inviter)s invited you to the trip \"%(trip)s\" on Share Expense, an app that splits trip expenses."
+msgid ""
+"%(inviter)s invited you to the trip \"%(trip)s\" on Share Expense, an app "
+"that splits trip expenses."
 msgstr ""
+"%(inviter)s邀请你加入Share Expense上的行程“%(trip)s”。Share Expense是一款分摊行程费用的应用。"
 
 #: templates/trips/email/invite.txt:3
 msgid "Open this link to join:"
-msgstr ""
+msgstr "打开此链接即可加入："
 
 #: templates/trips/email/invite_subject.txt:1
 #, python-format
 msgid "%(inviter)s invited you to %(trip)s on Share Expense"
-msgstr ""
+msgstr "%(inviter)s邀请你加入Share Expense上的%(trip)s"
 
 #: templates/trips/history.html:8
 msgid "Search History"
-msgstr ""
+msgstr "搜索历史记录"
 
 #: templates/trips/history.html:16
 #, python-format
 msgid "Nothing in History matches “%(q)s”."
-msgstr ""
+msgstr "历史记录中没有与“%(q)s”匹配的内容。"
 
 #: templates/trips/history.html:20
 msgid "Nothing has changed yet."
-msgstr ""
+msgstr "还没有任何更改。"
 
 #: templates/trips/history.html:23
 msgid "Show older"
-msgstr ""
+msgstr "显示更早的记录"
 
 #: templates/trips/home.html:18
 msgctxt "trip status"
 msgid "Settled"
-msgstr ""
+msgstr "已结清"
 
 #: templates/trips/home.html:19
 msgctxt "trip status"
 msgid "Active"
-msgstr ""
+msgstr "进行中"
 
 #: templates/trips/home.html:31
 msgid "No trips yet."
-msgstr ""
+msgstr "还没有行程。"
 
-#: templates/trips/home.html:32 templates/trips/home.html:37 templates/trips/trip_form.html:2 templates/trips/trip_form.html:5
+#: templates/trips/home.html:32 templates/trips/home.html:37
+#: templates/trips/trip_form.html:2 templates/trips/trip_form.html:5
 msgid "New trip"
-msgstr ""
+msgstr "新建行程"
 
 #: templates/trips/home.html:33
 msgid "Your username:"
-msgstr ""
+msgstr "你的用户名："
 
 #: templates/trips/home.html:33
 msgid "A trip Owner can use it to add you."
-msgstr ""
+msgstr "行程所有者可以用它添加你。"
 
 #: templates/trips/invite.html:10
 #, python-format
 msgid "%(inviter)s invited you to this trip on Share Expense."
-msgstr ""
+msgstr "%(inviter)s邀请你加入Share Expense上的这个行程。"
 
 #: templates/trips/invite.html:14
 #, python-format
 msgid "Join %(trip_name)s"
-msgstr ""
+msgstr "加入%(trip_name)s"
 
 #: templates/trips/invite.html:18
 #, python-format
-msgid "This invite is for %(address)s. Continue with the Google account of this address."
-msgstr ""
+msgid ""
+"This invite is for %(address)s. Continue with the Google account of this "
+"address."
+msgstr "此邀请发给%(address)s。请使用该地址的Google账户继续。"
 
 #: templates/trips/invite.html:25
 msgid "Log in with Google is not set up yet. Ask the Owner of the trip."
-msgstr ""
+msgstr "Google登录尚未设置。请联系行程所有者。"
 
-#: templates/trips/invite_form.html:4 templates/trips/invite_form.html:7 templates/trips/people.html:87
+#: templates/trips/invite_form.html:4 templates/trips/invite_form.html:7
+#: templates/trips/people.html:87
 msgid "Invite"
-msgstr ""
+msgstr "邀请"
 
 #: templates/trips/invite_form.html:11
 #, python-format
 msgid "Did you mean %(address)s?"
-msgstr ""
+msgstr "你是不是要输入%(address)s？"
 
 #: templates/trips/invite_form.html:11
 #, python-format
 msgid "Use %(address)s"
-msgstr ""
+msgstr "使用%(address)s"
 
 #: templates/trips/invite_form.html:22
 msgid "Send the invite again"
-msgstr ""
+msgstr "重新发送邀请"
 
 #: templates/trips/invite_form.html:33
 msgctxt "button back to the invite form"
 msgid "Change"
-msgstr ""
+msgstr "修改"
 
 #: templates/trips/invite_form.html:34
 msgid "Confirm"
-msgstr ""
+msgstr "确认"
 
 #: templates/trips/invite_form.html:37
 msgid "Continue"
-msgstr ""
+msgstr "继续"
 
 #: templates/trips/invite_gone.html:2 templates/trips/invite_gone.html:7
 msgid "This invite no longer works"
-msgstr ""
+msgstr "此邀请已失效"
 
 #: templates/trips/invite_gone.html:8
 msgid "Ask the Owner of the trip for a new one."
-msgstr ""
+msgstr "请向行程所有者索取新的邀请。"
 
 #: templates/trips/invite_gone.html:9
 msgid "Go to my trips"
-msgstr ""
+msgstr "前往我的行程"
 
 #: templates/trips/member_edit.html:6
 #, python-format
 msgid "Traveler: %(name)s"
-msgstr ""
+msgstr "出行人：%(name)s"
 
 #: templates/trips/member_edit.html:6
 msgid "No traveler · Viewer"
-msgstr ""
+msgstr "无出行人 · 查看者"
 
 #: templates/trips/member_edit.html:6
 msgid "No traveler"
-msgstr ""
+msgstr "无出行人"
 
 #: templates/trips/member_edit.html:10
-msgid "This account is not linked to a traveler, so as a Member it can only view the trip. To link it, open a traveler on the Travelers page."
-msgstr ""
+msgid ""
+"This account is not linked to a traveler, so as a Member it can only view "
+"the trip. To link it, open a traveler on the Travelers page."
+msgstr "此账户未关联出行人，因此作为普通成员只能查看行程。要关联，请在“出行人”页面点开一位出行人。"
 
 #: templates/trips/member_edit.html:15
 msgid "Remove from trip"
-msgstr ""
+msgstr "移出行程"
 
-#: templates/trips/participant_form.html:2 templates/trips/participant_form.html:5 templates/trips/people.html:86
+#: templates/trips/participant_form.html:2
+#: templates/trips/participant_form.html:5 templates/trips/people.html:86
 msgid "Add traveler"
-msgstr ""
+msgstr "添加出行人"
 
 #: templates/trips/participant_form.html:5
 msgid "Edit traveler"
-msgstr ""
+msgstr "编辑出行人"
 
 #: templates/trips/participant_form.html:8
 msgid "This trip is settled. You can change only the linked account."
-msgstr ""
+msgstr "此行程已结清。你只能修改关联账户。"
 
 #: templates/trips/people.html:7
 #, python-format
 msgid "Invite link for %(email)s"
-msgstr ""
+msgstr "%(email)s的邀请链接"
 
 #: templates/trips/people.html:9
 msgid "Invite link"
-msgstr ""
+msgstr "邀请链接"
 
 #: templates/trips/people.html:12
 #, python-format
-msgid "This link works once and expires on %(day)s. Only the Google account of this address can use it."
-msgstr ""
+msgid ""
+"This link works once and expires on %(day)s. Only the Google account of this"
+" address can use it."
+msgstr "此链接只能使用一次，将于%(day)s过期。只有该地址的Google账户可以使用。"
 
 #: templates/trips/people.html:13
 msgid "Copied"
-msgstr ""
+msgstr "已复制"
 
 #: templates/trips/people.html:13 templates/trips/people.html:64
 msgid "Copy link"
-msgstr ""
+msgstr "复制链接"
 
 #: templates/trips/people.html:17
 msgid "All travelers"
-msgstr ""
+msgstr "全部出行人"
 
-#: templates/trips/people.html:25 templates/trips/people.html:44 templates/trips/summary.html:43
+#: templates/trips/people.html:25 templates/trips/people.html:44
+#: templates/trips/summary.html:43
 msgid "You"
-msgstr ""
+msgstr "你"
 
 #: templates/trips/people.html:26
 msgid "Account"
-msgstr ""
+msgstr "账户"
 
 #: templates/trips/people.html:33
 msgid "No travelers yet."
-msgstr ""
+msgstr "还没有出行人。"
 
 #: templates/trips/people.html:38
 msgid "Accounts"
-msgstr ""
+msgstr "账户"
 
 #: templates/trips/people.html:55
 msgid "Pending invites"
-msgstr ""
+msgstr "待接受的邀请"
 
 #: templates/trips/people.html:61
 msgid "Expired"
-msgstr ""
+msgstr "已过期"
 
 #: templates/trips/people.html:61
 #, python-format
 msgid "expires on %(when)s"
-msgstr ""
+msgstr "%(when)s过期"
 
 #: templates/trips/people.html:64
 msgid "Make a new link? The old link will stop working."
-msgstr ""
+msgstr "生成新链接吗？旧链接将失效。"
 
 #: templates/trips/people.html:65
 msgid "Send again"
-msgstr ""
+msgstr "重新发送"
 
 #: templates/trips/people.html:66
 #, python-format
 msgid "Cancel the invite for %(email)s? Its link will stop working."
-msgstr ""
+msgstr "取消给%(email)s的邀请吗？其链接将失效。"
 
 #: templates/trips/people.html:75
 #, python-format
-msgid "Leave this trip? You will no longer see it, and the traveler %(name)s is unlinked from your account. Only the Owner can add you again."
-msgstr ""
+msgid ""
+"Leave this trip? You will no longer see it, and the traveler %(name)s is "
+"unlinked from your account. Only the Owner can add you again."
+msgstr "退出此行程吗？你将无法再看到它，出行人%(name)s也将与你的账户解除关联。只有所有者能再次添加你。"
 
 #: templates/trips/people.html:75
-msgid "Leave this trip? You will no longer see it. Only the Owner can add you again."
-msgstr ""
+msgid ""
+"Leave this trip? You will no longer see it. Only the Owner can add you "
+"again."
+msgstr "退出此行程吗？你将无法再看到它。只有所有者能再次添加你。"
 
 #: templates/trips/people.html:76
 msgid "Leave this trip"
-msgstr ""
+msgstr "退出此行程"
 
 #: templates/trips/people.html:84
 msgid "Add"
-msgstr ""
+msgstr "添加"
 
 #: templates/trips/settings.html:8
 msgid "Trip details"
-msgstr ""
+msgstr "行程详情"
 
 #: templates/trips/settings.html:18
 msgid "Save trip"
-msgstr ""
+msgstr "保存行程"
 
 #: templates/trips/settings.html:23 templates/trips/trip_form.html:16
 msgid "Exchange rates"
-msgstr ""
+msgstr "汇率"
 
 #: templates/trips/settings.html:24
 #, python-format
-msgid "One fixed rate per currency for the whole trip. Expenses in other currencies are converted to %(base)s."
-msgstr ""
+msgid ""
+"One fixed rate per currency for the whole trip. Expenses in other currencies"
+" are converted to %(base)s."
+msgstr "每种货币在整个行程中使用一个固定汇率。其他货币的费用会换算为%(base)s。"
 
 #: templates/trips/settings.html:35
 msgid "No other currencies yet."
-msgstr ""
+msgstr "还没有其他货币。"
 
 #: templates/trips/settings.html:37
 msgid "Locked while the trip is settled."
-msgstr ""
+msgstr "行程已结清，暂时锁定。"
 
 #: templates/trips/settings.html:53
 msgid "Save rate"
-msgstr ""
+msgstr "保存汇率"
 
 #: templates/trips/settings.html:58
 msgid "Delete this trip"
-msgstr ""
+msgstr "删除此行程"
 
 #: templates/trips/settings.html:59
 msgid "This deletes all its expenses too."
-msgstr ""
+msgstr "这也会删除其所有费用。"
 
 #: templates/trips/summary.html:9
 msgid "Trip status"
-msgstr ""
+msgstr "行程状态"
 
 #: templates/trips/summary.html:12
 msgid "Reopen this trip? Its expenses can be changed again."
-msgstr ""
+msgstr "重新开启此行程吗？其费用将可以再次修改。"
 
 #: templates/trips/summary.html:13
 msgid "Reopen trip"
-msgstr ""
+msgstr "重新开启行程"
 
 #: templates/trips/summary.html:20
 msgid "Your balance"
-msgstr ""
+msgstr "你的结余"
 
 #: templates/trips/summary.html:24
 msgid "Breakdown"
-msgstr ""
+msgstr "明细"
 
 #: templates/trips/summary.html:26
 msgid "You paid"
-msgstr ""
+msgstr "你已付"
 
 #: templates/trips/summary.html:28 templates/trips/summary.html:46
 #, python-format
 msgid "Covered by %(by)s"
-msgstr ""
+msgstr "由%(by)s代付"
 
 #: templates/trips/summary.html:29
 #, python-format
 msgid "You cover %(name)s"
-msgstr ""
+msgstr "你为%(name)s代付"
 
 #: templates/trips/summary.html:30
 msgid "Balance"
-msgstr ""
+msgstr "结余"
 
 #: templates/trips/summary.html:37
 msgctxt "heading above the other travelers"
 msgid "Others"
-msgstr ""
+msgstr "其他人"
 
 #: templates/trips/summary.html:44
 msgctxt "amount a traveler paid"
 msgid "Paid"
-msgstr ""
+msgstr "已付"
 
 #: templates/trips/summary.html:45
 msgctxt "traveler's part of the costs"
 msgid "Share"
-msgstr ""
+msgstr "分摊额"
 
 #: templates/trips/summary.html:51
 msgid "was owed"
-msgstr ""
+msgstr "曾应收"
 
 #: templates/trips/summary.html:51
 msgid "owed"
-msgstr ""
+msgstr "曾欠"
 
 #: templates/trips/summary.html:51
 msgid "is owed"
-msgstr ""
+msgstr "应收"
 
 #: templates/trips/summary.html:51
 msgid "owes"
-msgstr ""
+msgstr "欠"
 
 #: templates/trips/summary.html:51
 msgid "nothing owed"
-msgstr ""
+msgstr "无欠款"
 
 #: templates/trips/summary.html:63
 #, python-format
 msgid "%(n)s open dispute blocks settling"
 msgid_plural "%(n)s open disputes block settling"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s个未解决的异议导致无法结清"
 
 #: templates/trips/summary.html:65
-msgid "Mark this trip as settled? Its expenses are locked until the trip is reopened."
-msgstr ""
+msgid ""
+"Mark this trip as settled? Its expenses are locked until the trip is "
+"reopened."
+msgstr "将此行程标记为已结清吗？在重新开启之前，其费用将被锁定。"
 
 #: templates/trips/summary.html:66
 msgid "Mark as settled"
-msgstr ""
+msgstr "标记为已结清"
 
 #: templates/trips/trip_form.html:17
 msgid "Optional. One fixed rate per currency for the whole trip."
-msgstr ""
+msgstr "可选。每种货币在整个行程中使用一个固定汇率。"
 
 #: templates/trips/trip_form.html:27
 msgid "Add currency"
-msgstr ""
+msgstr "添加货币"
 
 #: templates/trips/trip_form.html:36
 msgid "Create trip"
-msgstr ""
+msgstr "创建行程"
