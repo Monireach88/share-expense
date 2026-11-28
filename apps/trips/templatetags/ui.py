@@ -74,6 +74,23 @@ def signed(value, currency=""):
 
 
 @register.filter
+def needs_copy(text) -> bool:
+    """True when the text has Khmer or Chinese letters, so it gets an English copy."""
+    from apps.trips.english import needs_copy as check
+
+    return check(str(text or ""))
+
+
+@register.filter
+def shown(obj, field: str) -> str:
+    """The text to show a reader: ``{{ expense|shown:"description" }}`` is the English copy in
+    English when there is one, else the text as written (apps/trips/english.py)."""
+    from apps.trips.english import shown as pick
+
+    return pick(obj, field)
+
+
+@register.filter
 def keep_hyphens(text):
     """Keep "check-up" on one line: a line may break between words, never inside one.
 

@@ -54,10 +54,12 @@ MIDDLEWARE = [
     "apps.accounts.headers.PermissionsPolicyMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # After sign-in data is known: the language comes from the account or the cookie, never from
+    # the browser (apps/accounts/locale.py).
+    "apps.accounts.locale.LanguageMiddleware",
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -110,6 +112,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.accounts.context_processors.google_signin",
+                "apps.accounts.context_processors.languages",
             ],
         },
     },
@@ -209,9 +212,17 @@ AXES_USERNAME_CALLABLE = "apps.accounts.usernames.axes_username"
 CLIENT_IP_HEADER = os.environ.get("CLIENT_IP_HEADER", "")
 AXES_CLIENT_IP_CALLABLE = "apps.accounts.client_ip.client_ip"
 
-LANGUAGE_CODE = "en"
-LANGUAGES = [("en", "English")]
+# Languages (spec_languages.md): every visitor sees Khmer until they choose another language; the
+# browser's Accept-Language header is ignored. Each name is written in its own language. Another
+# language needs one line here and one locale/<code>/LC_MESSAGES/django.po file (and a short name
+# in apps/accounts/locale.py if the code is not enough for the header button).
+LANGUAGE_CODE = "km"
+LANGUAGES = [("km", "ខ្មែរ"), ("zh-hans", "中文"), ("en", "English")]
 LOCALE_PATHS = [BASE_DIR / "locale"]
+LANGUAGE_COOKIE_AGE = 365 * 24 * 60 * 60
+LANGUAGE_COOKIE_SAMESITE = "Lax"
+# Western digits and "1,250.00" in every language (config/formats/).
+FORMAT_MODULE_PATH = ["config.formats"]
 TIME_ZONE = os.environ.get("TIME_ZONE", "Asia/Phnom_Penh")
 
 # Writing suggestions for expense descriptions (apps/expenses/suggest.py); empty turns them off.
@@ -244,6 +255,7 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    LANGUAGE_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_SSL_REDIRECT = True
     SECURE_REDIRECT_EXEMPT = [r"^health/$"]  # uptime checks may call plain HTTP

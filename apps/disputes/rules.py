@@ -12,7 +12,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
 from apps.expenses.models import Expense
-from apps.trips import history
+from apps.trips import english, history
 from apps.trips.access import SETTLED_MESSAGE, lock_trip
 from apps.trips.models import Trip, TripMember
 
@@ -21,6 +21,19 @@ from .models import Dispute, DisputeMessage, Notification
 
 class DisputeRefused(Exception):
     """The action breaks a dispute rule; the message says why, in words for the person."""
+
+
+class EnglishNeeded(DisputeRefused):
+    """The text has Khmer or Chinese letters and no English copy could be made: the person
+    writes the English version, and the form comes back with the text kept."""
+
+
+def _copy(text: str, typed: str, user, max_length: int) -> str:
+    """The English copy to store with ``text`` ("" for English text)."""
+    copy = english.copy_for(text, typed, user.pk, max_length=max_length)
+    if copy is None:
+        raise EnglishNeeded(english.WRITE_ENGLISH)
+    return copy
 
 
 # --- Who may do what ------------------------------------------------------------------------------
@@ -165,6 +178,7 @@ def notification_text(item: Notification) -> str:
         "who": item.actor_name,
         "label": f"“{item.label}”",
         "detail": item.detail,
+        # Translators: stands for a person in: "<Owner>, the Owner, closed <someone>'s dispute".
         "opener": item.opener_name or _("someone"),
     }
     texts = {
@@ -226,11 +240,14 @@ def _record(trip, by, action, dispute: Dispute, *, changes=None):
     )
 
 
-def open_dispute(membership: TripMember, expense: Expense, reason: str) -> Dispute:
+def open_dispute(
+    membership: TripMember, expense: Expense, reason: str, reason_en: str = ""
+) -> Dispute:
     """§5.1. The caller has checked ``may_open`` (403 otherwise)."""
     reason = reason.strip()
     if not reason:
         raise DisputeRefused(_("Write why you disagree with this expense."))
+    reason_en = _copy(reason[:500], reason_en, membership.user, 500)
     with transaction.atomic():
         trip = lock_trip(membership.trip)
         if trip.is_settled:
@@ -245,8 +262,15 @@ def open_dispute(membership: TripMember, expense: Expense, reason: str) -> Dispu
             opened_by_name=user.display_name,
             opened_as=membership.linked_traveler.name if membership.linked_traveler else "",
             reason=reason[:500],
+            reason_en=reason_en,
         )
-        _record(trip, membership, "opened", dispute, changes={"reason": history.change("", reason)})
+        _record(
+            trip,
+            membership,
+            "opened",
+            dispute,
+            changes={"reason": history.change("", reason, new_en=reason_en)},
+        )
         notify(
             trip,
             dispute_people(dispute),
@@ -259,19 +283,30 @@ def open_dispute(membership: TripMember, expense: Expense, reason: str) -> Dispu
     return dispute
 
 
-def write_message(membership: TripMember, dispute: Dispute, text: str) -> DisputeMessage:
+def write_message(
+    membership: TripMember, dispute: Dispute, text: str, text_en: str = ""
+) -> DisputeMessage:
     """§5.2. The caller has checked ``may_write`` (403 otherwise)."""
     text = text.strip()
     if not text:
         raise DisputeRefused(_("Write a message first."))
+    text_en = _copy(text[:1000], text_en, membership.user, 1000)
     with transaction.atomic():
         dispute = _locked_dispute(dispute)
         user = membership.user
         message = DisputeMessage.objects.create(
-            dispute=dispute, author=user, author_name=user.display_name, text=text[:1000]
+            dispute=dispute,
+            author=user,
+            author_name=user.display_name,
+            text=text[:1000],
+            text_en=text_en,
         )
         _record(
-            dispute.trip, membership, "message", dispute, changes={"text": history.change("", text)}
+            dispute.trip,
+            membership,
+            "message",
+            dispute,
+            changes={"text": history.change("", text, new_en=text_en)},
         )
         notify(
             dispute.trip,
@@ -304,12 +339,13 @@ def resolve(membership: TripMember, dispute: Dispute) -> None:
         )
 
 
-def close(membership: TripMember, dispute: Dispute, reason: str) -> None:
+def close(membership: TripMember, dispute: Dispute, reason: str, reason_en: str = "") -> None:
     """§5.3: the Owner closes any open dispute, with a required reason. When the Owner paid the
     expense, every account on the trip is notified, so the decision is in the open."""
     reason = reason.strip()
     if not reason:
         raise DisputeRefused(_("Write the reason for closing this dispute."))
+    reason_en = _copy(reason[:500], reason_en, membership.user, 500)
     with transaction.atomic():
         dispute = _locked_dispute(dispute)
         trip, expense = dispute.trip, dispute.expense
@@ -317,6 +353,7 @@ def close(membership: TripMember, dispute: Dispute, reason: str) -> None:
         user = membership.user
         dispute.state = Dispute.State.CLOSED
         dispute.close_reason = reason[:500]
+        dispute.close_reason_en = reason_en
         dispute.closed_by = user
         dispute.closed_by_name = user.display_name
         dispute.closed_at = timezone.now()
@@ -324,13 +361,20 @@ def close(membership: TripMember, dispute: Dispute, reason: str) -> None:
             update_fields=[
                 "state",
                 "close_reason",
+                "close_reason_en",
                 "closed_by",
                 "closed_by_name",
                 "closed_at",
                 "updated_at",
             ]
         )
-        _record(trip, membership, "closed", dispute, changes={"reason": history.change("", reason)})
+        _record(
+            trip,
+            membership,
+            "closed",
+            dispute,
+            changes={"reason": history.change("", reason, new_en=reason_en)},
+        )
         if expense.payer.user_id == user.pk:
             people = _trip_user_ids(trip)
         notify(

@@ -9,14 +9,14 @@
   <li>
     <a class="row" href="{% url 'trip' trip.id %}">
       <span class="row-main">
-        <span class="row-title">{{ trip.name }}</span>
+        <span class="row-title">{{ trip|shown:'name' }}</span>
         <span class="row-sub">{% include "trips/_dates.html" %}{{ trip.country.name }}</span>
         <span class="row-sub">{% blocktranslate count n=trip.people_count %}{{ n }} traveler{% plural %}{{ n }} travelers{% endblocktranslate %}</span>
       </span>
       <span class="row-end">
         {% if trip.total is not None %}<span class="num">{{ trip.total|money:trip.base_currency }}</span>{% endif %}
-        {% if trip.status == "settled" %}<span class="badge badge-pos">{% icon "check" %}{% translate "Settled" %}</span>
-        {% elif trip.status == "active" %}<span class="badge">{% translate "Active" %}</span>{% endif %}
+        {% if trip.status == "settled" %}<span class="badge badge-pos">{% icon "check" %}{% translate "Settled" context "trip status" %}</span>
+        {% elif trip.status == "active" %}<span class="badge">{% translate "Active" context "trip status" %}</span>{% endif %}
       </span>
       {% icon "chevron-right" "chev" %}
     </a>

@@ -23,8 +23,21 @@ from apps.trips.pagination import paginate
 from . import rules
 from .models import Dispute, DisputeMessage, Notification
 
+DRAFT_KEY = "dispute_draft"
 
-def section(membership, expense: Expense | None) -> dict:
+
+def _keep_draft(request: HttpRequest, form: str, target, text_field: str, english_field: str):
+    """The English copy could not be made: keep what was typed, so the expense page shows the
+    same form again with the English box open and the text still in it."""
+    request.session[DRAFT_KEY] = {
+        "form": form,
+        "target": str(target),
+        "text": request.POST.get(text_field, ""),
+        "english": request.POST.get(english_field, ""),
+    }
+
+
+def section(membership, expense: Expense | None, request: HttpRequest | None = None) -> dict:
     """What the dispute section of an expense page needs: the disputes with what this account
     may do in each, and whether it may open a new one. ``expense`` is None when it was erased."""
     if expense is None:
@@ -44,7 +57,19 @@ def section(membership, expense: Expense | None) -> dict:
         and rules.may_open(membership, expense)
         and not any(d.is_open and d.opened_by_id == membership.user_id for d in disputes)
     )
-    return {"disputes": disputes, "can_dispute": can_dispute, "dispute_expense_id": expense.pk}
+    draft = request.session.pop(DRAFT_KEY, None) if request is not None else None
+    new_draft = None
+    if draft:
+        if draft["form"] == "open":
+            new_draft = draft
+        for d in disputes:
+            d.draft = draft if draft["form"] != "open" and draft["target"] == str(d.pk) else None
+    return {
+        "disputes": disputes,
+        "can_dispute": can_dispute,
+        "dispute_expense_id": expense.pk,
+        "new_draft": new_draft,
+    }
 
 
 def open_ids(trip) -> set:
@@ -84,8 +109,12 @@ def dispute_open(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
     if not rules.may_open(membership, expense):
         raise PermissionDenied
     try:
-        rules.open_dispute(membership, expense, request.POST.get("reason", ""))
+        rules.open_dispute(
+            membership, expense, request.POST.get("reason", ""), request.POST.get("reason_en", "")
+        )
     except rules.DisputeRefused as refused:
+        if isinstance(refused, rules.EnglishNeeded):
+            _keep_draft(request, "open", expense_id, "reason", "reason_en")
         messages.error(request, str(refused))
     else:
         messages.success(request, _("Dispute opened."))
@@ -99,8 +128,12 @@ def dispute_write(request: HttpRequest, trip_id, dispute_id) -> HttpResponse:
     if not rules.may_write(membership, dispute):
         raise PermissionDenied
     try:
-        rules.write_message(membership, dispute, request.POST.get("text", ""))
+        rules.write_message(
+            membership, dispute, request.POST.get("text", ""), request.POST.get("text_en", "")
+        )
     except rules.DisputeRefused as refused:
+        if isinstance(refused, rules.EnglishNeeded):
+            _keep_draft(request, "write", dispute_id, "text", "text_en")
         messages.error(request, str(refused))
     return _back(request, trip_id, dispute.expense_id)
 
@@ -125,8 +158,12 @@ def dispute_close(request: HttpRequest, trip_id, dispute_id) -> HttpResponse:
     membership = get_membership(request, trip_id, owner_only=True)
     dispute = _dispute(membership, dispute_id)
     try:
-        rules.close(membership, dispute, request.POST.get("reason", ""))
+        rules.close(
+            membership, dispute, request.POST.get("reason", ""), request.POST.get("reason_en", "")
+        )
     except rules.DisputeRefused as refused:
+        if isinstance(refused, rules.EnglishNeeded):
+            _keep_draft(request, "close", dispute_id, "reason", "reason_en")
         messages.error(request, str(refused))
     else:
         messages.success(request, _("Dispute closed."))

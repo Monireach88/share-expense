@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% load i18n ui %}
 {% comment %}A deleted expense, shown from its last History values, with Restore for people allowed to.{% endcomment %}
-{% block title %}{{ title }} · {{ trip.name }}{% endblock %}
-{% block back %}<a class="back" href="{{ back_url }}">{% icon "chevron-left" %}<span>{{ trip.name }}</span></a>{% endblock %}
+{% block title %}{{ title }} · {{ trip|shown:'name' }}{% endblock %}
+{% block back %}<a class="back" href="{{ back_url }}">{% icon "chevron-left" %}<span>{{ trip|shown:'name' }}</span></a>{% endblock %}
 {% block content %}
 <h1 class="page-title">{{ emoji }} {{ title }}</h1>
 <div class="note" style="margin-top: 16px">{% icon "triangle-alert" %}<div>{% if deleted %}{% blocktranslate with who=deleted.actor_name day=deleted.created_at|date:"j M Y" time=deleted.created_at|time:"H:i" %}{{ who }} deleted this expense on {{ day }} at {{ time }}.{% endblocktranslate %}{% else %}{% translate "This expense was deleted." %}{% endif %}</div></div>

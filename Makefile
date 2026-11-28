@@ -43,6 +43,17 @@ test:             ## Run all tests against the real Postgres (dev only)
 	$(DEV) exec web pytest -q --tb=short
 lint:             ## ruff check + format check (dev only)
 	$(DEV) exec web ruff check . && $(DEV) exec web ruff format --check .
+messages:         ## Update locale/*/django.po from the code and templates (Docker has the gettext tools)
+	docker run --rm -v "$(CURDIR)":/app -w /app -e UV_PROJECT_ENVIRONMENT=/opt/venv \
+	  -e DJANGO_DEBUG=true -e DJANGO_SECRET_KEY=makemessages python:3.14-slim sh -c '\
+	  apt-get update -qq && apt-get install -y -qq gettext >/dev/null && pip install -q uv && \
+	  uv sync --frozen && /opt/venv/bin/python manage.py makemessages -l km -l zh_Hans \
+	  --no-obsolete --no-wrap --ignore=.venv --ignore=staticfiles && chown -R $(shell id -u):$(shell id -g) locale'
+compilemessages:  ## Compile the .po files into .mo files with Docker (the container build and CI do it themselves)
+	docker run --rm -v "$(CURDIR)":/app -w /app python:3.14-slim sh -c '\
+	  apt-get update -qq && apt-get install -y -qq gettext >/dev/null && \
+	  for f in locale/*/LC_MESSAGES/django.po; do msgfmt --check -o "$${f%.po}.mo" "$$f"; done && \
+	  chown -R $(shell id -u):$(shell id -g) locale'
 clean:            ## Stop and DELETE the database volume (dev only)
 	$(DEV) down -v
 staging-up:       ## Start staging with the latest develop (copies production data the first time)
@@ -62,4 +73,4 @@ help:             ## List targets
 .env.prod:
 	@echo "Missing .env.prod: copy .env.example and fill in the production values (see DOCKER_SETUP.md)." && exit 1
 
-.PHONY: staging-up staging-down staging-refresh staging-status up down restart rebuild ps logs migrate superuser shell backup migrations test lint clean help
+.PHONY: messages compilemessages staging-up staging-down staging-refresh staging-status up down restart rebuild ps logs migrate superuser shell backup migrations test lint clean help

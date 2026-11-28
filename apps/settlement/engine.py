@@ -22,6 +22,8 @@ from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 from fractions import Fraction
 
+from django.utils.translation import gettext as _
+
 CENT = Decimal("0.01")
 
 type ParticipantId = Hashable
@@ -79,7 +81,7 @@ def to_base(
         return amount.quantize(CENT, ROUND_HALF_UP)
     rate = rates.get(currency)
     if rate is None or rate <= 0:
-        raise SettlementError(f"No exchange rate for {currency}")
+        raise SettlementError(_("No exchange rate for %(currency)s") % {"currency": currency})
     return (amount / rate).quantize(CENT, ROUND_HALF_UP)
 
 
@@ -150,16 +152,18 @@ def settle(
     sponsors = sponsors or {}
     known = set(participants)
     if len(known) != len(participants):
-        raise SettlementError("Participants must be unique")
+        raise SettlementError(_("Travelers must be unique."))
 
     covered_by: dict[ParticipantId, list[ParticipantId]] = {}
     for person in participants:
         payers = list(dict.fromkeys(sponsors.get(person) or [person]))
         for sponsor in payers:
             if sponsor not in known:
-                raise SettlementError(f"Unknown sponsor {sponsor!r}")
+                raise SettlementError(_("Unknown sponsor %(name)s") % {"name": sponsor})
             if sponsor != person and any(s != sponsor for s in sponsors.get(sponsor) or [sponsor]):
-                raise SettlementError(f"Sponsor {sponsor!r} is covered by someone else")
+                raise SettlementError(
+                    _("Sponsor %(name)s is covered by someone else") % {"name": sponsor}
+                )
         covered_by[person] = payers
 
     paid: dict[ParticipantId, Fraction] = defaultdict(Fraction)
@@ -171,12 +175,12 @@ def settle(
     for expense in expenses:
         beneficiaries = list(dict.fromkeys(expense.beneficiaries))
         if expense.payer not in known:
-            raise SettlementError(f"Unknown payer {expense.payer!r}")
+            raise SettlementError(_("Unknown payer %(name)s") % {"name": expense.payer})
         if not beneficiaries:
-            raise SettlementError("An expense needs at least one beneficiary")
+            raise SettlementError(_("An expense needs at least one beneficiary"))
         unknown = [b for b in beneficiaries if b not in known]
         if unknown:
-            raise SettlementError(f"Unknown beneficiary {unknown[0]!r}")
+            raise SettlementError(_("Unknown beneficiary %(name)s") % {"name": unknown[0]})
         cents = Fraction(to_base(expense.amount, expense.currency, base_currency, rates) * 100)
         paid[expense.payer] += cents
         by_category[expense.category] += cents

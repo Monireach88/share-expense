@@ -23,7 +23,7 @@ from apps.disputes import rules as dispute_rules
 from apps.disputes import views as dispute_views
 from apps.disputes.models import Dispute
 from apps.settlement.engine import SettlementError, to_base
-from apps.trips import history
+from apps.trips import english, history
 from apps.trips.access import get_membership, lock_trip, locked
 from apps.trips.offline import cacheable_page
 from apps.trips.pagination import DayPage
@@ -113,8 +113,10 @@ def _matches(expense: Expense, query: str) -> bool:
     text = " ".join(
         [
             expense.description,
+            expense.description_en,
             expense.payer.name,
             *(b.name for b in expense.beneficiaries.all()),
+            expense.category.label if expense.category else "",
             expense.category.name if expense.category else "",
             f"{expense.amount:f}".rstrip("0").rstrip("."),
             format_amount(expense.amount, expense.currency),
@@ -148,13 +150,27 @@ def expense_reorder(request: HttpRequest, trip_id) -> HttpResponse:
 
 def _category_json(category: Category, status: int = 200) -> JsonResponse:
     return JsonResponse(
-        {"id": category.pk, "name": category.name, "emoji": category.emoji}, status=status
+        {
+            "id": category.pk,
+            "name": category.name,
+            "name_en": category.name_en,
+            "label": category.label,
+            "emoji": category.emoji,
+        },
+        status=status,
     )
 
 
 def _form_error(form) -> JsonResponse:
     errors = [e for field in form.errors.values() for e in field]
-    return JsonResponse({"error": errors[0] if errors else _("Check the name.")}, status=400)
+    # "english" tells the page to show the English box of the type dialog.
+    return JsonResponse(
+        {
+            "error": errors[0] if errors else _("Check the name."),
+            "english": "name_en" in form.errors,
+        },
+        status=400,
+    )
 
 
 @require_POST
@@ -163,7 +179,7 @@ def category_create(request: HttpRequest, trip_id) -> HttpResponse:
     Everyone who may add an expense may add a type; only Owner and Editors rename or remove."""
     membership = get_membership(request, trip_id, can_add=True)
     trip = membership.trip
-    form = CategoryForm(request.POST, trip=trip)
+    form = CategoryForm(request.POST, trip=trip, user=request.user)
     if not form.is_valid():
         return _form_error(form)
     with transaction.atomic():
@@ -185,7 +201,7 @@ def category_edit(request: HttpRequest, trip_id, category_id) -> HttpResponse:
     trip = membership.trip
     category = get_object_or_404(Category, pk=category_id, trip=trip)
     old_name, old_emoji = category.name, category.emoji
-    form = CategoryForm(request.POST, instance=category, trip=trip)
+    form = CategoryForm(request.POST, instance=category, trip=trip, user=request.user)
     if not form.is_valid():
         return _form_error(form)
     with transaction.atomic():
@@ -364,6 +380,7 @@ def expense_create(request: HttpRequest, trip_id) -> HttpResponse:
         trip=trip,
         initial=_initial(request, membership),
         payer_only=_payer_only(membership),
+        user=request.user,
     )
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
@@ -413,7 +430,11 @@ def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
         raise PermissionDenied
     _check_payer(request, membership)
     form = ExpenseForm(
-        request.POST or None, instance=expense, trip=trip, payer_only=_payer_only(membership)
+        request.POST or None,
+        instance=expense,
+        trip=trip,
+        payer_only=_payer_only(membership),
+        user=request.user,
     )
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
@@ -438,7 +459,7 @@ def expense_edit(request: HttpRequest, trip_id, expense_id) -> HttpResponse:
         return redirect(_back_url(request, trip_id))
     context = _form_context(membership.trip, membership, form, expense)
     context["back_url"] = _back_url(request, trip_id)
-    context.update(dispute_views.section(membership, expense))
+    context.update(dispute_views.section(membership, expense, request))
     return render(request, "expenses/form.html", context)
 
 
@@ -530,7 +551,7 @@ def _expense_view(request: HttpRequest, membership, expense) -> HttpResponse:
             **facts,
             "reason": reason,
             "back_url": _back_url(request, trip.id),
-            **dispute_views.section(membership, expense),
+            **dispute_views.section(membership, expense, request),
         },
     )
 
@@ -572,7 +593,9 @@ def _deleted_expense_view(request: HttpRequest, membership, expense_id, row) -> 
             "membership": membership,
             "expense_id": expense_id,
             "values": values,
-            "title": values["description"] or values["type"],
+            "title": (english.in_english() and values.get("description_en"))
+            or values["description"]
+            or values["type"],
             "emoji": category.emoji if category else "📦",
             "names": values["for"],
             "amount": amount,
@@ -583,7 +606,7 @@ def _deleted_expense_view(request: HttpRequest, membership, expense_id, row) -> 
             "reason": reason,
             "can_restore": can_restore and not trip.is_settled,
             "back_url": _back_url(request, trip.id),
-            **dispute_views.section(membership, row),
+            **dispute_views.section(membership, row, request),
         },
     )
 
@@ -701,7 +724,7 @@ def report_export(request: HttpRequest, trip_id, fmt: str) -> HttpResponse:
         response = HttpResponse(to_csv(header, rows), content_type="text/csv; charset=utf-8")
     elif fmt == "xlsx":
         response = HttpResponse(
-            to_xlsx(trip.name, header, rows),
+            to_xlsx(trip.name_en or trip.name, header, rows),
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
     else:

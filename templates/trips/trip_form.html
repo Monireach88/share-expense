@@ -5,7 +5,10 @@
 <h1 class="page-title">{% translate "New trip" %}</h1>
 <form method="post" id="trip-form" class="stack" style="margin-top: 16px" data-rate-suggest="{% url 'rate_suggestion' %}">{% csrf_token %}
   {% include "_form_errors.html" %}
-  {% include "_field.html" with field=form.name %}
+  <div data-english="{% url 'english_suggestion' %}">
+    {% include "_field.html" with field=form.name %}
+    {% include "_english_row.html" with field=form.name_en source=form.name %}
+  </div>
   {% include "_field.html" with field=form.country %}
   {% include "trips/_date_range_fields.html" %}
   {% include "_field.html" with field=form.base_currency %}

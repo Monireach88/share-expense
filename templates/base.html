@@ -1,12 +1,14 @@
 {% load static i18n ui %}<!doctype html>
 {% get_current_language as LANG %}
-<html lang="{{ LANG }}">
+<html lang="{{ LANG }}"{% if user.is_authenticated and user.appearance != "system" %} data-theme="{{ user.appearance }}"{% endif %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1a1d23" media="(prefers-color-scheme: dark)">
+  {% if user.is_authenticated and user.appearance == "light" %}<meta name="theme-color" content="#ffffff">
+  {% elif user.is_authenticated and user.appearance == "dark" %}<meta name="theme-color" content="#1a1d23">
+  {% else %}<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1d23" media="(prefers-color-scheme: dark)">{% endif %}
   <title>{% block title %}{% translate "Share Expense" %}{% endblock %}</title>
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="icon" sizes="32x32" type="image/png" href="{% static 'img/favicon-32.png' %}">
@@ -18,6 +20,7 @@
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'vendor/sortable.min.js' %}" defer></script>
   <script src="{% static 'js/app.js' %}" defer></script>
+  <script src="{% static 'js/english_copy.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
 <body hx-boost="true" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
@@ -26,6 +29,17 @@
       {% block back %}
       <a class="brand" href="{% url 'home' %}"><span class="brand-mark" aria-hidden="true">S</span>{% translate "Share Expense" %}</a>
       {% endblock %}
+      <div class="header-end">
+      <details class="menu lang-menu">
+        <summary aria-label="{% translate 'Language' %}">{% icon "globe" %}<span>{{ language_short }}</span></summary>
+        <div class="menu-panel">
+          {# A full page load (no hx-boost), so the page language and the font change with it. #}
+          <form method="post" action="{% url 'set_language' %}" hx-boost="false">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            {% for code, name in language_choices %}<button type="submit" class="menu-item" name="language" value="{{ code }}" lang="{{ code }}"{% if code == LANG %} aria-current="true"{% endif %}>{{ name }}{% if code == LANG %}{% icon "check" %}{% endif %}</button>{% endfor %}
+          </form>
+        </div>
+      </details>
       {% block header_end %}{% if user.is_authenticated %}
       <details class="menu">
         <summary aria-label="{% translate 'Account menu' %}"><span class="avatar" aria-hidden="true">{{ user.display_name|initial }}</span></summary>
@@ -36,12 +50,22 @@
           {% if google_signin %}<a class="menu-item" href="{% url 'socialaccount_connections' %}">{% include "_google_logo.html" %}<span>{% translate "Google account" %}<span class="tiny muted" style="display: block">{% if google_email %}{% blocktranslate %}Linked: {{ google_email }}{% endblocktranslate %}{% else %}{% translate "Not linked" %}{% endif %}</span></span></a>{% endif %}
           <a class="menu-item" href="{% url 'account_close' %}">{% icon "user-x" %}{% translate "Close account" %}</a>
           {% if user.is_staff %}<a class="menu-item" href="{% url 'admin:index' %}" hx-boost="false">{% icon "shield" %}{% translate "Admin" %}</a>{% endif %}
+          <form method="post" action="{% url 'set_appearance' %}" class="menu-appearance" hx-boost="false">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div class="tiny muted" id="appearance-label">{% translate "Appearance" %}</div>
+            <div class="seg" role="group" aria-labelledby="appearance-label">
+              <button type="submit" name="appearance" value="light" aria-pressed="{% if user.appearance == 'light' %}true{% else %}false{% endif %}">{% translate "Light" %}</button>
+              <button type="submit" name="appearance" value="dark" aria-pressed="{% if user.appearance == 'dark' %}true{% else %}false{% endif %}">{% translate "Dark" %}</button>
+              <button type="submit" name="appearance" value="system" aria-pressed="{% if user.appearance == 'system' %}true{% else %}false{% endif %}">{% translate "System" %}</button>
+            </div>
+          </form>
           <form method="post" action="{% url 'logout' %}">{% csrf_token %}
             <button type="submit" class="menu-item">{% icon "log-out" %}{% translate "Log out" %}</button>
           </form>
         </div>
       </details>
       {% endif %}{% endblock %}
+      </div>
     </div>
   </header>
   <main class="container {% block main_class %}{% endblock %}">

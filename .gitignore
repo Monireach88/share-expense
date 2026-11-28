@@ -12,6 +12,9 @@ __pycache__/
 .coverage
 htmlcov/
 
+# Compiled translations (regenerable: python manage.py compilemessages, or the polib step in tests/conftest.py)
+*.mo
+
 # Django (regenerable: python manage.py collectstatic)
 staticfiles/
 

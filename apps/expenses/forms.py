@@ -3,6 +3,7 @@ from decimal import Decimal
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
+from apps.trips.english import ENGLISH_LABEL, EnglishCopyMixin
 from apps.trips.forms import DATE_INPUT
 from apps.trips.models import Trip
 
@@ -20,13 +21,25 @@ class AmountField(forms.DecimalField):
         return super().to_python(value)
 
 
-class ExpenseForm(forms.ModelForm):
+class ExpenseForm(EnglishCopyMixin, forms.ModelForm):
+    english_fields = {"description": "description_en"}
+
     class Meta:
         model = Expense
-        fields = ["amount", "currency", "description", "payer", "beneficiaries", "category", "date"]
+        fields = [
+            "amount",
+            "currency",
+            "description",
+            "description_en",
+            "payer",
+            "beneficiaries",
+            "category",
+            "date",
+        ]
         field_classes = {"amount": AmountField}
         labels = {
             "description": _("Description"),
+            "description_en": ENGLISH_LABEL,
             "payer": _("Paid by"),
             "beneficiaries": _("Split between"),
             "category": _("Type"),
@@ -46,6 +59,7 @@ class ExpenseForm(forms.ModelForm):
                     "enterkeyhint": "done",
                 }
             ),
+            "description_en": forms.Textarea(attrs={"rows": 1, "autocomplete": "off"}),
             "payer": forms.RadioSelect,
             "beneficiaries": forms.CheckboxSelectMultiple,
             "category": forms.RadioSelect,
@@ -90,6 +104,9 @@ class ExpenseForm(forms.ModelForm):
         # A description is one line: line breaks from the text box become single spaces.
         return " ".join(self.cleaned_data["description"].split())
 
+    def clean_description_en(self):
+        return " ".join(self.cleaned_data["description_en"].split())
+
     def clean_amount(self):
         amount = self.cleaned_data["amount"]
         if amount <= 0:
@@ -105,12 +122,14 @@ class ExpenseForm(forms.ModelForm):
         return currency
 
 
-class CategoryForm(forms.ModelForm):
+class CategoryForm(EnglishCopyMixin, forms.ModelForm):
     """Add or rename a trip's expense type from the expense form."""
+
+    english_fields = {"name": "name_en"}
 
     class Meta:
         model = Category
-        fields = ["name", "emoji"]
+        fields = ["name", "name_en", "emoji"]
 
     def __init__(self, *args, trip: Trip, **kwargs):
         super().__init__(*args, **kwargs)
@@ -124,6 +143,9 @@ class CategoryForm(forms.ModelForm):
         if taken.exists():
             raise forms.ValidationError(_("This trip already has a type with this name."))
         return name
+
+    def clean_name_en(self):
+        return " ".join(self.cleaned_data["name_en"].split())
 
     def clean_emoji(self):
         emoji = self.cleaned_data["emoji"]

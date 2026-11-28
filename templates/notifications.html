@@ -10,8 +10,8 @@
   {% for item in items %}
   <li><a class="row{% if not item.read_at %} unread{% endif %}" href="{{ item.link }}">
     <span class="row-main">
-      <span class="row-title history-line">{% if not item.read_at %}<span class="dot" aria-label="{% translate 'New' %}"></span>{% endif %}{{ item.text }}</span>
-      <span class="row-sub">{{ item.trip.name }} · {% blocktranslate with day=item.created_at|date:"j M Y" time=item.created_at|time:"H:i" %}{{ day }} at {{ time }}{% endblocktranslate %}</span>
+      <span class="row-title history-line">{% if not item.read_at %}<span class="dot" aria-label="{% translate 'New' context 'unread notification mark' %}"></span>{% endif %}{{ item.text }}</span>
+      <span class="row-sub">{{ item.trip|shown:'name' }} · {% blocktranslate with day=item.created_at|date:"j M Y" time=item.created_at|time:"H:i" %}{{ day }} at {{ time }}{% endblocktranslate %}</span>
     </span>
     {% icon "chevron-right" "chev" %}
   </a></li>

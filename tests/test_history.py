@@ -126,7 +126,8 @@ def test_search_finds_entries_by_type(crew):
     )
     crew.client("ann").post(crew.url("expense_create"), crew.form("ann", "9", "Pho"))
     page = crew.client("cara").get(crew.url("history"), {"q": "transport"}).content.decode()
-    assert "Bus" in page and "Pho" not in page
+    # Names are matched with their quotes: a bare "Bus" can appear inside the random CSRF token.
+    assert "“Bus”" in page and "“Pho”" not in page
 
 
 def test_entries_survive_a_renamed_traveler(crew):
@@ -410,11 +411,11 @@ def test_ten_days_per_page_with_show_older(crew):
             )
     client = crew.client("cara")
     first = client.get(crew.url("history")).content.decode()
-    assert first.count("<details") == 10
+    assert first.count('<details class="day"') == 10
     assert "Show older" in first and "10 of 12 days shown" in first
     assert "T0" in first and "T9" in first and "T10" not in first
     second = client.get(crew.url("history"), {"page": 2}).content.decode()
-    assert second.count("<details") == 2 and "T10" in second and "T11" in second
+    assert second.count('<details class="day"') == 2 and "T10" in second and "T11" in second
     assert "Show older" not in second
 
 
@@ -424,11 +425,12 @@ def test_search_runs_in_the_database_on_search_text(crew):
     with CaptureQueriesContext(connection) as queries:
         page = crew.client("cara").get(crew.url("history"), {"q": "DAN BUS"}).content.decode()
     assert any("search_text" in q["sql"] and "LIKE" in q["sql"].upper() for q in queries)
-    assert "Bus" in page and "Pho" not in page
+    # Names are matched with their quotes: a bare "Bus" can appear inside the random CSRF token.
+    assert "“Bus”" in page and "“Pho”" not in page
     # Case is ignored, and old and new values and the action word are searchable.
     crew.client("ben").post(crew.url("expense_edit", crew.taxi.id), crew.form("dan", "77", "Taxi"))
     found = crew.client("cara").get(crew.url("history"), {"q": "CHANGED 77"}).content.decode()
-    assert "Taxi" in found and "Bus" not in found
+    assert "“Taxi”" in found and "“Bus”" not in found
     none = crew.client("cara").get(crew.url("history"), {"q": "zzz"}).content.decode()
     assert "Nothing in History matches" in none
 

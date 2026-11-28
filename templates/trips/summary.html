@@ -1,5 +1,5 @@
 {% extends "trips/_trip_base.html" %}{% load i18n ui %}
-{% block title %}{% translate "Balances" %} · {{ trip.name }}{% endblock %}
+{% block title %}{% translate "Balances" %} · {{ trip|shown:'name' }}{% endblock %}
 {% block content %}
 <div class="stack-lg">
 {% if error %}
@@ -34,15 +34,15 @@
   {% endif %}{% endwith %}
 
   <section>
-    <h2 class="section-title">{% if summary.others|length < summary.rows|length %}{% translate "Others" %}{% else %}{% translate "Everyone" %}{% endif %}</h2>
+    <h2 class="section-title">{% if summary.others|length < summary.rows|length %}{% translate "Others" context "heading above the other travelers" %}{% else %}{% translate "Everyone" %}{% endif %}</h2>
     <ul class="list">
       {% for item in summary.others %}
       <li><div class="row">
         <span class="avatar" aria-hidden="true">{{ item.person.name|initial }}</span>
         <span class="row-main">
           <span class="row-title">{{ item.person.name }}{% if item.is_me %} <span class="you">{% translate "You" %}</span>{% endif %}</span>
-          <span class="row-sub num">{% translate "Paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
-          <span class="row-sub num">{% translate "Share" %}&nbsp;{{ item.row.own_share|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
+          <span class="row-sub num">{% translate "Paid" context "amount a traveler paid" %}&nbsp;{{ item.row.paid|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
+          <span class="row-sub num">{% translate "Share" context "traveler's part of the costs" %}&nbsp;{{ item.row.own_share|amount:summary.currency }}&nbsp;{{ summary.currency }}</span>
           {% if item.covered_by %}<span class="row-sub">{% blocktranslate with by=item.covered_by|join:", " %}Covered by {{ by }}{% endblocktranslate %}</span>{% endif %}
           {% include "trips/_covers.html" with covers=item.covers total=item.covers_total cur=summary.currency label="covers" css="row-sub" %}
         </span>

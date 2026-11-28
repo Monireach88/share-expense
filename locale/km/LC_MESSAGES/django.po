@@ -1,0 +1,3410 @@
+# Khmer interface text of Share Expense.
+# Edit msgstr only; run `make messages` after the code changes (docs/spec_languages.md).
+msgid ""
+msgstr ""
+"Project-Id-Version: Share Expense\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-28 15:42+0700\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: Khmer\n"
+"Language: km\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: apps/accounts/adapters.py:28 apps/accounts/forms.py:8
+#: apps/trips/invites.py:261
+msgid "This account is closed. Ask the admin to restore it."
+msgstr "គណនីនេះត្រូវបានបិទ។ សូមស្នើអ្នកគ្រប់គ្រងឱ្យស្ដារវាវិញ។"
+
+#: apps/accounts/adapters.py:83
+#, python-format
+msgid ""
+"This invite is for %(address)s, but you used another Google account. Sign "
+"out of Google, then open the invite link again and choose the invited "
+"address."
+msgstr ""
+"ការអញ្ជើញនេះសម្រាប់ %(address)s ប៉ុន្តែអ្នកបានប្រើគណនី Google ផ្សេង។ "
+"សូមចេញពីគណនី Google រួចបើកតំណអញ្ជើញម្ដងទៀត ហើយជ្រើសរើសអាសយដ្ឋានដែលបានអញ្ជើញ។"
+
+#: apps/accounts/adapters.py:93
+msgid ""
+"No account uses this Google account. If you have a username and password, "
+"log in with them and link Google from the account menu. To join a trip, ask "
+"its Owner for an invite."
+msgstr ""
+"គ្មានគណនីណាប្រើគណនី Google នេះទេ។ ប្រសិនបើអ្នកមានឈ្មោះអ្នកប្រើ "
+"និងពាក្យសម្ងាត់ សូមចូលគណនីដោយប្រើវា រួចភ្ជាប់ Google ពីម៉ឺនុយគណនី។ "
+"ដើម្បីចូលរួមដំណើរកម្សាន្ត សូមសុំការអញ្ជើញពីម្ចាស់ដំណើរកម្សាន្ត។"
+
+#: apps/accounts/admin.py:17 templates/trips/people.html:45
+msgid "Closed"
+msgstr "បានបិទ"
+
+#: apps/accounts/admin.py:19
+msgid "closed"
+msgstr "បានបិទ"
+
+#: apps/accounts/admin.py:34
+#, python-format
+msgid "Trip “%(trip)s”, owned by %(user)s: make someone else its Owner first."
+msgstr ""
+"ដំណើរកម្សាន្ត “%(trip)s” ដែលមាន %(user)s ជាម្ចាស់៖ "
+"សូមកំណត់អ្នកផ្សេងជាម្ចាស់ជាមុនសិន។"
+
+#: apps/accounts/admin.py:40
+msgid "Approve selected sign-up requests"
+msgstr "អនុម័តសំណើចុះឈ្មោះដែលបានជ្រើសរើស"
+
+#: apps/accounts/admin.py:45
+#, python-format
+msgid "%(count)d account(s) approved."
+msgstr "បានអនុម័តគណនីចំនួន %(count)d។"
+
+#: apps/accounts/admin.py:48
+msgid "Restore selected closed accounts"
+msgstr "ស្ដារគណនីដែលបានបិទដែលបានជ្រើសរើសវិញ"
+
+#: apps/accounts/admin.py:52
+#, python-format
+msgid "%(count)d account(s) restored."
+msgstr "បានស្ដារគណនីចំនួន %(count)d វិញ។"
+
+#: apps/accounts/closing.py:37
+#, python-format
+msgid "%(trips)s and %(last)s"
+msgstr "%(trips)s និង %(last)s"
+
+#: apps/accounts/closing.py:43
+#, python-format
+msgid "You are the Owner of %(trips)s. Make someone else the Owner first."
+msgstr "អ្នកជាម្ចាស់នៃ %(trips)s។ សូមកំណត់អ្នកផ្សេងជាម្ចាស់ជាមុនសិន។"
+
+#: apps/accounts/forms.py:41
+msgid "At least 8 characters, not only numbers."
+msgstr "ត្រូវមានយ៉ាងហោចណាស់ 8 តួអក្សរ ហើយមិនអាចមានតែលេខទេ។"
+
+#: apps/accounts/forms.py:42
+msgid "Type the new password again."
+msgstr "វាយពាក្យសម្ងាត់ថ្មីម្ដងទៀត។"
+
+#: apps/accounts/forms.py:48
+msgid "Your username"
+msgstr "ឈ្មោះអ្នកប្រើរបស់អ្នក"
+
+#: apps/accounts/forms.py:59
+#, python-format
+msgid "Type “%(username)s” to confirm."
+msgstr "វាយ “%(username)s” ដើម្បីបញ្ជាក់។"
+
+#: apps/accounts/models.py:12 templates/base.html:59
+msgid "System"
+msgstr "តាមប្រព័ន្ធ"
+
+#: apps/accounts/models.py:13 templates/base.html:57
+msgid "Light"
+msgstr "ភ្លឺ"
+
+#: apps/accounts/models.py:14 templates/base.html:58
+msgid "Dark"
+msgstr "ងងឹត"
+
+#: apps/accounts/models.py:26 config/django_messages.py:188
+msgid "username"
+msgstr "ឈ្មោះអ្នកប្រើ"
+
+#: apps/accounts/models.py:34
+msgid "closed on"
+msgstr "បិទនៅថ្ងៃ"
+
+#: apps/accounts/models.py:39
+msgid "language"
+msgstr "ភាសា"
+
+#: apps/accounts/usernames.py:16
+msgid "This username is taken."
+msgstr "ឈ្មោះអ្នកប្រើនេះមានគេប្រើហើយ។"
+
+#: apps/accounts/usernames.py:17
+msgid "Use only the characters listed above."
+msgstr "សូមប្រើតែតួអក្សរដែលបានរាយខាងលើ។"
+
+#: apps/accounts/views.py:54
+msgid "Your account is closed."
+msgstr "គណនីរបស់អ្នកត្រូវបានបិទ។"
+
+#: apps/disputes/models.py:22
+msgctxt "dispute state"
+msgid "Open"
+msgstr "មិនទាន់ដោះស្រាយ"
+
+#: apps/disputes/models.py:23
+msgctxt "dispute state"
+msgid "Resolved"
+msgstr "បានដោះស្រាយ"
+
+#: apps/disputes/models.py:24
+msgctxt "dispute state"
+msgid "Closed"
+msgstr "បានបិទ"
+
+#: apps/disputes/models.py:37
+msgid "reason"
+msgstr "មូលហេតុ"
+
+#: apps/disputes/models.py:38
+msgid "reason in English"
+msgstr "មូលហេតុជាភាសាអង់គ្លេស"
+
+#: apps/disputes/models.py:40
+msgid "reason for closing"
+msgstr "មូលហេតុនៃការបិទ"
+
+#: apps/disputes/models.py:42
+msgid "reason for closing in English"
+msgstr "មូលហេតុនៃការបិទជាភាសាអង់គ្លេស"
+
+#: apps/disputes/models.py:83
+msgid "message"
+msgstr "សារ"
+
+#: apps/disputes/models.py:84
+msgid "message in English"
+msgstr "សារជាភាសាអង់គ្លេស"
+
+#. Translators: stands for a person in: "<Owner>, the Owner, closed
+#. <someone>'s dispute".
+#: apps/disputes/rules.py:182 apps/trips/history.py:448
+msgid "someone"
+msgstr "នរណាម្នាក់"
+
+#: apps/disputes/rules.py:185
+#, python-format
+msgid "%(who)s opened a dispute on %(label)s: %(detail)s"
+msgstr "%(who)s បានបើកវិវាទលើ %(label)s៖ %(detail)s"
+
+#: apps/disputes/rules.py:187
+#, python-format
+msgid "%(who)s wrote in the dispute on %(label)s: %(detail)s"
+msgstr "%(who)s បានសរសេរក្នុងវិវាទលើ %(label)s៖ %(detail)s"
+
+#: apps/disputes/rules.py:189 apps/trips/history.py:452
+#, python-format
+msgid "%(who)s resolved the dispute on %(label)s"
+msgstr "%(who)s បានដោះស្រាយវិវាទលើ %(label)s"
+
+#: apps/disputes/rules.py:191
+#, python-format
+msgid ""
+"%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s. Reason: "
+"%(detail)s"
+msgstr ""
+"%(who)s ជាម្ចាស់ បានបិទវិវាទរបស់ %(opener)s លើ %(label)s។ មូលហេតុ៖ "
+"%(detail)s"
+
+#: apps/disputes/rules.py:193 apps/trips/history.py:402
+#, python-format
+msgid "%(who)s settled the trip"
+msgstr "%(who)s បានទូទាត់បញ្ចប់ដំណើរកម្សាន្ត"
+
+#: apps/disputes/rules.py:194 apps/trips/history.py:403
+#, python-format
+msgid "%(who)s reopened the trip"
+msgstr "%(who)s បានបើកដំណើរកម្សាន្តឡើងវិញ"
+
+#: apps/disputes/rules.py:196
+#, python-format
+msgid "%(who)s added you to the trip"
+msgstr "%(who)s បានបន្ថែមអ្នកទៅក្នុងដំណើរកម្សាន្ត"
+
+#: apps/disputes/rules.py:197
+#, python-format
+msgid "%(who)s accepted your invite"
+msgstr "%(who)s បានទទួលយកការអញ្ជើញរបស់អ្នក"
+
+#: apps/disputes/rules.py:199
+#, python-format
+msgid ""
+"%(who)s accepted your invite, but traveler %(detail)s could not be linked. "
+"Link the right traveler on the Travelers page."
+msgstr ""
+"%(who)s បានទទួលយកការអញ្ជើញរបស់អ្នក ប៉ុន្តែមិនអាចភ្ជាប់អ្នកដំណើរ %(detail)s "
+"បានទេ។ សូមភ្ជាប់អ្នកដំណើរដែលត្រឹមត្រូវនៅទំព័រអ្នកដំណើរ។"
+
+#: apps/disputes/rules.py:223
+msgid "This dispute is resolved, so it takes no new messages."
+msgstr "វិវាទនេះបានដោះស្រាយហើយ ដូច្នេះមិនអាចផ្ញើសារថ្មីបានទៀតទេ។"
+
+#: apps/disputes/rules.py:225
+msgid "This dispute is closed, so it takes no new messages."
+msgstr "វិវាទនេះត្រូវបានបិទ ដូច្នេះមិនអាចផ្ញើសារថ្មីបានទៀតទេ។"
+
+#: apps/disputes/rules.py:249
+msgid "Write why you disagree with this expense."
+msgstr "សូមសរសេរពីមូលហេតុដែលអ្នកមិនយល់ស្របនឹងការចំណាយនេះ។"
+
+#: apps/disputes/rules.py:256
+msgid "You already have an open dispute on this expense."
+msgstr "អ្នកមានវិវាទមួយដែលមិនទាន់ដោះស្រាយលើការចំណាយនេះរួចហើយ។"
+
+#: apps/disputes/rules.py:292
+msgid "Write a message first."
+msgstr "សូមសរសេរសារជាមុនសិន។"
+
+#: apps/disputes/rules.py:347
+msgid "Write the reason for closing this dispute."
+msgstr "សូមសរសេរមូលហេតុនៃការបិទវិវាទនេះ។"
+
+#: apps/disputes/rules.py:393
+#, python-format
+msgid "%(n)d open dispute"
+msgid_plural "%(n)d open disputes"
+msgstr[0] "វិវាទមិនទាន់ដោះស្រាយចំនួន %(n)d"
+
+#: apps/disputes/rules.py:401
+msgid ""
+"This traveler cannot be removed because an expense they are in has a "
+"dispute."
+msgstr ""
+"មិនអាចដកអ្នកដំណើរនេះចេញបានទេ ព្រោះមានវិវាទលើការចំណាយមួយដែលពាក់ព័ន្ធនឹងគាត់។"
+
+#: apps/disputes/rules.py:403
+msgid ""
+"This type cannot be removed because an expense of this type has a dispute."
+msgstr "មិនអាចលុបប្រភេទនេះបានទេ ព្រោះការចំណាយមួយនៃប្រភេទនេះមានវិវាទ។"
+
+#: apps/disputes/rules.py:404
+msgid ""
+"This rate cannot be deleted because an expense in this currency has a "
+"dispute."
+msgstr ""
+"មិនអាចលុបអត្រាប្ដូរប្រាក់នេះបានទេ ព្រោះការចំណាយមួយជារូបិយប័ណ្ណនេះមានវិវាទ។"
+
+#: apps/disputes/views.py:120
+msgid "Dispute opened."
+msgstr "បានបើកវិវាទ។"
+
+#: apps/disputes/views.py:152
+msgid "Dispute resolved."
+msgstr "បានដោះស្រាយវិវាទ។"
+
+#: apps/disputes/views.py:169
+msgid "Dispute closed."
+msgstr "បានបិទវិវាទ។"
+
+#: apps/expenses/ai_fill.py:83
+msgid "Describe the expense in a sentence."
+msgstr "សូមរៀបរាប់ការចំណាយក្នុងមួយប្រយោគ។"
+
+#: apps/expenses/ai_fill.py:102 apps/expenses/ai_fill.py:104
+#: templates/expenses/form.html:118
+msgid "The text could not be read. Try again."
+msgstr "មិនអាចអានអត្ថបទបានទេ។ សូមព្យាយាមម្ដងទៀត។"
+
+#: apps/expenses/ai_fill.py:106
+msgid "This box only adds expenses."
+msgstr "ប្រអប់នេះសម្រាប់តែបន្ថែមការចំណាយប៉ុណ្ណោះ។"
+
+#: apps/expenses/ai_fill.py:113
+msgid "the amount"
+msgstr "ចំនួនទឹកប្រាក់"
+
+#: apps/expenses/ai_fill.py:119
+msgid "the currency"
+msgstr "រូបិយប័ណ្ណ"
+
+#: apps/expenses/ai_fill.py:122
+#, python-format
+msgid "the currency (%(code)s has no exchange rate in this trip)"
+msgstr "រូបិយប័ណ្ណ (%(code)s មិនមានអត្រាប្ដូរប្រាក់ក្នុងដំណើរកម្សាន្តនេះទេ)"
+
+#: apps/expenses/ai_fill.py:131 apps/expenses/ai_fill.py:141
+msgid "who paid"
+msgstr "អ្នកដែលបានបង់"
+
+#: apps/expenses/ai_fill.py:138
+#, python-format
+msgid "who paid (no single traveler is called “%(name)s”)"
+msgstr "អ្នកដែលបានបង់ (មិនអាចកំណត់អ្នកដំណើរតែម្នាក់តាមឈ្មោះ “%(name)s” បានទេ)"
+
+#: apps/expenses/ai_fill.py:153
+#, python-format
+msgid "who it was for (no single traveler is called %(names)s)"
+msgstr ""
+"ចំណាយសម្រាប់នរណា (មិនអាចកំណត់អ្នកដំណើរតែម្នាក់តាមឈ្មោះ %(names)s បានទេ)"
+
+#: apps/expenses/ai_fill.py:159
+msgid "who it was for"
+msgstr "ចំណាយសម្រាប់នរណា"
+
+#: apps/expenses/ai_fill.py:165
+msgid "the type"
+msgstr "ប្រភេទ"
+
+#: apps/expenses/ai_fill.py:171
+msgid "what was bought"
+msgstr "អ្វីដែលបានទិញ"
+
+#: apps/expenses/forms.py:41 apps/expenses/report.py:212
+msgid "Description"
+msgstr "ការពិពណ៌នា"
+
+#: apps/expenses/forms.py:43 apps/expenses/report.py:40
+#: apps/expenses/report.py:214 templates/expenses/_facts.html:9
+msgid "Paid by"
+msgstr "បង់ដោយ"
+
+#: apps/expenses/forms.py:44 apps/expenses/report.py:215
+#: templates/expenses/_facts.html:10
+msgid "Split between"
+msgstr "ចែកចំណាយរវាង"
+
+#: apps/expenses/forms.py:45 apps/expenses/report.py:47
+#: apps/expenses/report.py:213 templates/expenses/_facts.html:11
+msgid "Type"
+msgstr "ប្រភេទ"
+
+#: apps/expenses/forms.py:46 apps/expenses/report.py:211
+#: templates/expenses/_facts.html:12
+msgid "Date"
+msgstr "កាលបរិច្ឆេទ"
+
+#: apps/expenses/forms.py:57
+msgid "e.g. Taxi from the airport"
+msgstr "ឧ. តាក់ស៊ីពីព្រលានយន្តហោះ"
+
+#: apps/expenses/forms.py:87
+#, python-format
+msgid "Your account can add and change only expenses paid by %(name)s."
+msgstr ""
+"គណនីរបស់អ្នកអាចបន្ថែម និងកែប្រែបានតែការចំណាយដែលបង់ដោយ %(name)s ប៉ុណ្ណោះ។"
+
+#: apps/expenses/forms.py:113
+msgid "Enter an amount above zero."
+msgstr "សូមបញ្ចូលចំនួនទឹកប្រាក់ធំជាងសូន្យ។"
+
+#: apps/expenses/forms.py:120
+msgid "Add an exchange rate for this currency in the trip settings first."
+msgstr ""
+"សូមបន្ថែមអត្រាប្ដូរប្រាក់សម្រាប់រូបិយប័ណ្ណនេះក្នុងការកំណត់ដំណើរកម្សាន្តជាមុនសិន។"
+
+#: apps/expenses/forms.py:141
+msgid "Enter a name."
+msgstr "សូមបញ្ចូលឈ្មោះ។"
+
+#: apps/expenses/forms.py:144
+msgid "This trip already has a type with this name."
+msgstr "ដំណើរកម្សាន្តនេះមានប្រភេទដែលមានឈ្មោះនេះរួចហើយ។"
+
+#: apps/expenses/forms.py:153
+msgid "Choose an icon from the list."
+msgstr "សូមជ្រើសរើសរូបតំណាងពីបញ្ជី។"
+
+#: apps/expenses/models.py:26
+msgctxt "expense type"
+msgid "Transport"
+msgstr "មធ្យោបាយធ្វើដំណើរ"
+
+#: apps/expenses/models.py:27
+msgctxt "expense type"
+msgid "Accommodation"
+msgstr "កន្លែងស្នាក់នៅ"
+
+#: apps/expenses/models.py:28
+msgctxt "expense type"
+msgid "Food & drink"
+msgstr "អាហារ និងភេសជ្ជៈ"
+
+#: apps/expenses/models.py:29
+msgctxt "expense type"
+msgid "Hospital & medicine"
+msgstr "មន្ទីរពេទ្យ និងថ្នាំ"
+
+#: apps/expenses/models.py:30
+msgctxt "expense type"
+msgid "Translation"
+msgstr "ការបកប្រែ"
+
+#: apps/expenses/models.py:31
+msgctxt "expense type"
+msgid "Shopping"
+msgstr "ការទិញទំនិញ"
+
+#: apps/expenses/models.py:32
+msgctxt "expense type"
+msgid "Activities"
+msgstr "សកម្មភាពកម្សាន្ត"
+
+#: apps/expenses/models.py:33
+msgctxt "expense type"
+msgid "Other"
+msgstr "ផ្សេងៗ"
+
+#: apps/expenses/models.py:51 apps/trips/models.py:143
+#: config/django_messages.py:187
+msgid "name"
+msgstr "ឈ្មោះ"
+
+#: apps/expenses/models.py:52
+msgid "name in English"
+msgstr "ឈ្មោះជាភាសាអង់គ្លេស"
+
+#: apps/expenses/models.py:53
+msgid "icon"
+msgstr "រូបតំណាង"
+
+#: apps/expenses/models.py:58 apps/expenses/models.py:110
+#: apps/trips/history.py:333
+msgid "type"
+msgstr "ប្រភេទ"
+
+#: apps/expenses/models.py:94 apps/trips/history.py:330
+msgid "date"
+msgstr "កាលបរិច្ឆេទ"
+
+#: apps/expenses/models.py:96 apps/trips/history.py:331
+msgid "paid by"
+msgstr "បង់ដោយ"
+
+#: apps/expenses/models.py:101
+msgid "for whom"
+msgstr "សម្រាប់នរណា"
+
+#: apps/expenses/models.py:102
+msgid "The amount is split equally among these people."
+msgstr "ចំនួនទឹកប្រាក់ត្រូវចែកស្មើៗគ្នាក្នុងចំណោមអ្នកទាំងនេះ។"
+
+#: apps/expenses/models.py:112 apps/trips/history.py:334
+msgid "description"
+msgstr "ការពិពណ៌នា"
+
+#: apps/expenses/models.py:113
+msgid "description in English"
+msgstr "ការពិពណ៌នាជាភាសាអង់គ្លេស"
+
+#: apps/expenses/models.py:114 apps/trips/history.py:335
+msgid "amount"
+msgstr "ចំនួនទឹកប្រាក់"
+
+#: apps/expenses/models.py:115 apps/trips/history.py:336
+#: apps/trips/models.py:181
+msgid "currency"
+msgstr "រូបិយប័ណ្ណ"
+
+#: apps/expenses/report.py:33 apps/trips/forms.py:198
+msgid "Traveler"
+msgstr "អ្នកដំណើរ"
+
+#. Translators: the first choice of the "Traveler" filter: no filter, all
+#. travelers.
+#: apps/expenses/report.py:37 templates/_checks.html:4
+#: templates/expenses/form.html:54 templates/trips/summary.html:37
+msgid "Everyone"
+msgstr "ទាំងអស់គ្នា"
+
+#. Translators: the first choice of the "Paid by" filter: no filter, any
+#. traveler paid.
+#: apps/expenses/report.py:44
+msgid "Anyone"
+msgstr "នរណាក៏បាន"
+
+#: apps/expenses/report.py:50
+msgid "All types"
+msgstr "គ្រប់ប្រភេទ"
+
+#: apps/expenses/report.py:52
+msgid "From"
+msgstr "ពី"
+
+#: apps/expenses/report.py:53
+msgid "To"
+msgstr "ដល់"
+
+#: apps/expenses/report.py:216
+msgid "Amount"
+msgstr "ចំនួនទឹកប្រាក់"
+
+#: apps/expenses/report.py:217 templates/trips/_rate_row.html:6
+msgid "Currency"
+msgstr "រូបិយប័ណ្ណ"
+
+#: apps/expenses/report.py:218
+#, python-format
+msgid "Amount in %(base)s"
+msgstr "ចំនួនទឹកប្រាក់ជា %(base)s"
+
+#: apps/expenses/report.py:222
+#, python-format
+msgid "%(name)s's share in %(base)s"
+msgstr "ចំណែករបស់ %(name)s ជា %(base)s"
+
+#: apps/expenses/report.py:223
+msgid "Description in English"
+msgstr "ការពិពណ៌នាជាភាសាអង់គ្លេស"
+
+#: apps/expenses/views.py:169
+msgid "Check the name."
+msgstr "សូមពិនិត្យឈ្មោះ។"
+
+#: apps/expenses/views.py:187 apps/expenses/views.py:209
+#: apps/expenses/views.py:242 apps/expenses/views.py:272
+msgid "This trip is settled."
+msgstr "ដំណើរកម្សាន្តនេះបានទូទាត់បញ្ចប់ហើយ។"
+
+#: apps/expenses/views.py:246
+#, python-format
+msgid "“%(name)s” is used by %(n)d expense, so it cannot be removed."
+msgid_plural "“%(name)s” is used by %(n)d expenses, so it cannot be removed."
+msgstr[0] "ការចំណាយ %(n)d កំពុងប្រើ “%(name)s” ដូច្នេះមិនអាចលុបបានទេ។"
+
+#: apps/expenses/views.py:257
+msgid "A trip needs at least one type."
+msgstr "ដំណើរកម្សាន្តត្រូវមានប្រភេទយ៉ាងហោចណាស់មួយ។"
+
+#: apps/expenses/views.py:274
+msgid "Adding with AI is not set up."
+msgstr "ការបន្ថែមដោយ AI មិនទាន់បានរៀបចំនៅឡើយទេ។"
+
+#: apps/expenses/views.py:277
+msgid "Too many requests. Try again in a few minutes."
+msgstr "សំណើច្រើនពេក។ សូមព្យាយាមម្ដងទៀតក្នុងរយៈពេលប៉ុន្មាននាទីទៀត។"
+
+#: apps/expenses/views.py:361
+#, python-format
+msgid "%(what)s, %(amount)s %(currency)s (%(payer)s paid)"
+msgstr "%(what)s %(amount)s %(currency)s (%(payer)s បានបង់)"
+
+#: apps/expenses/views.py:395
+#, python-format
+msgid "Added: %(expense)s"
+msgstr "បានបន្ថែម៖ %(expense)s"
+
+#: apps/expenses/views.py:451
+#, python-format
+msgid "Saved: %(expense)s"
+msgstr "បានរក្សាទុក៖ %(expense)s"
+
+#: apps/expenses/views.py:483
+#, python-format
+msgid "Deleted: %(expense)s"
+msgstr "បានលុប៖ %(expense)s"
+
+#: apps/expenses/views.py:493
+msgid "It will be left out of all totals."
+msgstr "វានឹងមិនត្រូវបានរាប់បញ្ចូលក្នុងចំនួនសរុបណាមួយទេ។"
+
+#: apps/expenses/views.py:494
+msgid "Delete expense"
+msgstr "លុបការចំណាយ"
+
+#: apps/expenses/views.py:511
+#, python-format
+msgid "%(share)s %(currency)s each"
+msgstr "ម្នាក់ %(share)s %(currency)s"
+
+#: apps/expenses/views.py:514
+#, python-format
+msgid "%(n)d traveler · %(share)s %(currency)s each"
+msgid_plural "%(n)d travelers · %(share)s %(currency)s each"
+msgstr[0] "អ្នកដំណើរ %(n)d នាក់ · ម្នាក់ %(share)s %(currency)s"
+
+#: apps/expenses/views.py:530 apps/expenses/views.py:579
+#: apps/trips/access.py:15
+msgid "This trip is settled, so its expenses are locked."
+msgstr ""
+"ដំណើរកម្សាន្តនេះបានទូទាត់បញ្ចប់ហើយ ដូច្នេះការចំណាយរបស់វាត្រូវបានចាក់សោ។"
+
+#: apps/expenses/views.py:533
+msgid ""
+"Your account is not linked to a traveler, so you can view expenses but not "
+"change them. The trip Owner can link it."
+msgstr ""
+"គណនីរបស់អ្នកមិនទាន់ភ្ជាប់ជាមួយអ្នកដំណើរណាម្នាក់ទេ "
+"ដូច្នេះអ្នកអាចមើលការចំណាយបាន ប៉ុន្តែមិនអាចកែប្រែបានទេ។ "
+"ម្ចាស់ដំណើរកម្សាន្តអាចភ្ជាប់វាបាន។"
+
+#: apps/expenses/views.py:575
+#, python-format
+msgid ""
+"%(name)s was removed from the trip, so this expense cannot be restored."
+msgstr ""
+"%(name)s ត្រូវបានដកចេញពីដំណើរកម្សាន្ត ដូច្នេះមិនអាចស្ដារការចំណាយនេះវិញបានទេ។"
+
+#: apps/expenses/views.py:624 apps/trips/history.py:293
+msgid "This expense can no longer be restored."
+msgstr "មិនអាចស្ដារការចំណាយនេះវិញបានទៀតទេ។"
+
+#: apps/expenses/views.py:638
+#, python-format
+msgid "Restored: %(expense)s"
+msgstr "បានស្ដារវិញ៖ %(expense)s"
+
+#: apps/expenses/views.py:649
+msgid "Only the Owner or an Editor can restore this expense."
+msgstr "មានតែម្ចាស់ ឬអ្នកកែសម្រួលប៉ុណ្ណោះដែលអាចស្ដារការចំណាយនេះវិញបាន។"
+
+#: apps/expenses/views.py:650
+msgid "Only the Owner or an Editor can change this expense."
+msgstr "មានតែម្ចាស់ ឬអ្នកកែសម្រួលប៉ុណ្ណោះដែលអាចកែប្រែការចំណាយនេះបាន។"
+
+#: apps/expenses/views.py:654
+#, python-format
+msgid "Only %(name)s, the Owner or an Editor can restore this expense."
+msgstr ""
+"មានតែ %(name)s ឬម្ចាស់ ឬអ្នកកែសម្រួលប៉ុណ្ណោះដែលអាចស្ដារការចំណាយនេះវិញបាន។"
+
+#: apps/expenses/views.py:655
+#, python-format
+msgid "Only %(name)s, the Owner or an Editor can change this expense."
+msgstr ""
+"មានតែ %(name)s ឬម្ចាស់ ឬអ្នកកែសម្រួលប៉ុណ្ណោះដែលអាចកែប្រែការចំណាយនេះបាន។"
+
+#: apps/expenses/views.py:664
+#, python-format
+msgid "paid by %(name)s"
+msgstr "បង់ដោយ %(name)s"
+
+#: apps/expenses/views.py:671
+#, python-format
+msgid "from %(day)s"
+msgstr "ចាប់ពី %(day)s"
+
+#: apps/expenses/views.py:673
+#, python-format
+msgid "until %(day)s"
+msgstr "រហូតដល់ %(day)s"
+
+#: apps/settlement/engine.py:84
+#, python-format
+msgid "No exchange rate for %(currency)s"
+msgstr "គ្មានអត្រាប្ដូរប្រាក់សម្រាប់ %(currency)s"
+
+#: apps/settlement/engine.py:155
+msgid "Travelers must be unique."
+msgstr "អ្នកដំណើរមិនត្រូវស្ទួនគ្នាទេ។"
+
+#: apps/settlement/engine.py:162
+#, python-format
+msgid "Unknown sponsor %(name)s"
+msgstr "មិនស្គាល់អ្នកឧបត្ថម្ភ %(name)s"
+
+#: apps/settlement/engine.py:165
+#, python-format
+msgid "Sponsor %(name)s is covered by someone else"
+msgstr "អ្នកឧបត្ថម្ភ %(name)s មានអ្នកផ្សេងឧបត្ថម្ភខ្លួនរួចហើយ"
+
+#: apps/settlement/engine.py:178
+#, python-format
+msgid "Unknown payer %(name)s"
+msgstr "មិនស្គាល់អ្នកបង់ %(name)s"
+
+#: apps/settlement/engine.py:180
+msgid "An expense needs at least one beneficiary"
+msgstr "ការចំណាយត្រូវមានអ្នកទទួលផលយ៉ាងហោចណាស់ម្នាក់"
+
+#: apps/settlement/engine.py:183
+#, python-format
+msgid "Unknown beneficiary %(name)s"
+msgstr "មិនស្គាល់អ្នកទទួលផល %(name)s"
+
+#: apps/trips/actions.py:35
+#, python-format
+msgid "The trip cannot be settled: %(reason)s."
+msgstr "មិនអាចទូទាត់បញ្ចប់ដំណើរកម្សាន្តបានទេ៖ %(reason)s។"
+
+#: apps/trips/actions.py:42
+#, python-format
+msgid "The trip cannot be settled: %(error)s."
+msgstr "មិនអាចទូទាត់បញ្ចប់ដំណើរកម្សាន្តបានទេ៖ %(error)s។"
+
+#: apps/trips/actions.py:64
+msgid "The Owner's role changes only by making someone else the Owner."
+msgstr "តួនាទីរបស់ម្ចាស់អាចប្ដូរបានតែតាមរយៈការកំណត់អ្នកផ្សេងជាម្ចាស់ប៉ុណ្ណោះ។"
+
+#: apps/trips/actions.py:66
+msgid "Choose Member or Editor."
+msgstr "សូមជ្រើសរើសសមាជិក ឬអ្នកកែសម្រួល។"
+
+#: apps/trips/actions.py:87
+msgid "Only the Owner can do this."
+msgstr "មានតែម្ចាស់ប៉ុណ្ណោះដែលអាចធ្វើការនេះបាន។"
+
+#: apps/trips/actions.py:89
+msgid "Choose another account on this trip."
+msgstr "សូមជ្រើសរើសគណនីផ្សេងទៀតក្នុងដំណើរកម្សាន្តនេះ។"
+
+#: apps/trips/actions.py:91 apps/trips/views.py:657
+msgid "This account is closed."
+msgstr "គណនីនេះត្រូវបានបិទ។"
+
+#: apps/trips/actions.py:93 apps/trips/views.py:661
+msgid "This account is not approved yet."
+msgstr "គណនីនេះមិនទាន់ត្រូវបានអនុម័តនៅឡើយទេ។"
+
+#: apps/trips/actions.py:115
+msgid "The Owner cannot be removed."
+msgstr "មិនអាចដកម្ចាស់ចេញបានទេ។"
+
+#: apps/trips/actions.py:133
+msgid "The Owner cannot leave the trip. Make someone else the Owner first."
+msgstr ""
+"ម្ចាស់មិនអាចចាកចេញពីដំណើរកម្សាន្តបានទេ។ សូមកំណត់អ្នកផ្សេងជាម្ចាស់ជាមុនសិន។"
+
+#: apps/trips/actions.py:181 apps/trips/forms.py:236 apps/trips/forms.py:250
+msgid "This person is already on the trip."
+msgstr "អ្នកនេះមាននៅក្នុងដំណើរកម្សាន្តរួចហើយ។"
+
+#: apps/trips/actions.py:184
+msgid "This trip is settled, so its travelers are locked."
+msgstr ""
+"ដំណើរកម្សាន្តនេះបានទូទាត់បញ្ចប់ហើយ ដូច្នេះមិនអាចកែប្រែបញ្ជីអ្នកដំណើរបានទេ។"
+
+#: apps/trips/actions.py:186 apps/trips/forms.py:148 apps/trips/forms.py:287
+msgid "Someone on this trip already has this name."
+msgstr "មានអ្នកក្នុងដំណើរកម្សាន្តនេះប្រើឈ្មោះនេះរួចហើយ។"
+
+#: apps/trips/actions.py:191
+msgid "This traveler is already linked to an account."
+msgstr "អ្នកដំណើរនេះបានភ្ជាប់ជាមួយគណនីមួយរួចហើយ។"
+
+#: apps/trips/english.py:21 templates/expenses/_dispute_english.html:8
+msgid "Write the English version."
+msgstr "សូមសរសេរកំណែភាសាអង់គ្លេស។"
+
+#: apps/trips/english.py:24 templates/expenses/_dispute_english.html:5
+#: templates/expenses/form.html:104
+msgctxt "label of the box with the English translation of the text above"
+msgid "English"
+msgstr "ភាសាអង់គ្លេស"
+
+#: apps/trips/forms.py:28
+msgid "Choose a country (optional)"
+msgstr "ជ្រើសរើសប្រទេស (មិនបង្ខំ)"
+
+#: apps/trips/forms.py:37
+msgid "The end date must be on or after the start date."
+msgstr "ថ្ងៃបញ្ចប់ត្រូវតែជាថ្ងៃចាប់ផ្ដើម ឬក្រោយថ្ងៃចាប់ផ្ដើម។"
+
+#: apps/trips/forms.py:43
+msgid "Delete the exchange rate for this currency first."
+msgstr "សូមលុបអត្រាប្ដូរប្រាក់សម្រាប់រូបិយប័ណ្ណនេះជាមុនសិន។"
+
+#: apps/trips/forms.py:56 templates/trips/_date_range_fields.html:2
+msgid "Choose"
+msgstr "ជ្រើសរើស"
+
+#: apps/trips/forms.py:61
+msgid "This is already the trip's base currency."
+msgstr "នេះជារូបិយប័ណ្ណគោលរបស់ដំណើរកម្សាន្តរួចហើយ។"
+
+#: apps/trips/forms.py:67
+msgid "Enter a rate above zero."
+msgstr "សូមបញ្ចូលអត្រាធំជាងសូន្យ។"
+
+#: apps/trips/forms.py:84
+msgid "This currency already has a rate."
+msgstr "រូបិយប័ណ្ណនេះមានអត្រារួចហើយ។"
+
+#: apps/trips/forms.py:132
+msgid "No account"
+msgstr "គ្មានគណនី"
+
+#: apps/trips/forms.py:134
+msgid ""
+"Optional. The linked account sees this traveler's balance and can add the "
+"expenses this traveler paid."
+msgstr ""
+"អ្នកអាចជ្រើសរើសមិនភ្ជាប់គណនីក៏បាន។ "
+"គណនីដែលបានភ្ជាប់អាចមើលសមតុល្យរបស់អ្នកដំណើរនេះ "
+"និងអាចបន្ថែមការចំណាយដែលអ្នកដំណើរនេះបានបង់។"
+
+#: apps/trips/forms.py:137 templates/trips/people.html:26
+msgid "Covered by"
+msgstr "ឧបត្ថម្ភដោយ"
+
+#: apps/trips/forms.py:139
+msgid ""
+"Travelers who pay this traveler's share. Empty means they pay their own."
+msgstr ""
+"ជ្រើសរើសអ្នកដំណើរដែលឧបត្ថម្ភអ្នកដំណើរនេះ។ បើទុកទទេ "
+"មានន័យថាគាត់បង់ចំណែកខ្លួនឯង។"
+
+#: apps/trips/forms.py:160
+#, python-format
+msgid "This account is already linked to %(name)s."
+msgstr "គណនីនេះបានភ្ជាប់ជាមួយ %(name)s រួចហើយ។"
+
+#: apps/trips/forms.py:170
+msgid ""
+"This person already covers someone else, so they must pay for themselves."
+msgstr "អ្នកនេះកំពុងឧបត្ថម្ភអ្នកផ្សេង ដូច្នេះគាត់ត្រូវបង់ចំណែកខ្លួនឯង។"
+
+#: apps/trips/forms.py:175
+#, python-format
+msgid "%(name)s is covered by someone else and cannot cover another person."
+msgstr "%(name)s មានអ្នកផ្សេងឧបត្ថម្ភ ហើយមិនអាចឧបត្ថម្ភអ្នកផ្សេងទៀតបានទេ។"
+
+#: apps/trips/forms.py:189
+msgid ""
+"No account has this username. To invite someone new, type their email "
+"address."
+msgstr ""
+"គ្មានគណនីណាមានឈ្មោះអ្នកប្រើនេះទេ។ ដើម្បីអញ្ជើញអ្នកថ្មី "
+"សូមវាយអាសយដ្ឋានអ៊ីមែលរបស់គាត់។"
+
+#: apps/trips/forms.py:193
+msgid "Username or email"
+msgstr "ឈ្មោះអ្នកប្រើ ឬអ៊ីមែល"
+
+#: apps/trips/forms.py:195
+msgid ""
+"A username of an approved account, or the email address of a new person."
+msgstr "ឈ្មោះអ្នកប្រើនៃគណនីដែលបានអនុម័ត ឬអាសយដ្ឋានអ៊ីមែលរបស់អ្នកថ្មី"
+
+#: apps/trips/forms.py:201
+msgid "New traveler's name"
+msgstr "ឈ្មោះអ្នកដំណើរថ្មី"
+
+#: apps/trips/forms.py:220
+msgid "A new traveler"
+msgstr "អ្នកដំណើរថ្មី"
+
+#: apps/trips/forms.py:221
+msgid "No traveler (view only)"
+msgstr "គ្មានអ្នកដំណើរ (មើលតែប៉ុណ្ណោះ)"
+
+#: apps/trips/forms.py:258
+msgid "This address already has an invite to this trip."
+msgstr "អាសយដ្ឋាននេះមានការអញ្ជើញទៅដំណើរកម្សាន្តនេះរួចហើយ។"
+
+#: apps/trips/forms.py:262
+#, python-format
+msgid "No email can be delivered to %(domain)s. Check the address."
+msgstr "មិនអាចផ្ញើអ៊ីមែលទៅ %(domain)s បានទេ។ សូមពិនិត្យអាសយដ្ឋាន។"
+
+#: apps/trips/forms.py:281
+msgid "Type the new traveler's name."
+msgstr "សូមវាយឈ្មោះអ្នកដំណើរថ្មី។"
+
+#: apps/trips/forms.py:306
+msgid "Role"
+msgstr "តួនាទី"
+
+#: apps/trips/forms.py:308 apps/trips/models.py:67
+msgctxt "trip role"
+msgid "Member"
+msgstr "សមាជិក"
+
+#: apps/trips/forms.py:309 apps/trips/models.py:66
+msgctxt "trip role"
+msgid "Editor"
+msgstr "អ្នកកែសម្រួល"
+
+#: apps/trips/forms.py:318
+#, python-format
+msgid ""
+"A Member can change only the expenses that %(name)s paid. An Editor can "
+"change every expense and mark the trip as settled."
+msgstr ""
+"សមាជិកអាចកែប្រែបានតែការចំណាយដែល %(name)s បានបង់។ "
+"អ្នកកែសម្រួលអាចកែប្រែគ្រប់ការចំណាយ និងកំណត់ដំណើរកម្សាន្តថាបានទូទាត់បញ្ចប់។"
+
+#. Translators: used in a History line when an expense is split between all
+#. travelers ("split between everyone").
+#: apps/trips/history.py:145
+msgid "everyone"
+msgstr "ទាំងអស់គ្នា"
+
+#. Translators: the word that names an expense in History when it has no
+#. description, as in: Cara deleted "expense".
+#: apps/trips/history.py:211
+msgid "expense"
+msgstr "ការចំណាយ"
+
+#: apps/trips/history.py:263
+#, python-format
+msgid "traveler %(name)s"
+msgstr "អ្នកដំណើរ %(name)s"
+
+#: apps/trips/history.py:276
+#, python-format
+msgid "type %(name)s"
+msgstr "ប្រភេទ %(name)s"
+
+#: apps/trips/history.py:278
+#, python-format
+msgid "the %(currency)s rate"
+msgstr "អត្រា %(currency)s"
+
+#: apps/trips/history.py:300
+#, python-format
+msgid "Not restored. Add these first: %(problems)s."
+msgstr "មិនបានស្ដារវិញទេ។ សូមបន្ថែមរបស់ទាំងនេះជាមុនសិន៖ %(problems)s។"
+
+#: apps/trips/history.py:332
+msgid "split between"
+msgstr "ចែកចំណាយរវាង"
+
+#. Translators: the start of a History sentence when the name of the person
+#. who acted is unknown ("Someone added ...").
+#: apps/trips/history.py:348
+msgid "Someone"
+msgstr "នរណាម្នាក់"
+
+#: apps/trips/history.py:362
+#, python-format
+msgid "%(who)s changed %(label)s: %(changes)s"
+msgstr "%(who)s បានកែប្រែ %(label)s៖ %(changes)s"
+
+#: apps/trips/history.py:368
+#, python-format
+msgid "%(amount)s, paid by %(payer)s"
+msgstr "%(amount)s បង់ដោយ %(payer)s"
+
+#: apps/trips/history.py:373
+#, python-format
+msgid "%(who)s added %(label)s"
+msgstr "%(who)s បានបន្ថែម %(label)s"
+
+#: apps/trips/history.py:374
+#, python-format
+msgid "%(who)s deleted %(label)s"
+msgstr "%(who)s បានលុប %(label)s"
+
+#: apps/trips/history.py:375
+#, python-format
+msgid "%(who)s restored %(label)s"
+msgstr "%(who)s បានស្ដារ %(label)s វិញ"
+
+#: apps/trips/history.py:380
+#, python-format
+msgid "%(who)s added traveler %(label)s"
+msgstr "%(who)s បានបន្ថែមអ្នកដំណើរ %(label)s"
+
+#: apps/trips/history.py:381
+#, python-format
+msgid "%(who)s renamed traveler %(old)s → %(new)s"
+msgstr "%(who)s បានប្ដូរឈ្មោះអ្នកដំណើរ %(old)s → %(new)s"
+
+#: apps/trips/history.py:382
+#, python-format
+msgid "%(who)s changed who covers %(label)s: %(old)s → %(new)s"
+msgstr "%(who)s បានប្ដូរអ្នកឧបត្ថម្ភរបស់ %(label)s៖ %(old)s → %(new)s"
+
+#: apps/trips/history.py:383
+#, python-format
+msgid "%(who)s linked traveler %(label)s to account %(new)s"
+msgstr "%(who)s បានភ្ជាប់អ្នកដំណើរ %(label)s ជាមួយគណនី %(new)s"
+
+#: apps/trips/history.py:384
+#, python-format
+msgid "%(who)s unlinked traveler %(label)s from account %(old)s"
+msgstr "%(who)s បានផ្ដាច់អ្នកដំណើរ %(label)s ពីគណនី %(old)s"
+
+#: apps/trips/history.py:385
+#, python-format
+msgid "%(who)s removed traveler %(label)s"
+msgstr "%(who)s បានដកអ្នកដំណើរ %(label)s ចេញ"
+
+#: apps/trips/history.py:386
+#, python-format
+msgid "%(who)s added %(label)s's account"
+msgstr "%(who)s បានបន្ថែមគណនីរបស់ %(label)s"
+
+#: apps/trips/history.py:387
+#, python-format
+msgid "%(who)s changed %(label)s's role: %(old)s → %(new)s"
+msgstr "%(who)s បានប្ដូរតួនាទីរបស់ %(label)s៖ %(old)s → %(new)s"
+
+#: apps/trips/history.py:388
+#, python-format
+msgid "%(who)s removed %(label)s's account"
+msgstr "%(who)s បានដកគណនីរបស់ %(label)s ចេញ"
+
+#: apps/trips/history.py:389
+#, python-format
+msgid "%(who)s made %(label)s the Owner"
+msgstr "%(who)s បានកំណត់ %(label)s ជាម្ចាស់"
+
+#: apps/trips/history.py:390
+#, python-format
+msgid "%(who)s left the trip"
+msgstr "%(who)s បានចាកចេញពីដំណើរកម្សាន្ត"
+
+#: apps/trips/history.py:391
+#, python-format
+msgid "%(who)s closed their account"
+msgstr "%(who)s បានបិទគណនីរបស់ខ្លួន"
+
+#: apps/trips/history.py:392
+#, python-format
+msgid "%(who)s sent the invite for %(label)s again"
+msgstr "%(who)s បានផ្ញើការអញ្ជើញសម្រាប់ %(label)s ម្ដងទៀត"
+
+#: apps/trips/history.py:393
+#, python-format
+msgid "%(who)s cancelled the invite for %(label)s"
+msgstr "%(who)s បានបោះបង់ការអញ្ជើញសម្រាប់ %(label)s"
+
+#: apps/trips/history.py:394
+#, python-format
+msgid "The invite for %(label)s expired"
+msgstr "ការអញ្ជើញសម្រាប់ %(label)s បានផុតកំណត់"
+
+#: apps/trips/history.py:395
+#, python-format
+msgid "%(who)s added the %(label)s rate: %(new)s"
+msgstr "%(who)s បានបន្ថែមអត្រា %(label)s៖ %(new)s"
+
+#: apps/trips/history.py:396
+#, python-format
+msgid "%(who)s changed the %(label)s rate: %(old)s → %(new)s"
+msgstr "%(who)s បានប្ដូរអត្រា %(label)s៖ %(old)s → %(new)s"
+
+#: apps/trips/history.py:397
+#, python-format
+msgid "%(who)s removed the %(label)s rate: %(old)s"
+msgstr "%(who)s បានលុបអត្រា %(label)s៖ %(old)s"
+
+#: apps/trips/history.py:398
+#, python-format
+msgid "%(who)s added type %(label)s"
+msgstr "%(who)s បានបន្ថែមប្រភេទ %(label)s"
+
+#: apps/trips/history.py:399
+#, python-format
+msgid "%(who)s renamed type %(old)s → %(new)s"
+msgstr "%(who)s បានប្ដូរឈ្មោះប្រភេទ %(old)s → %(new)s"
+
+#: apps/trips/history.py:400
+#, python-format
+msgid "%(who)s changed type %(label)s: icon %(old)s → %(new)s"
+msgstr "%(who)s បានកែប្រែប្រភេទ %(label)s៖ រូបតំណាង %(old)s → %(new)s"
+
+#: apps/trips/history.py:401
+#, python-format
+msgid "%(who)s removed type %(label)s"
+msgstr "%(who)s បានលុបប្រភេទ %(label)s"
+
+#: apps/trips/history.py:404
+#, python-format
+msgid "%(who)s turned the invite link on"
+msgstr "%(who)s បានបើកតំណអញ្ជើញ"
+
+#: apps/trips/history.py:405
+#, python-format
+msgid "%(who)s turned the invite link off"
+msgstr "%(who)s បានបិទតំណអញ្ជើញ"
+
+#: apps/trips/history.py:406
+#, python-format
+msgid "%(who)s renewed the invite link"
+msgstr "%(who)s បានបង្កើតតំណអញ្ជើញថ្មី"
+
+#: apps/trips/history.py:407
+#, python-format
+msgid "%(who)s renamed the trip: %(old)s → %(new)s"
+msgstr "%(who)s បានប្ដូរឈ្មោះដំណើរកម្សាន្ត៖ %(old)s → %(new)s"
+
+#: apps/trips/history.py:413
+#, python-format
+msgid "%(who)s joined by link as %(traveler)s"
+msgstr "%(who)s បានចូលរួមតាមតំណ ជា %(traveler)s"
+
+#: apps/trips/history.py:414
+#, python-format
+msgid "%(who)s joined by link (view only)"
+msgstr "%(who)s បានចូលរួមតាមតំណ (មើលតែប៉ុណ្ណោះ)"
+
+#: apps/trips/history.py:420
+#, python-format
+msgid "%(who)s changed the trip settings: %(changes)s"
+msgstr "%(who)s បានប្ដូរការកំណត់ដំណើរកម្សាន្ត៖ %(changes)s"
+
+#: apps/trips/history.py:434
+#, python-format
+msgid "%(who)s invited %(label)s as %(traveler)s"
+msgstr "%(who)s បានអញ្ជើញ %(label)s ជា %(traveler)s"
+
+#: apps/trips/history.py:435
+#, python-format
+msgid "%(who)s accepted the invite for %(label)s as %(traveler)s"
+msgstr "%(who)s បានទទួលយកការអញ្ជើញសម្រាប់ %(label)s ជា %(traveler)s"
+
+#: apps/trips/history.py:439
+#, python-format
+msgid "%(who)s invited %(label)s (view only)"
+msgstr "%(who)s បានអញ្ជើញ %(label)s (មើលតែប៉ុណ្ណោះ)"
+
+#: apps/trips/history.py:440
+#, python-format
+msgid "%(who)s accepted the invite for %(label)s (view only)"
+msgstr "%(who)s បានទទួលយកការអញ្ជើញសម្រាប់ %(label)s (មើលតែប៉ុណ្ណោះ)"
+
+#: apps/trips/history.py:450
+#, python-format
+msgid "%(who)s opened a dispute on %(label)s: %(new)s"
+msgstr "%(who)s បានបើកវិវាទលើ %(label)s៖ %(new)s"
+
+#: apps/trips/history.py:451
+#, python-format
+msgid "%(who)s wrote in the dispute on %(label)s: %(new)s"
+msgstr "%(who)s បានសរសេរក្នុងវិវាទលើ %(label)s៖ %(new)s"
+
+#: apps/trips/history.py:453
+#, python-format
+msgid "%(who)s, the Owner, closed %(opener)s’s dispute on %(label)s: %(new)s"
+msgstr "%(who)s ជាម្ចាស់ បានបិទវិវាទរបស់ %(opener)s លើ %(label)s៖ %(new)s"
+
+#. Translators: "nobody" is shown when no traveler covers this traveler's
+#. share, as in: covered by "nobody" -> "Ann".
+#: apps/trips/history.py:538 apps/trips/history.py:539
+msgid "nobody"
+msgstr "គ្មាននរណា"
+
+#: apps/trips/invite_views.py:43
+#, python-format
+msgid ""
+"You are logged in as %(name)s. Log out first, then open this link again."
+msgstr "អ្នកបានចូលគណនីជា %(name)s។ សូមចេញពីគណនីជាមុនសិន រួចបើកតំណនេះម្ដងទៀត។"
+
+#: apps/trips/invite_views.py:66
+#, python-format
+msgid "You joined %(trip)s."
+msgstr "អ្នកបានចូលរួម %(trip)s។"
+
+#: apps/trips/invites.py:112 templates/expenses/_disputes.html:16
+#: templates/expenses/_disputes.html:17 templates/notifications.html:15
+#, python-format
+msgid "%(day)s at %(time)s"
+msgstr "%(day)s ម៉ោង %(time)s"
+
+#: apps/trips/invites.py:181
+msgid "This invite was already used or cancelled."
+msgstr "ការអញ្ជើញនេះត្រូវបានប្រើ ឬបោះបង់រួចហើយ។"
+
+#: apps/trips/invites.py:258
+msgid "This invite no longer works. Ask the Owner of the trip for a new one."
+msgstr "ការអញ្ជើញនេះលែងប្រើបានហើយ។ សូមសុំការអញ្ជើញថ្មីពីម្ចាស់ដំណើរកម្សាន្ត។"
+
+#: apps/trips/invites.py:365
+msgid "Email sending is not set up. Copy the link and send it yourself."
+msgstr "ការផ្ញើអ៊ីមែលមិនទាន់បានរៀបចំនៅឡើយទេ។ សូមចម្លងតំណ ហើយផ្ញើវាដោយខ្លួនឯង។"
+
+#: apps/trips/invites.py:370
+msgid ""
+"You have sent many invites in the last hour. Copy the link instead, or try "
+"again later."
+msgstr ""
+"អ្នកបានផ្ញើការអញ្ជើញច្រើនក្នុងរយៈពេលមួយម៉ោងចុងក្រោយ។ សូមចម្លងតំណជំនួសវិញ "
+"ឬព្យាយាមម្ដងទៀតពេលក្រោយ។"
+
+#: apps/trips/invites.py:392
+msgid "The email could not be sent. Copy the link and send it yourself."
+msgstr "មិនអាចផ្ញើអ៊ីមែលបានទេ។ សូមចម្លងតំណ ហើយផ្ញើវាដោយខ្លួនឯង។"
+
+#: apps/trips/invites.py:394
+#, python-format
+msgid "The invite email was sent to %(email)s."
+msgstr "បានផ្ញើអ៊ីមែលអញ្ជើញទៅ %(email)s ហើយ។"
+
+#: apps/trips/models.py:16
+msgid "trip name"
+msgstr "ឈ្មោះដំណើរកម្សាន្ត"
+
+#: apps/trips/models.py:18
+msgid "trip name in English"
+msgstr "ឈ្មោះដំណើរកម្សាន្តជាភាសាអង់គ្លេស"
+
+#: apps/trips/models.py:19
+msgid "country"
+msgstr "ប្រទេស"
+
+#: apps/trips/models.py:20
+msgid "start date"
+msgstr "ថ្ងៃចាប់ផ្ដើម"
+
+#: apps/trips/models.py:21
+msgid "end date"
+msgstr "ថ្ងៃបញ្ចប់"
+
+#: apps/trips/models.py:23
+msgid "base currency"
+msgstr "រូបិយប័ណ្ណគោល"
+
+#: apps/trips/models.py:27
+msgid "All totals and balances are shown in this currency."
+msgstr "ចំនួនសរុប និងសមតុល្យទាំងអស់ត្រូវបង្ហាញជារូបិយប័ណ្ណនេះ។"
+
+#: apps/trips/models.py:31
+msgid "settled on"
+msgstr "បានទូទាត់បញ្ចប់នៅថ្ងៃ"
+
+#: apps/trips/models.py:65
+msgctxt "trip role"
+msgid "Owner"
+msgstr "ម្ចាស់"
+
+#: apps/trips/models.py:107
+msgctxt "trip role"
+msgid "Viewer"
+msgstr "អ្នកមើល"
+
+#: apps/trips/models.py:150
+msgid "linked account"
+msgstr "គណនីដែលបានភ្ជាប់"
+
+#: apps/trips/models.py:157
+msgid "covered by"
+msgstr "ឧបត្ថម្ភដោយ"
+
+#: apps/trips/models.py:158
+msgid ""
+"People who pay this person's share. Leave empty if they pay for themselves."
+msgstr "ជ្រើសរើសអ្នកដែលឧបត្ថម្ភអ្នកនេះ។ ទុកទទេ ប្រសិនបើគាត់បង់ចំណែកខ្លួនឯង។"
+
+#: apps/trips/models.py:182
+msgid "rate"
+msgstr "អត្រា"
+
+#: apps/trips/models.py:241
+msgid "history entries"
+msgstr "កំណត់ត្រាប្រវត្តិ"
+
+#: apps/trips/models.py:265
+msgctxt "invite state"
+msgid "Pending"
+msgstr "កំពុងរង់ចាំ"
+
+#: apps/trips/models.py:266
+msgctxt "invite state"
+msgid "Expired"
+msgstr "ផុតកំណត់"
+
+#: apps/trips/models.py:267
+msgctxt "invite state"
+msgid "Accepted"
+msgstr "បានទទួលយក"
+
+#: apps/trips/models.py:268
+msgctxt "invite state"
+msgid "Cancelled"
+msgstr "បានបោះបង់"
+
+#: apps/trips/models.py:273
+msgid "email address"
+msgstr "អាសយដ្ឋានអ៊ីមែល"
+
+#: apps/trips/views.py:67
+msgid "Trip created."
+msgstr "បានបង្កើតដំណើរកម្សាន្ត។"
+
+#: apps/trips/views.py:124
+msgid "Trip saved."
+msgstr "បានរក្សាទុកដំណើរកម្សាន្ត។"
+
+#: apps/trips/views.py:209
+msgid "Exchange rate saved."
+msgstr "បានរក្សាទុកអត្រាប្ដូរប្រាក់។"
+
+#: apps/trips/views.py:249
+msgid "Exchange rate deleted."
+msgstr "បានលុបអត្រាប្ដូរប្រាក់។"
+
+#: apps/trips/views.py:258
+msgid "Expenses use this currency. Change them first."
+msgstr "មានការចំណាយប្រើរូបិយប័ណ្ណនេះ។ សូមកែប្រែការចំណាយទាំងនោះជាមុនសិន។"
+
+#: apps/trips/views.py:263
+msgid "Delete rate"
+msgstr "លុបអត្រា"
+
+#: apps/trips/views.py:274
+#, python-format
+msgid "Trip “%(name)s” deleted."
+msgstr "បានលុបដំណើរកម្សាន្ត “%(name)s”។"
+
+#: apps/trips/views.py:283
+msgid "All expenses of this trip are deleted too. This cannot be undone."
+msgstr ""
+"ការចំណាយទាំងអស់នៃដំណើរកម្សាន្តនេះក៏នឹងត្រូវលុបដែរ។ "
+"សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។"
+
+#: apps/trips/views.py:284 templates/trips/settings.html:60
+msgid "Delete trip"
+msgstr "លុបដំណើរកម្សាន្ត"
+
+#: apps/trips/views.py:352
+#, python-format
+msgid "%(name)s added."
+msgstr "បានបន្ថែម %(name)s។"
+
+#: apps/trips/views.py:373
+#, python-format
+msgid "%(name)s saved."
+msgstr "បានរក្សាទុក %(name)s។"
+
+#: apps/trips/views.py:415
+#, python-format
+msgid "%(name)s removed."
+msgstr "បានដក %(name)s ចេញ។"
+
+#: apps/trips/views.py:424
+msgid "This traveler appears in expenses. Change those expenses first."
+msgstr "អ្នកដំណើរនេះមាននៅក្នុងការចំណាយ។ សូមកែប្រែការចំណាយទាំងនោះជាមុនសិន។"
+
+#: apps/trips/views.py:429 templates/trips/participant_form.html:13
+msgid "Remove traveler"
+msgstr "ដកអ្នកដំណើរចេញ"
+
+#: apps/trips/views.py:484
+#, python-format
+msgid "%(name)s can now open this trip."
+msgstr "ឥឡូវនេះ %(name)s អាចបើកដំណើរកម្សាន្តនេះបានហើយ។"
+
+#: apps/trips/views.py:510
+#, python-format
+msgid "Add %(name)s (%(username)s) to this trip now?"
+msgstr "បន្ថែម %(name)s (%(username)s) ទៅក្នុងដំណើរកម្សាន្តនេះឥឡូវនេះឬ?"
+
+#: apps/trips/views.py:515
+#, python-format
+msgid "Invite %(email)s?"
+msgstr "អញ្ជើញ %(email)s ឬ?"
+
+#: apps/trips/views.py:517 templates/trips/people.html:61
+#, python-format
+msgid "As %(name)s"
+msgstr "ជា %(name)s"
+
+#: apps/trips/views.py:519
+#, python-format
+msgid "As new traveler %(name)s"
+msgstr "ជាអ្នកដំណើរថ្មី %(name)s"
+
+#: apps/trips/views.py:521 templates/trips/people.html:61
+msgid "As Viewer"
+msgstr "ជាអ្នកមើល"
+
+#: apps/trips/views.py:564
+#, python-format
+msgid "The invite for %(email)s is cancelled."
+msgstr "ការអញ្ជើញសម្រាប់ %(email)s ត្រូវបានបោះបង់។"
+
+#: apps/trips/views.py:578
+#, python-format
+msgid "You left %(trip)s."
+msgstr "អ្នកបានចាកចេញពី %(trip)s។"
+
+#: apps/trips/views.py:596
+#, python-format
+msgid "%(name)s can no longer open this trip."
+msgstr "%(name)s លែងអាចបើកដំណើរកម្សាន្តនេះបានទៀតហើយ។"
+
+#: apps/trips/views.py:624
+#, python-format
+msgid "%(name)s is now an Editor."
+msgstr "ឥឡូវនេះ %(name)s ជាអ្នកកែសម្រួល។"
+
+#: apps/trips/views.py:626
+#, python-format
+msgid "%(name)s is now a Member."
+msgstr "ឥឡូវនេះ %(name)s ជាសមាជិក។"
+
+#: apps/trips/views.py:646
+#, python-format
+msgid ""
+"Remove %(name)s from this trip? %(name)s loses access at once and is no "
+"longer linked to %(traveler)s."
+msgstr ""
+"ដក %(name)s ចេញពីដំណើរកម្សាន្តនេះឬ? %(name)s នឹងបាត់សិទ្ធិចូលភ្លាមៗ "
+"ហើយលែងភ្ជាប់ជាមួយ %(traveler)s ទៀត។"
+
+#: apps/trips/views.py:649
+#, python-format
+msgid "Remove %(name)s from this trip? %(name)s loses access at once."
+msgstr "ដក %(name)s ចេញពីដំណើរកម្សាន្តនេះឬ? %(name)s នឹងបាត់សិទ្ធិចូលភ្លាមៗ។"
+
+#: apps/trips/views.py:670
+#, python-format
+msgid "%(name)s is now the Owner."
+msgstr "ឥឡូវនេះ %(name)s ជាម្ចាស់។"
+
+#: apps/trips/views.py:680
+#, python-format
+msgid "Make %(name)s the Owner?"
+msgstr "កំណត់ %(name)s ជាម្ចាស់ឬ?"
+
+#: apps/trips/views.py:682
+#, python-format
+msgid ""
+"%(name)s will have full control of this trip. You will become an Editor and "
+"cannot undo this yourself; only %(name)s can make you the Owner again."
+msgstr ""
+"%(name)s នឹងមានសិទ្ធិគ្រប់គ្រងដំណើរកម្សាន្តនេះទាំងស្រុង។ "
+"អ្នកនឹងក្លាយជាអ្នកកែសម្រួល ហើយមិនអាចប្ដូរខ្លួនឯងទៅជាម្ចាស់វិញបានទេ។ មានតែ "
+"%(name)s ប៉ុណ្ណោះដែលអាចកំណត់អ្នកជាម្ចាស់វិញបាន។"
+
+#: apps/trips/views.py:687 templates/trips/member_edit.html:13
+#, python-format
+msgid "Make %(name)s the Owner"
+msgstr "កំណត់ %(name)s ជាម្ចាស់"
+
+#: config/django_messages.py:12
+msgid "Enter a valid value."
+msgstr "សូមបញ្ចូលតម្លៃដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:13
+msgid "Enter a valid domain name."
+msgstr "សូមបញ្ចូលឈ្មោះដែនដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:14
+msgid "Enter a valid URL."
+msgstr "សូមបញ្ចូល URL ដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:15
+msgid "Enter a valid integer."
+msgstr "សូមបញ្ចូលចំនួនគត់ដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:16
+msgid "Enter a valid email address."
+msgstr "សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:17
+msgid ""
+"Enter a valid “slug” consisting of letters, numbers, underscores or hyphens."
+msgstr "សូមបញ្ចូល “slug” ដែលត្រឹមត្រូវ ដែលមានតែអក្សរ លេខ សញ្ញា _ ឬសញ្ញា -។"
+
+#: config/django_messages.py:18
+#, python-format
+msgid "Enter a valid %(protocol)s address."
+msgstr "សូមបញ្ចូលអាសយដ្ឋាន %(protocol)s ដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:19
+msgid "IPv4"
+msgstr "IPv4"
+
+#: config/django_messages.py:20
+msgid "IPv6"
+msgstr "IPv6"
+
+#: config/django_messages.py:21
+msgid "IPv4 or IPv6"
+msgstr "IPv4 ឬ IPv6"
+
+#: config/django_messages.py:22
+msgid "Enter only digits separated by commas."
+msgstr "សូមបញ្ចូលតែលេខ ដោយប្រើសញ្ញាក្បៀសបំបែកពីគ្នា។"
+
+#: config/django_messages.py:23
+#, python-format
+msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
+msgstr "តម្លៃនេះត្រូវតែជា %(limit_value)s (បច្ចុប្បន្នជា %(show_value)s)។"
+
+#: config/django_messages.py:24
+#, python-format
+msgid "Ensure this value is less than or equal to %(limit_value)s."
+msgstr "តម្លៃនេះត្រូវតែតិចជាង ឬស្មើ %(limit_value)s។"
+
+#: config/django_messages.py:25
+#, python-format
+msgid "Ensure this value is greater than or equal to %(limit_value)s."
+msgstr "តម្លៃនេះត្រូវតែធំជាង ឬស្មើ %(limit_value)s។"
+
+#: config/django_messages.py:26
+#, python-format
+msgid "Ensure this value is a multiple of step size %(limit_value)s."
+msgstr "តម្លៃនេះត្រូវតែជាពហុគុណនៃ %(limit_value)s។"
+
+#: config/django_messages.py:27
+msgid "Enter a number."
+msgstr "សូមបញ្ចូលលេខ។"
+
+#: config/django_messages.py:29
+#, python-format
+msgid "Ensure that there are no more than %(max)s digit in total."
+msgid_plural "Ensure that there are no more than %(max)s digits in total."
+msgstr[0] "ចំនួនខ្ទង់សរុបមិនអាចលើសពី %(max)s ខ្ទង់ទេ។"
+
+#: config/django_messages.py:34
+#, python-format
+msgid "Ensure that there are no more than %(max)s decimal place."
+msgid_plural "Ensure that there are no more than %(max)s decimal places."
+msgstr[0] "ចំនួនខ្ទង់ក្រោយក្បៀសមិនអាចលើសពី %(max)s ខ្ទង់ទេ។"
+
+#: config/django_messages.py:38
+msgid "Null characters are not allowed."
+msgstr "មិនអនុញ្ញាតឱ្យមានតួអក្សរ Null ទេ។"
+
+#: config/django_messages.py:39
+msgid "and"
+msgstr "និង"
+
+#: config/django_messages.py:40
+#, python-format
+msgid "Value %(value)r is not a valid choice."
+msgstr "តម្លៃ %(value)r មិនមែនជាជម្រើសដែលត្រឹមត្រូវទេ។"
+
+#: config/django_messages.py:41
+msgid "This field cannot be null."
+msgstr "វាលនេះមិនអាចមានតម្លៃ null បានទេ។"
+
+#: config/django_messages.py:42
+msgid "This field cannot be blank."
+msgstr "កន្លែងនេះមិនអាចទុកទទេបានទេ។"
+
+#: config/django_messages.py:43
+#, python-format
+msgid "%(model_name)s with this %(field_label)s already exists."
+msgstr "%(model_name)s ដែលមាន %(field_label)s នេះមានរួចហើយ។"
+
+#: config/django_messages.py:44
+#, python-format
+msgid "Field of type: %(field_type)s"
+msgstr "វាលប្រភេទ៖ %(field_type)s"
+
+#: config/django_messages.py:45
+#, python-format
+msgid "“%(value)s” value must be either True or False."
+msgstr "តម្លៃ “%(value)s” ត្រូវតែជា True ឬ False។"
+
+#: config/django_messages.py:46
+#, python-format
+msgid "“%(value)s” value must be either True, False, or None."
+msgstr "តម្លៃ “%(value)s” ត្រូវតែជា True, False ឬ None។"
+
+#: config/django_messages.py:47
+msgid "Boolean (Either True or False)"
+msgstr "Boolean (អាចជា True ឬ False)"
+
+#: config/django_messages.py:48
+#, python-format
+msgid "String (up to %(max_length)s)"
+msgstr "ខ្សែអក្សរ (រហូតដល់ %(max_length)s តួអក្សរ)"
+
+#: config/django_messages.py:49
+msgid "String (unlimited)"
+msgstr "ខ្សែអក្សរ (គ្មានដែនកំណត់)"
+
+#: config/django_messages.py:50
+msgid "Comma-separated integers"
+msgstr "ចំនួនគត់ដែលបំបែកពីគ្នាដោយសញ្ញាក្បៀស"
+
+#: config/django_messages.py:51
+msgid "Date (without time)"
+msgstr "កាលបរិច្ឆេទ (គ្មានម៉ោង)"
+
+#: config/django_messages.py:52
+msgid "Date (with time)"
+msgstr "កាលបរិច្ឆេទ (មានម៉ោង)"
+
+#: config/django_messages.py:53
+#, python-format
+msgid "“%(value)s” value must be a decimal number."
+msgstr "តម្លៃ “%(value)s” ត្រូវតែជាលេខទសភាគ។"
+
+#: config/django_messages.py:54
+msgid "Decimal number"
+msgstr "ចំនួនទសភាគ (Decimal)"
+
+#: config/django_messages.py:55
+msgid "Duration"
+msgstr "រយៈពេល"
+
+#: config/django_messages.py:56
+msgid "Email address"
+msgstr "អាសយដ្ឋានអ៊ីមែល"
+
+#: config/django_messages.py:57
+msgid "File path"
+msgstr "ផ្លូវទៅកាន់ឯកសារ"
+
+#: config/django_messages.py:58
+#, python-format
+msgid "“%(value)s” value must be a float."
+msgstr "តម្លៃ “%(value)s” ត្រូវតែជាលេខទសភាគ (float)។"
+
+#: config/django_messages.py:59
+msgid "Floating point number"
+msgstr "លេខទសភាគ (float)"
+
+#: config/django_messages.py:60
+#, python-format
+msgid "“%(value)s” value must be an integer."
+msgstr "តម្លៃ “%(value)s” ត្រូវតែជាចំនួនគត់។"
+
+#: config/django_messages.py:61
+msgid "Integer"
+msgstr "ចំនួនគត់"
+
+#: config/django_messages.py:62
+msgid "Big (8 byte) integer"
+msgstr "ចំនួនគត់ធំ (8 byte)"
+
+#: config/django_messages.py:63
+msgid "Small integer"
+msgstr "ចំនួនគត់តូច"
+
+#: config/django_messages.py:64
+msgid "IPv4 address"
+msgstr "អាសយដ្ឋាន IPv4"
+
+#: config/django_messages.py:65
+msgid "IP address"
+msgstr "លេខ IP"
+
+#: config/django_messages.py:66
+#, python-format
+msgid "“%(value)s” value must be either None, True or False."
+msgstr "តម្លៃ “%(value)s” ត្រូវតែជា None, True ឬ False។"
+
+#: config/django_messages.py:67
+msgid "Boolean (Either True, False or None)"
+msgstr "Boolean (អាចជា True, False ឬ None)"
+
+#: config/django_messages.py:68
+msgid "Positive big integer"
+msgstr "ចំនួនគត់វិជ្ជមានធំ"
+
+#: config/django_messages.py:69
+msgid "Positive integer"
+msgstr "ចំនួនគត់វិជ្ជមាន"
+
+#: config/django_messages.py:70
+msgid "Positive small integer"
+msgstr "ចំនួនគត់វិជ្ជមានតូច"
+
+#: config/django_messages.py:71
+#, python-format
+msgid "Slug (up to %(max_length)s)"
+msgstr "Slug (រហូតដល់ %(max_length)s)"
+
+#: config/django_messages.py:72
+msgid "Text"
+msgstr "អត្ថបទ"
+
+#: config/django_messages.py:73
+msgid "Time"
+msgstr "ពេលវេលា"
+
+#: config/django_messages.py:74
+msgid "URL"
+msgstr "អាសយដ្ឋានគេហទំព័រ (URL)"
+
+#: config/django_messages.py:75
+msgid "Raw binary data"
+msgstr "ទិន្នន័យគោលពីរដើម"
+
+#: config/django_messages.py:76
+#, python-format
+msgid "“%(value)s” is not a valid UUID."
+msgstr "“%(value)s” មិនមែនជា UUID ដែលត្រឹមត្រូវទេ។"
+
+#: config/django_messages.py:77
+msgid "Universally unique identifier"
+msgstr "លេខសម្គាល់តែមួយគត់ជាសកល (UUID)"
+
+#: config/django_messages.py:78
+msgid "This field is required."
+msgstr "ចាំបាច់ត្រូវបំពេញ"
+
+#: config/django_messages.py:79
+msgid "Enter a whole number."
+msgstr "សូមបញ្ចូលចំនួនគត់។"
+
+#: config/django_messages.py:80
+msgid "Enter a valid date."
+msgstr "សូមបញ្ចូលកាលបរិច្ឆេទដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:81
+msgid "Enter a valid time."
+msgstr "សូមបញ្ចូលម៉ោងដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:82
+msgid "Enter a valid date/time."
+msgstr "សូមបញ្ចូលកាលបរិច្ឆេទ និងម៉ោងដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:83
+msgid "Enter a valid duration."
+msgstr "សូមបញ្ចូលរយៈពេលដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:84
+#, python-brace-format
+msgid "The number of days must be between {min_days} and {max_days}."
+msgstr "ចំនួនថ្ងៃត្រូវតែនៅចន្លោះ {min_days} និង {max_days}។"
+
+#: config/django_messages.py:85
+msgid "No file was submitted. Check the encoding type on the form."
+msgstr ""
+"មិនមានឯកសារត្រូវបានផ្ញើទេ។ សូមពិនិត្យប្រភេទការអ៊ិនកូដទិន្នន័យរបស់ទម្រង់។"
+
+#: config/django_messages.py:86
+msgid "No file was submitted."
+msgstr "មិនមានឯកសារត្រូវបានផ្ញើទេ។"
+
+#: config/django_messages.py:87
+msgid "The submitted file is empty."
+msgstr "ឯកសារដែលបានផ្ញើមកគឺទទេ។"
+
+#: config/django_messages.py:89
+#, python-format
+msgid ""
+"Ensure this filename has at most %(max)d character (it has %(length)d)."
+msgid_plural ""
+"Ensure this filename has at most %(max)d characters (it has %(length)d)."
+msgstr[0] ""
+"ឈ្មោះឯកសារនេះមិនអាចលើសពី %(max)d តួអក្សរទេ (បច្ចុប្បន្នមាន %(length)d)។"
+
+#: config/django_messages.py:93
+msgid "Please either submit a file or check the clear checkbox, not both."
+msgstr "សូមផ្ញើឯកសារ ឬធីកប្រអប់លុប ដោយជ្រើសរើសតែមួយប៉ុណ្ណោះ។"
+
+#: config/django_messages.py:94
+#, python-format
+msgid "Select a valid choice. %(value)s is not one of the available choices."
+msgstr "សូមជ្រើសរើសជម្រើសដែលត្រឹមត្រូវ មិនមានជម្រើស %(value)s ទេ"
+
+#: config/django_messages.py:95
+msgid "Enter a list of values."
+msgstr "សូមបញ្ចូលបញ្ជីតម្លៃ។"
+
+#: config/django_messages.py:96
+msgid "Enter a complete value."
+msgstr "សូមបញ្ចូលតម្លៃឱ្យពេញលេញ។"
+
+#: config/django_messages.py:97
+msgid "Enter a valid UUID."
+msgstr "សូមបញ្ចូល UUID ដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:98
+msgid "Enter a valid JSON."
+msgstr "សូមបញ្ចូល JSON ដែលត្រឹមត្រូវ។"
+
+#: config/django_messages.py:99
+msgid ":"
+msgstr "៖"
+
+#: config/django_messages.py:100
+#, python-format
+msgid "(Hidden field %(name)s) %(error)s"
+msgstr "(វាលលាក់ %(name)s) %(error)s"
+
+#: config/django_messages.py:101
+#, python-format
+msgid "Please submit at most %(num)d form."
+msgid_plural "Please submit at most %(num)d forms."
+msgstr[0] "សូមផ្ញើទម្រង់មិនលើសពី %(num)d ទេ។"
+
+#: config/django_messages.py:103
+#, python-format
+msgid "Please submit at least %(num)d form."
+msgid_plural "Please submit at least %(num)d forms."
+msgstr[0] "សូមផ្ញើទម្រង់យ៉ាងហោចណាស់ %(num)d។"
+
+#: config/django_messages.py:105
+msgid "Order"
+msgstr "លំដាប់"
+
+#: config/django_messages.py:106
+msgid "Delete"
+msgstr "លុប"
+
+#: config/django_messages.py:107
+#, python-format
+msgid "Please correct the duplicate data for %(field)s."
+msgstr "សូមកែទិន្នន័យស្ទួនសម្រាប់ %(field)s។"
+
+#: config/django_messages.py:108
+#, python-format
+msgid "Please correct the duplicate data for %(field)s, which must be unique."
+msgstr "សូមកែទិន្នន័យស្ទួនសម្រាប់ %(field)s ដែលមិនអាចស្ទួនគ្នាបាន។"
+
+#: config/django_messages.py:109
+msgid "Please correct the duplicate values below."
+msgstr "សូមកែតម្លៃស្ទួនខាងក្រោម។"
+
+#: config/django_messages.py:110
+msgid "The inline value did not match the parent instance."
+msgstr "តម្លៃក្នុងទម្រង់រងមិនត្រូវគ្នានឹងធាតុមេទេ។"
+
+#: config/django_messages.py:111
+msgid ""
+"Select a valid choice. That choice is not one of the available choices."
+msgstr "សូមជ្រើសរើសជម្រើសដែលត្រឹមត្រូវ។ ជម្រើសនោះមិនមាននៅក្នុងបញ្ជីទេ។"
+
+#: config/django_messages.py:112
+#, python-format
+msgid "“%(pk)s” is not a valid value."
+msgstr "“%(pk)s” មិនមែនជាតម្លៃដែលត្រឹមត្រូវទេ។"
+
+#: config/django_messages.py:113
+msgid "Unknown"
+msgstr "មិន​ដឹង"
+
+#: config/django_messages.py:114
+msgid "Monday"
+msgstr "ច័ន្ទ"
+
+#: config/django_messages.py:115
+msgid "Tuesday"
+msgstr "អង្គារ"
+
+#: config/django_messages.py:116
+msgid "Wednesday"
+msgstr "ពុធ"
+
+#: config/django_messages.py:117
+msgid "Thursday"
+msgstr "ព្រហស្បតិ៍"
+
+#: config/django_messages.py:118
+msgid "Friday"
+msgstr "សុក្រ"
+
+#: config/django_messages.py:119
+msgid "Saturday"
+msgstr "សៅរ៍"
+
+#: config/django_messages.py:120
+msgid "Sunday"
+msgstr "អាទិត្យ"
+
+#: config/django_messages.py:121
+msgid "Mon"
+msgstr "ច័ន្ទ"
+
+#: config/django_messages.py:122
+msgid "Tue"
+msgstr "អង្គារ"
+
+#: config/django_messages.py:123
+msgid "Wed"
+msgstr "ពុធ"
+
+#: config/django_messages.py:124
+msgid "Thu"
+msgstr "ព្រហ"
+
+#: config/django_messages.py:125
+msgid "Fri"
+msgstr "សុក្រ"
+
+#: config/django_messages.py:126
+msgid "Sat"
+msgstr "សៅរ៍"
+
+#: config/django_messages.py:127
+msgid "Sun"
+msgstr "អាទិត្យ"
+
+#: config/django_messages.py:128
+msgid "January"
+msgstr "មករា"
+
+#: config/django_messages.py:129
+msgid "February"
+msgstr "កុម្ភៈ"
+
+#: config/django_messages.py:130
+msgid "March"
+msgstr "មីនា"
+
+#: config/django_messages.py:131
+msgid "April"
+msgstr "មេសា"
+
+#: config/django_messages.py:132
+msgid "May"
+msgstr "ឧសភា"
+
+#: config/django_messages.py:133
+msgid "June"
+msgstr "មិថុនា"
+
+#: config/django_messages.py:134
+msgid "July"
+msgstr "កក្កដា"
+
+#: config/django_messages.py:135
+msgid "August"
+msgstr "សីហា"
+
+#: config/django_messages.py:136
+msgid "September"
+msgstr "កញ្ញា"
+
+#: config/django_messages.py:137
+msgid "October"
+msgstr "តុលា"
+
+#: config/django_messages.py:138
+msgid "November"
+msgstr "វិច្ឆិកា"
+
+#: config/django_messages.py:139
+msgid "December"
+msgstr "ធ្នូ"
+
+#: config/django_messages.py:140
+msgid "jan"
+msgstr "មករា"
+
+#: config/django_messages.py:141
+msgid "feb"
+msgstr "កុម្ភៈ"
+
+#: config/django_messages.py:142
+msgid "mar"
+msgstr "មីនា"
+
+#: config/django_messages.py:143
+msgid "apr"
+msgstr "មេសា"
+
+#: config/django_messages.py:144
+msgid "may"
+msgstr "ឧសភា"
+
+#: config/django_messages.py:145
+msgid "jun"
+msgstr "មិថុនា"
+
+#: config/django_messages.py:146
+msgid "jul"
+msgstr "កក្កដា"
+
+#: config/django_messages.py:147
+msgid "aug"
+msgstr "សីហា"
+
+#: config/django_messages.py:148
+msgid "sep"
+msgstr "កញ្ញា"
+
+#: config/django_messages.py:149
+msgid "oct"
+msgstr "តុលា"
+
+#: config/django_messages.py:150
+msgid "nov"
+msgstr "វិច្ឆិកា"
+
+#: config/django_messages.py:151
+msgid "dec"
+msgstr "ធ្នូ"
+
+#: config/django_messages.py:152
+msgctxt "abbrev. month"
+msgid "Jan."
+msgstr "មករា"
+
+#: config/django_messages.py:153
+msgctxt "abbrev. month"
+msgid "Feb."
+msgstr "កុម្ភៈ"
+
+#: config/django_messages.py:154
+msgctxt "abbrev. month"
+msgid "March"
+msgstr "មីនា"
+
+#: config/django_messages.py:155
+msgctxt "abbrev. month"
+msgid "April"
+msgstr "មេសា"
+
+#: config/django_messages.py:156
+msgctxt "abbrev. month"
+msgid "May"
+msgstr "ឧសភា"
+
+#: config/django_messages.py:157
+msgctxt "abbrev. month"
+msgid "June"
+msgstr "មិថុនា"
+
+#: config/django_messages.py:158
+msgctxt "abbrev. month"
+msgid "July"
+msgstr "កក្កដា"
+
+#: config/django_messages.py:159
+msgctxt "abbrev. month"
+msgid "Aug."
+msgstr "សីហា"
+
+#: config/django_messages.py:160
+msgctxt "abbrev. month"
+msgid "Sept."
+msgstr "កញ្ញា"
+
+#: config/django_messages.py:161
+msgctxt "abbrev. month"
+msgid "Oct."
+msgstr "តុលា"
+
+#: config/django_messages.py:162
+msgctxt "abbrev. month"
+msgid "Nov."
+msgstr "វិច្ឆិកា"
+
+#: config/django_messages.py:163
+msgctxt "abbrev. month"
+msgid "Dec."
+msgstr "ធ្នូ"
+
+#: config/django_messages.py:164
+msgctxt "alt. month"
+msgid "January"
+msgstr "មករា"
+
+#: config/django_messages.py:165
+msgctxt "alt. month"
+msgid "February"
+msgstr "កុម្ភៈ"
+
+#: config/django_messages.py:166
+msgctxt "alt. month"
+msgid "March"
+msgstr "មីនា"
+
+#: config/django_messages.py:167
+msgctxt "alt. month"
+msgid "April"
+msgstr "មេសា"
+
+#: config/django_messages.py:168
+msgctxt "alt. month"
+msgid "May"
+msgstr "ឧសភា"
+
+#: config/django_messages.py:169
+msgctxt "alt. month"
+msgid "June"
+msgstr "មិថុនា"
+
+#: config/django_messages.py:170
+msgctxt "alt. month"
+msgid "July"
+msgstr "កក្កដា"
+
+#: config/django_messages.py:171
+msgctxt "alt. month"
+msgid "August"
+msgstr "សីហា"
+
+#: config/django_messages.py:172
+msgctxt "alt. month"
+msgid "September"
+msgstr "កញ្ញា"
+
+#: config/django_messages.py:173
+msgctxt "alt. month"
+msgid "October"
+msgstr "តុលា"
+
+#: config/django_messages.py:174
+msgctxt "alt. month"
+msgid "November"
+msgstr "វិច្ឆិកា"
+
+#: config/django_messages.py:175
+msgctxt "alt. month"
+msgid "December"
+msgstr "ធ្នូ"
+
+#: config/django_messages.py:176
+msgid ", "
+msgstr ", "
+
+#: config/django_messages.py:177
+msgid "password"
+msgstr "ពាក្យសម្ងាត់"
+
+#: config/django_messages.py:178
+msgid "Password"
+msgstr "ពាក្យសម្ងាត់"
+
+#: config/django_messages.py:179
+msgid "Password confirmation"
+msgstr "បញ្ជាក់ពាក្យសម្ងាត់"
+
+#: config/django_messages.py:180
+msgid "Enter the same password as before, for verification."
+msgstr "សូមបញ្ចូលពាក្យសម្ងាត់ដដែលម្ដងទៀត ដើម្បីផ្ទៀងផ្ទាត់។"
+
+#: config/django_messages.py:181
+msgid "This account is inactive."
+msgstr "គណនីនេះត្រូវបានបិទ។"
+
+#: config/django_messages.py:182
+msgid "Email"
+msgstr "អ៊ីមែល"
+
+#: config/django_messages.py:183
+msgid "New password"
+msgstr "ពាក្យសម្ងាត់ថ្មី"
+
+#: config/django_messages.py:184
+msgid "New password confirmation"
+msgstr "បញ្ជាក់ពាក្យសម្ងាត់ថ្មី"
+
+#: config/django_messages.py:185
+msgid "Your old password was entered incorrectly. Please enter it again."
+msgstr "អ្នកបានបញ្ចូលពាក្យសម្ងាត់ចាស់មិនត្រឹមត្រូវ។ សូមបញ្ចូលម្ដងទៀត។"
+
+#: config/django_messages.py:186
+msgid "Old password"
+msgstr "ពាក្យសម្ងាត់ចាស់"
+
+#: config/django_messages.py:189
+msgid "user"
+msgstr "អ្នកប្រើ"
+
+#: config/django_messages.py:191
+#, python-format
+msgid "Your password must contain at least %(min_length)d character."
+msgid_plural "Your password must contain at least %(min_length)d characters."
+msgstr[0] "ពាក្យសម្ងាត់របស់អ្នកត្រូវមានយ៉ាងហោចណាស់ %(min_length)d តួអក្សរ។"
+
+#: config/django_messages.py:195
+#, python-format
+msgid "The password is too similar to the %(verbose_name)s."
+msgstr "ពាក្យសម្ងាត់នេះស្រដៀងនឹង %(verbose_name)s ពេក។"
+
+#: config/django_messages.py:196
+msgid "This password is too common."
+msgstr "ពាក្យសម្ងាត់នេះត្រូវបានប្រើទូទៅច្រើនពេក។"
+
+#: config/django_messages.py:197
+msgid "This password is entirely numeric."
+msgstr "ពាក្យសម្ងាត់នេះមានតែលេខ។"
+
+#: config/urls.py:9 config/urls.py:10
+msgid "Share Expense admin"
+msgstr "ផ្ទាំងគ្រប់គ្រង Share Expense"
+
+#: templates/_bell.html:2
+#, python-format
+msgid "Notifications, %(n)s unread"
+msgid_plural "Notifications, %(n)s unread"
+msgstr[0] "ការជូនដំណឹង មិនទាន់អាន %(n)s"
+
+#: templates/_bell.html:2 templates/notifications.html:4
+#: templates/notifications.html:7
+msgid "Notifications"
+msgstr "ការជូនដំណឹង"
+
+#: templates/_english_row.html:9 templates/expenses/_dispute_english.html:7
+#: templates/expenses/form.html:106
+msgid ""
+"Shown to people who read in English. Check it and correct it if needed."
+msgstr "បង្ហាញដល់អ្នកដែលអានជាភាសាអង់គ្លេស។ សូមពិនិត្យ ហើយកែវាប្រសិនបើចាំបាច់។"
+
+#: templates/_form_errors.html:5
+#, python-format
+msgid "Please fix 1 thing."
+msgid_plural "Please fix %(n)s things."
+msgstr[0] "សូមកែ %(n)s ចំណុច។"
+
+#: templates/_pager.html:5
+msgid "Load more"
+msgstr "បង្ហាញបន្ថែម"
+
+#: templates/_pager.html:6
+#, python-format
+msgid "%(shown)s of %(n)s days shown"
+msgstr "បង្ហាញ %(shown)s ក្នុងចំណោម %(n)s ថ្ងៃ"
+
+#: templates/_pager.html:6
+#, python-format
+msgid "%(shown)s of %(n)s shown"
+msgstr "បង្ហាញ %(shown)s ក្នុងចំណោម %(n)s"
+
+#: templates/base.html:12 templates/base.html:30
+#: templates/registration/login.html:7 templates/trips/invite_notice.html:4
+msgid "Share Expense"
+msgstr "Share Expense"
+
+#: templates/base.html:34
+msgid "Language"
+msgstr "ភាសា"
+
+#: templates/base.html:45
+msgid "Account menu"
+msgstr "ម៉ឺនុយគណនី"
+
+#: templates/base.html:48 templates/notifications.html:5
+#: templates/registration/close_account.html:3
+#: templates/registration/password_change_form.html:4
+#: templates/socialaccount/connections.html:5 templates/trips/home.html:4
+#: templates/trips/trip_form.html:3
+msgid "Trips"
+msgstr "ដំណើរកម្សាន្ត"
+
+#: templates/base.html:49 templates/registration/password_change_form.html:2
+#: templates/registration/password_change_form.html:6
+#: templates/registration/password_change_form.html:10
+msgid "Change password"
+msgstr "ប្ដូរពាក្យសម្ងាត់"
+
+#: templates/base.html:50 templates/socialaccount/connections.html:4
+#: templates/socialaccount/connections.html:7
+msgid "Google account"
+msgstr "គណនី Google"
+
+#: templates/base.html:50
+#, python-format
+msgid "Linked: %(google_email)s"
+msgstr "បានភ្ជាប់៖ %(google_email)s"
+
+#: templates/base.html:50
+msgid "Not linked"
+msgstr "មិនទាន់ភ្ជាប់"
+
+#: templates/base.html:51 templates/registration/close_account.html:2
+#: templates/registration/close_account.html:5
+msgid "Close account"
+msgstr "បិទគណនី"
+
+#: templates/base.html:52
+msgid "Admin"
+msgstr "ផ្ទាំងគ្រប់គ្រង"
+
+#: templates/base.html:55
+msgid "Appearance"
+msgstr "រូបរាង"
+
+#: templates/base.html:63 templates/trips/invite_notice.html:11
+msgid "Log out"
+msgstr "ចេញពីគណនី"
+
+#: templates/expenses/_added.html:1
+#, python-format
+msgid "Added by %(who)s on %(when)s."
+msgstr "បន្ថែមដោយ %(who)s នៅ %(when)s។"
+
+#: templates/expenses/_added.html:1
+#, python-format
+msgid "Added on %(when)s."
+msgstr "បន្ថែមនៅ %(when)s។"
+
+#: templates/expenses/_added.html:1
+#, python-format
+msgid "Last changed by %(who)s on %(when)s."
+msgstr "កែប្រែចុងក្រោយដោយ %(who)s នៅ %(when)s។"
+
+#: templates/expenses/_days.html:9
+#, python-format
+msgid "%(n)s expense"
+msgid_plural "%(n)s expenses"
+msgstr[0] "ការចំណាយ %(n)s"
+
+#: templates/expenses/_disputes.html:7
+msgid "Disputes"
+msgstr "វិវាទ"
+
+#: templates/expenses/_disputes.html:12
+#, python-format
+msgid "Dispute by %(name)s"
+msgstr "វិវាទដោយ %(name)s"
+
+#: templates/expenses/_disputes.html:19
+#, python-format
+msgid ""
+"%(who)s, the Owner, closed this dispute on %(day)s at %(time)s. Reason: "
+"%(reason)s"
+msgstr ""
+"%(who)s ជាម្ចាស់ បានបិទវិវាទនេះនៅ %(day)s ម៉ោង %(time)s។ មូលហេតុ៖ %(reason)s"
+
+#: templates/expenses/_disputes.html:20
+#, python-format
+msgid "%(who)s marked this dispute resolved on %(day)s at %(time)s."
+msgstr "%(who)s បានកំណត់វិវាទនេះថាបានដោះស្រាយនៅ %(day)s ម៉ោង %(time)s។"
+
+#: templates/expenses/_disputes.html:24
+msgid "Write a message"
+msgstr "សរសេរសារ"
+
+#: templates/expenses/_disputes.html:26
+msgid "Send"
+msgstr "ផ្ញើ"
+
+#: templates/expenses/_disputes.html:30
+msgid "Mark your dispute as resolved? It cannot be reopened."
+msgstr "កំណត់វិវាទរបស់អ្នកថាបានដោះស្រាយឬ? វាមិនអាចបើកឡើងវិញបានទេ។"
+
+#: templates/expenses/_disputes.html:30
+msgid "Mark as resolved"
+msgstr "កំណត់ថាបានដោះស្រាយ"
+
+#: templates/expenses/_disputes.html:32
+msgid "Close dispute"
+msgstr "បិទវិវាទ"
+
+#: templates/expenses/_disputes.html:35
+msgid "Reason for closing"
+msgstr "មូលហេតុនៃការបិទ"
+
+#: templates/expenses/_disputes.html:37
+msgid ""
+"Everyone on the trip can see the reason in History. A closed dispute cannot "
+"be reopened."
+msgstr ""
+"អ្នកគ្រប់គ្នាក្នុងដំណើរកម្សាន្តអាចមើលមូលហេតុនៅក្នុងប្រវត្តិ។ "
+"វិវាទដែលបានបិទមិនអាចបើកឡើងវិញបានទេ។"
+
+#: templates/expenses/_disputes.html:39
+msgid "Confirm closing"
+msgstr "បញ្ជាក់ការបិទ"
+
+#: templates/expenses/_disputes.html:47
+msgid "Dispute this expense"
+msgstr "ជំទាស់ការចំណាយនេះ"
+
+#: templates/expenses/_disputes.html:50
+msgid "What is wrong with this expense?"
+msgstr "តើការចំណាយនេះខុសត្រង់ណា?"
+
+#: templates/expenses/_disputes.html:52
+msgid ""
+"The person who recorded this expense and the payer are notified. If neither "
+"has an account, the Owner is notified."
+msgstr ""
+"អ្នកដែលបានកត់ត្រាការចំណាយនេះ និងអ្នកបង់នឹងទទួលបានការជូនដំណឹង។ "
+"ប្រសិនបើគ្មាននរណាម្នាក់ក្នុងចំណោមពួកគេមានគណនីទេ "
+"ម្ចាស់នឹងទទួលបានការជូនដំណឹងជំនួស។"
+
+#: templates/expenses/_disputes.html:54
+msgid "Open dispute"
+msgstr "ជំទាស់"
+
+#: templates/expenses/_facts.html:10
+#, python-format
+msgid "Everyone (%(n)s traveler)"
+msgid_plural "Everyone (%(n)s travelers)"
+msgstr[0] "ទាំងអស់គ្នា (អ្នកដំណើរ %(n)s នាក់)"
+
+#: templates/expenses/_row.html:5
+msgid "Disputed"
+msgstr "មានវិវាទ"
+
+#: templates/expenses/_row.html:6
+#, python-format
+msgid "Paid by %(payer)s"
+msgstr "បង់ដោយ %(payer)s"
+
+#: templates/expenses/_row.html:7
+msgid "For everyone"
+msgstr "សម្រាប់ទាំងអស់គ្នា"
+
+#: templates/expenses/_row.html:7
+#, python-format
+msgid "For everyone except %(name)s"
+msgstr "សម្រាប់ទាំងអស់គ្នា លើកលែងតែ %(name)s"
+
+#: templates/expenses/_row.html:7
+#, python-format
+msgid "For %(names)s"
+msgstr "សម្រាប់ %(names)s"
+
+#: templates/expenses/_row.html:11
+#, python-format
+msgid "Paid %(total)s"
+msgstr "បានបង់ %(total)s"
+
+#: templates/expenses/_row.html:11
+#, python-format
+msgid "of %(total)s"
+msgstr "ក្នុងចំណោម %(total)s"
+
+#: templates/expenses/deleted.html:8
+#, python-format
+msgid "%(who)s deleted this expense on %(day)s at %(time)s."
+msgstr "%(who)s បានលុបការចំណាយនេះនៅ %(day)s ម៉ោង %(time)s។"
+
+#: templates/expenses/deleted.html:8
+msgid "This expense was deleted."
+msgstr "ការចំណាយនេះត្រូវបានលុប។"
+
+#: templates/expenses/deleted.html:15
+msgid "Restore expense"
+msgstr "ស្ដារការចំណាយវិញ"
+
+#: templates/expenses/form.html:2 templates/expenses/form.html:6
+msgid "Edit expense"
+msgstr "កែការចំណាយ"
+
+#: templates/expenses/form.html:2 templates/expenses/form.html:6
+#: templates/expenses/list.html:49 templates/expenses/list.html:55
+msgid "Add expense"
+msgstr "បន្ថែមការចំណាយ"
+
+#: templates/expenses/form.html:7
+msgid "Fill with AI"
+msgstr "បំពេញដោយ AI"
+
+#: templates/expenses/form.html:11
+msgid "Pick at least one traveler."
+msgstr "សូមជ្រើសរើសអ្នកដំណើរយ៉ាងហោចណាស់ម្នាក់។"
+
+#: templates/expenses/form.html:12 templates/expenses/form.html:13
+#: templates/expenses/list.html:4 templates/trips/home.html:14
+#, python-format
+msgid "%(n)s traveler"
+msgid_plural "%(n)s travelers"
+msgstr[0] "អ្នកដំណើរ %(n)s នាក់"
+
+#: templates/expenses/form.html:14
+#, python-format
+msgid "%(amount)s each"
+msgstr "ម្នាក់ %(amount)s"
+
+#: templates/expenses/form.html:37
+msgid "Suggest a better wording"
+msgstr "ណែនាំពាក្យពេចន៍ដែលល្អជាង"
+
+#: templates/expenses/form.html:40
+msgid "No better wording found."
+msgstr "រកមិនឃើញពាក្យពេចន៍ដែលល្អជាងទេ។"
+
+#: templates/expenses/form.html:41
+msgid "Suggestion"
+msgstr "ការណែនាំ"
+
+#: templates/expenses/form.html:43
+msgid "Accept"
+msgstr "ទទួលយក"
+
+#: templates/expenses/form.html:57 templates/expenses/report.html:38
+#, python-format
+msgid "%(name)s is covered by %(by)s."
+msgstr "%(by)s ឧបត្ថម្ភ %(name)s។"
+
+#: templates/expenses/form.html:62
+msgid "The type could not be saved."
+msgstr "មិនអាចរក្សាទុកប្រភេទបានទេ។"
+
+#: templates/expenses/form.html:63
+msgid "The type could not be removed."
+msgstr "មិនអាចលុបប្រភេទបានទេ។"
+
+#: templates/expenses/form.html:64 templates/expenses/form.html:68
+#, python-format
+msgid "Remove %(name)s"
+msgstr "លុប %(name)s"
+
+#: templates/expenses/form.html:65
+#, python-format
+msgid "Remove the type “%(name)s”? This cannot be undone."
+msgstr "លុបប្រភេទ “%(name)s” ឬ? អ្នកនឹងមិនអាចស្ដារប្រភេទនេះវិញបានទេ។"
+
+#: templates/expenses/form.html:67 templates/trips/_date_range_fields.html:2
+msgid "Done"
+msgstr "រួចរាល់"
+
+#: templates/expenses/form.html:68 templates/expenses/form.html:98
+msgid "Add type"
+msgstr "បន្ថែមប្រភេទ"
+
+#: templates/expenses/form.html:78 templates/expenses/form.html:80
+msgid "Other date"
+msgstr "ថ្ងៃផ្សេង"
+
+#: templates/expenses/form.html:90
+msgid "Delete this expense"
+msgstr "លុបការចំណាយនេះ"
+
+#: templates/expenses/form.html:98
+msgid "Edit type"
+msgstr "កែប្រភេទ"
+
+#: templates/expenses/form.html:100
+msgid "Icon"
+msgstr "រូបតំណាង"
+
+#: templates/expenses/form.html:101
+msgid "Name"
+msgstr "ឈ្មោះ"
+
+#: templates/expenses/form.html:111 templates/expenses/form.html:128
+#: templates/expenses/form.html:145
+#: templates/registration/close_account.html:21
+#: templates/trips/confirm_delete.html:26 templates/trips/invite_form.html:36
+#: templates/trips/member_edit.html:21
+#: templates/trips/participant_form.html:20 templates/trips/people.html:66
+#: templates/trips/trip_form.html:35
+msgid "Cancel"
+msgstr "បោះបង់"
+
+#: templates/expenses/form.html:112 templates/expenses/form.html:149
+#: templates/trips/participant_form.html:24
+msgid "Save"
+msgstr "រក្សាទុក"
+
+#: templates/expenses/form.html:119
+msgid "Filled in. Still missing:"
+msgstr "បានបំពេញហើយ។ នៅខ្វះ៖"
+
+#: templates/expenses/form.html:120
+msgid "All details filled in."
+msgstr "បានបំពេញព័ត៌មានទាំងអស់។"
+
+#: templates/expenses/form.html:122 templates/expenses/list.html:52
+msgid "Add with AI"
+msgstr "បន្ថែមដោយ AI"
+
+#: templates/expenses/form.html:123
+msgid "Include:"
+msgstr "ត្រូវមាន៖"
+
+#: templates/expenses/form.html:123
+msgid "who paid · for whom · what · amount · currency."
+msgstr "អ្នកបង់ · សម្រាប់នរណា · អ្វី · ចំនួនទឹកប្រាក់ · រូបិយប័ណ្ណ"
+
+#: templates/expenses/form.html:123
+msgid "Date: today if not given."
+msgstr "កាលបរិច្ឆេទ៖ ថ្ងៃនេះ ប្រសិនបើមិនបានបញ្ជាក់។"
+
+#: templates/expenses/form.html:124
+msgid "e.g. Maly paid 40,000 VND for drinks for Maly and Sophorn yesterday"
+msgstr ""
+"ឧ. Maly បានបង់ 40,000 VND ថ្លៃភេសជ្ជៈសម្រាប់ Maly និង Sophorn កាលពីម្សិលមិញ"
+
+#: templates/expenses/form.html:124
+msgid "Describe the expense"
+msgstr "រៀបរាប់ការចំណាយ"
+
+#: templates/expenses/form.html:129
+msgid "Fill in"
+msgstr "បំពេញ"
+
+#: templates/expenses/form.html:135
+msgid "OK"
+msgstr "យល់ព្រម"
+
+#: templates/expenses/form.html:146 templates/trips/member_edit.html:22
+#: templates/trips/participant_form.html:21
+msgid "Save changes"
+msgstr "រក្សាទុកការកែប្រែ"
+
+#: templates/expenses/form.html:148 templates/trips/participant_form.html:23
+msgid "Save and add another"
+msgstr "រក្សាទុក ហើយបន្ថែមថ្មី"
+
+#: templates/expenses/list.html:6 templates/expenses/report.html:6
+#: templates/trips/summary.html:6
+msgid "Add the rate"
+msgstr "បន្ថែមអត្រា"
+
+#: templates/expenses/list.html:6 templates/expenses/report.html:6
+#: templates/trips/summary.html:6
+msgid "Only the trip owner can add exchange rates."
+msgstr "មានតែម្ចាស់ដំណើរកម្សាន្តប៉ុណ្ណោះដែលអាចបន្ថែមអត្រាប្ដូរប្រាក់បាន។"
+
+#: templates/expenses/list.html:8
+msgid "Trip summary"
+msgstr "សង្ខេបដំណើរកម្សាន្ត"
+
+#: templates/expenses/list.html:9 templates/trips/summary.html:10
+#, python-format
+msgid "Settled on %(day)s"
+msgstr "បានទូទាត់បញ្ចប់នៅ %(day)s"
+
+#: templates/expenses/list.html:10 templates/expenses/report.html:45
+msgid "Total spent"
+msgstr "ចំណាយសរុប"
+
+#: templates/expenses/list.html:14
+msgid "Today"
+msgstr "ថ្ងៃនេះ"
+
+#: templates/expenses/list.html:16 templates/trips/summary.html:27
+msgid "Your share"
+msgstr "ចំណែករបស់អ្នក"
+
+#: templates/expenses/list.html:17 templates/trips/summary.html:21
+msgid "You were owed"
+msgstr "អ្នកត្រូវទទួលកាលមុនទូទាត់"
+
+#: templates/expenses/list.html:17 templates/trips/summary.html:21
+msgid "You owed"
+msgstr "អ្នកជំពាក់កាលមុនទូទាត់"
+
+#: templates/expenses/list.html:17 templates/trips/summary.html:21
+msgid "You are owed"
+msgstr "អ្នកត្រូវទទួល"
+
+#: templates/expenses/list.html:17 templates/trips/summary.html:21
+msgid "You owe"
+msgstr "អ្នកជំពាក់"
+
+#: templates/expenses/list.html:17 templates/trips/summary.html:21
+msgid "Nothing owed"
+msgstr "សមតុល្យស្មើសូន្យ"
+
+#: templates/expenses/list.html:26
+msgid "Search expenses"
+msgstr "ស្វែងរកការចំណាយ"
+
+#: templates/expenses/list.html:30
+msgid "Showing only expenses with an open dispute."
+msgstr "កំពុងបង្ហាញតែការចំណាយដែលមានវិវាទមិនទាន់ដោះស្រាយ។"
+
+#: templates/expenses/list.html:30
+msgid "Show all expenses"
+msgstr "បង្ហាញការចំណាយទាំងអស់"
+
+#: templates/expenses/list.html:30
+msgid "Deleted expenses with an open dispute:"
+msgstr "ការចំណាយដែលបានលុប ហើយមានវិវាទមិនទាន់ដោះស្រាយ៖"
+
+#: templates/expenses/list.html:35
+#, python-format
+msgid "No expenses match “%(q)s”."
+msgstr "គ្មានការចំណាយណាត្រូវនឹង “%(q)s” ទេ។"
+
+#: templates/expenses/list.html:37
+msgid "No expense has an open dispute."
+msgstr "គ្មានការចំណាយណាមានវិវាទមិនទាន់ដោះស្រាយទេ។"
+
+#: templates/expenses/list.html:41 templates/expenses/report.html:86
+msgid "No expenses yet."
+msgstr "មិនទាន់មានការចំណាយនៅឡើយទេ។"
+
+#: templates/expenses/list.html:51
+msgid "Add manually"
+msgstr "បន្ថែមដោយដៃ"
+
+#: templates/expenses/report.html:2 templates/trips/_trip_base.html:11
+msgid "Stats"
+msgstr "ស្ថិតិ"
+
+#: templates/expenses/report.html:10
+msgid "Filter and download"
+msgstr "ត្រង និងទាញយក"
+
+#: templates/expenses/report.html:10
+msgid "Filter"
+msgstr "ត្រង"
+
+#: templates/expenses/report.html:11
+msgid "Filters"
+msgstr "តម្រង"
+
+#: templates/expenses/report.html:20
+msgid "Apply"
+msgstr "អនុវត្ត"
+
+#: templates/expenses/report.html:21 templates/trips/_date_range_fields.html:2
+msgid "Clear"
+msgstr "សម្អាត"
+
+#: templates/expenses/report.html:26
+msgid "Download these expenses"
+msgstr "ទាញយកការចំណាយទាំងនេះ"
+
+#: templates/expenses/report.html:26
+msgid "Download all expenses"
+msgstr "ទាញយកការចំណាយទាំងអស់"
+
+#: templates/expenses/report.html:34
+msgid "Totals"
+msgstr "សរុប"
+
+#: templates/expenses/report.html:36
+#, python-format
+msgid "%(name)s’s share paid by %(payer)s"
+msgstr "ចំណែករបស់ %(name)s បង់ដោយ %(payer)s"
+
+#: templates/expenses/report.html:36
+#, python-format
+msgid "%(name)s’s share"
+msgstr "ចំណែករបស់ %(name)s"
+
+#: templates/expenses/report.html:41 templates/expenses/report.html:48
+#: templates/expenses/report.html:77 templates/trips/_trip_base.html:9
+#: templates/trips/history.html:3
+msgid "Expenses"
+msgstr "ការចំណាយ"
+
+#: templates/expenses/report.html:42
+#, python-format
+msgid "Paid by %(name)s"
+msgstr "បង់ដោយ %(name)s"
+
+#: templates/expenses/report.html:45
+#, python-format
+msgid "Total paid by %(name)s"
+msgstr "សរុបដែលបង់ដោយ %(name)s"
+
+#: templates/expenses/report.html:49
+msgid "Days with expenses"
+msgstr "ចំនួនថ្ងៃដែលមានការចំណាយ"
+
+#: templates/expenses/report.html:56
+msgid "By type"
+msgstr "តាមប្រភេទ"
+
+#: templates/expenses/report.html:67
+msgid "By day"
+msgstr "តាមថ្ងៃ"
+
+#: templates/expenses/report.html:84
+msgid "No expenses match these filters."
+msgstr "គ្មានការចំណាយណាត្រូវនឹងតម្រងទាំងនេះទេ។"
+
+#: templates/notifications.html:14
+msgctxt "unread notification mark"
+msgid "New"
+msgstr "ថ្មី"
+
+#: templates/notifications.html:26
+msgid ""
+"No notifications yet. You receive one when someone disputes an expense you "
+"paid or recorded, writes in a dispute you are part of, settles or reopens "
+"one of your trips, adds you to a trip, or accepts your invite."
+msgstr ""
+"មិនទាន់មានការជូនដំណឹងនៅឡើយទេ។ អ្នកនឹងទទួលបានការជូនដំណឹង "
+"នៅពេលមាននរណាម្នាក់ជំទាស់ការចំណាយដែលអ្នកបានបង់ ឬបានកត់ត្រា "
+"សរសេរក្នុងវិវាទដែលអ្នកពាក់ព័ន្ធ ទូទាត់បញ្ចប់ "
+"ឬបើកដំណើរកម្សាន្តមួយរបស់អ្នកឡើងវិញ បន្ថែមអ្នកទៅក្នុងដំណើរកម្សាន្ត "
+"ឬទទួលយកការអញ្ជើញរបស់អ្នក។"
+
+#: templates/registration/close_account.html:9
+msgid ""
+"Your account will be closed. You will be logged out and cannot log in until "
+"the admin restores the account. Your name stays in the records of your trips"
+" (expenses, balances and History), because they are shared money records."
+msgstr ""
+"គណនីរបស់អ្នកនឹងត្រូវបិទ។ អ្នកនឹងត្រូវចេញពីគណនី ហើយមិនអាចចូលគណនីបានទេ "
+"រហូតដល់អ្នកគ្រប់គ្រងស្ដារគណនីវិញ។ "
+"ឈ្មោះរបស់អ្នកនៅតែមានក្នុងកំណត់ត្រានៃដំណើរកម្សាន្តរបស់អ្នក (ការចំណាយ សមតុល្យ "
+"និងប្រវត្តិ) ព្រោះកំណត់ត្រាទាំងនេះជាកំណត់ត្រាហិរញ្ញវត្ថុរួម។"
+
+#: templates/registration/close_account.html:19
+#: templates/trips/confirm_delete.html:3
+#: templates/trips/confirm_delete.html:24
+msgid "Back"
+msgstr "ត្រឡប់ក្រោយ"
+
+#: templates/registration/close_account.html:22
+msgid "Close my account"
+msgstr "បិទគណនីរបស់ខ្ញុំ"
+
+#: templates/registration/login.html:2 templates/registration/login.html:15
+msgid "Log in"
+msgstr "ចូលគណនី"
+
+#: templates/registration/login.html:8
+msgid "Split trip expenses and settle up at the end."
+msgstr "ចែកការចំណាយក្នុងដំណើរកម្សាន្ត ហើយទូទាត់បញ្ចប់នៅចុងដំណើរកម្សាន្ត។"
+
+#: templates/registration/login.html:18
+msgid "or"
+msgstr "ឬ"
+
+#: templates/registration/login.html:21 templates/trips/invite.html:22
+msgid "Continue with Google"
+msgstr "បន្តជាមួយ Google"
+
+#: templates/registration/login.html:24
+msgid "No account yet? Ask the Owner of a trip for an invite."
+msgstr "មិនទាន់មានគណនីមែនទេ? សូមសុំការអញ្ជើញពីម្ចាស់ដំណើរកម្សាន្ត។"
+
+#: templates/registration/password_change_done.html:2
+#: templates/registration/password_change_done.html:7
+msgid "Password changed"
+msgstr "បានប្ដូរពាក្យសម្ងាត់"
+
+#: templates/registration/password_change_done.html:8
+msgid "Use the new password next time you log in."
+msgstr "សូមប្រើពាក្យសម្ងាត់ថ្មី នៅពេលអ្នកចូលគណនីលើកក្រោយ។"
+
+#: templates/registration/password_change_done.html:9
+msgid "Back to trips"
+msgstr "ត្រឡប់ទៅដំណើរកម្សាន្ត"
+
+#: templates/registration/pending.html:2 templates/registration/pending.html:7
+msgid "Waiting for approval"
+msgstr "កំពុងរង់ចាំការអនុម័ត"
+
+#: templates/registration/pending.html:8
+msgid ""
+"The admin has not approved this account yet. You can log in after approval."
+msgstr ""
+"អ្នកគ្រប់គ្រងមិនទាន់បានអនុម័តគណនីនេះនៅឡើយទេ។ "
+"អ្នកអាចចូលគណនីបានក្រោយពេលអនុម័ត។"
+
+#: templates/registration/pending.html:9 templates/trips/invite_notice.html:13
+msgid "Back to log in"
+msgstr "ត្រឡប់ទៅទំព័រចូលគណនី"
+
+#: templates/socialaccount/connections.html:11
+msgid "This account can log in with:"
+msgstr "អ្នកអាចចូលគណនីនេះដោយប្រើ៖"
+
+#: templates/socialaccount/connections.html:12
+msgid ""
+"Remove this Google account? You will log in with your password instead."
+msgstr ""
+"ដកគណនី Google នេះចេញឬ? អ្នកនឹងចូលគណនីដោយប្រើពាក្យសម្ងាត់របស់អ្នកជំនួសវិញ។"
+
+#: templates/socialaccount/connections.html:17
+#: templates/trips/settings.html:30
+msgid "Remove"
+msgstr "ដកចេញ"
+
+#: templates/socialaccount/connections.html:25
+msgid "Not linked. Link a Google account to log in without your password."
+msgstr ""
+"មិនទាន់ភ្ជាប់។ ភ្ជាប់គណនី Google ដើម្បីចូលគណនីដោយមិនចាំបាច់ប្រើពាក្យសម្ងាត់។"
+
+#: templates/socialaccount/connections.html:27
+msgid "Link Google account"
+msgstr "ភ្ជាប់គណនី Google"
+
+#: templates/trips/_covers.html:5
+#, python-format
+msgid "Also covers %(name)s:"
+msgstr "ឧបត្ថម្ភ %(name)s ផងដែរ៖"
+
+#: templates/trips/_covers.html:5
+#, python-format
+msgid "Covers %(name)s"
+msgstr "ឧបត្ថម្ភ %(name)s"
+
+#: templates/trips/_covers.html:7
+#, python-format
+msgid "Also covers %(n)s traveler:"
+msgid_plural "Also covers %(n)s travelers:"
+msgstr[0] "ឧបត្ថម្ភអ្នកដំណើរ %(n)s នាក់ផងដែរ៖"
+
+#: templates/trips/_covers.html:7
+#, python-format
+msgid "Covers %(n)s traveler"
+msgid_plural "Covers %(n)s travelers"
+msgstr[0] "ឧបត្ថម្ភអ្នកដំណើរ %(n)s នាក់"
+
+#: templates/trips/_date_range_fields.html:2
+msgid "Trip dates"
+msgstr "កាលបរិច្ឆេទដំណើរកម្សាន្ត"
+
+#: templates/trips/_date_range_fields.html:2
+msgid "Tap the first day"
+msgstr "ចុចថ្ងៃដំបូង"
+
+#: templates/trips/_date_range_fields.html:2
+msgid "Tap the last day"
+msgstr "ចុចថ្ងៃចុងក្រោយ"
+
+#: templates/trips/_date_range_fields.html:2
+msgid "Previous month"
+msgstr "ខែមុន"
+
+#: templates/trips/_date_range_fields.html:2
+msgid "Next month"
+msgstr "ខែបន្ទាប់"
+
+#: templates/trips/_history_days.html:10
+#, python-format
+msgid "%(n)s change"
+msgid_plural "%(n)s changes"
+msgstr[0] "ការកែប្រែ %(n)s ចំណុច"
+
+#: templates/trips/_rate_note.html:2
+msgid "Market rate on <span data-day></span>"
+msgstr "អត្រាទីផ្សារនៅថ្ងៃ <span data-day></span>"
+
+#: templates/trips/_rate_note.html:2
+msgid "Rates by ExchangeRate-API"
+msgstr "អត្រាពី ExchangeRate-API"
+
+#: templates/trips/_rate_row.html:3
+msgid "Rate"
+msgstr "អត្រា"
+
+#: templates/trips/_rate_row.html:8
+msgid "Remove this currency"
+msgstr "ដករូបិយប័ណ្ណនេះចេញ"
+
+#: templates/trips/_trip_base.html:5
+msgid "All trips"
+msgstr "ដំណើរកម្សាន្តទាំងអស់"
+
+#: templates/trips/_trip_base.html:6 templates/trips/history.html:2
+#: templates/trips/history.html:5
+msgid "History"
+msgstr "ប្រវត្តិ"
+
+#: templates/trips/_trip_base.html:6 templates/trips/settings.html:2
+#: templates/trips/settings.html:5
+msgid "Trip settings"
+msgstr "ការកំណត់ដំណើរកម្សាន្ត"
+
+#: templates/trips/_trip_base.html:8
+msgid "Trip sections"
+msgstr "ផ្នែកនៃដំណើរកម្សាន្ត"
+
+#: templates/trips/_trip_base.html:10 templates/trips/summary.html:2
+msgid "Balances"
+msgstr "សមតុល្យ"
+
+#: templates/trips/_trip_base.html:12 templates/trips/invite_form.html:5
+#: templates/trips/member_edit.html:3 templates/trips/participant_form.html:3
+#: templates/trips/people.html:2
+msgid "Travelers"
+msgstr "អ្នកដំណើរ"
+
+#: templates/trips/confirm_delete.html:10
+#, python-format
+msgid "%(payer)s paid"
+msgstr "%(payer)s បានបង់"
+
+#: templates/trips/email/invite.html:4
+#, python-format
+msgid ""
+"%(inviter)s invited you to the trip “%(trip)s” on Share Expense, an app that"
+" splits trip expenses."
+msgstr ""
+"%(inviter)s បានអញ្ជើញអ្នកចូលរួមដំណើរកម្សាន្ត “%(trip)s” នៅលើ Share Expense "
+"ដែលជាកម្មវិធីសម្រាប់ចែកការចំណាយក្នុងដំណើរកម្សាន្ត។"
+
+#: templates/trips/email/invite.html:5
+msgid "Join the trip"
+msgstr "ចូលរួមដំណើរកម្សាន្ត"
+
+#: templates/trips/email/invite.html:6
+msgid "Or copy this link:"
+msgstr "ឬចម្លងតំណនេះ៖"
+
+#: templates/trips/email/invite.html:7 templates/trips/email/invite.txt:5
+#, python-format
+msgid "Use the Google account of %(address)s."
+msgstr "សូមប្រើគណនី Google របស់ %(address)s។"
+
+#: templates/trips/email/invite.html:8 templates/trips/email/invite.txt:7
+#, python-format
+msgid "This link works once and expires on %(expires)s (%(city)s time)."
+msgstr "តំណនេះប្រើបានតែម្ដង ហើយផុតកំណត់នៅ %(expires)s (ម៉ោងនៅ %(city)s)។"
+
+#: templates/trips/email/invite.html:9 templates/trips/email/invite.txt:9
+#, python-format
+msgid "If you do not know %(inviter)s, ignore this email."
+msgstr "ប្រសិនបើអ្នកមិនស្គាល់ %(inviter)s សូមរំលងអ៊ីមែលនេះ។"
+
+#: templates/trips/email/invite.txt:1
+#, python-format
+msgid ""
+"%(inviter)s invited you to the trip \"%(trip)s\" on Share Expense, an app "
+"that splits trip expenses."
+msgstr ""
+"%(inviter)s បានអញ្ជើញអ្នកចូលរួមដំណើរកម្សាន្ត \"%(trip)s\" នៅលើ Share Expense"
+" ដែលជាកម្មវិធីសម្រាប់ចែកការចំណាយក្នុងដំណើរកម្សាន្ត។"
+
+#: templates/trips/email/invite.txt:3
+msgid "Open this link to join:"
+msgstr "បើកតំណនេះដើម្បីចូលរួម៖"
+
+#: templates/trips/email/invite_subject.txt:1
+#, python-format
+msgid "%(inviter)s invited you to %(trip)s on Share Expense"
+msgstr "%(inviter)s បានអញ្ជើញអ្នកចូលរួម %(trip)s នៅលើ Share Expense"
+
+#: templates/trips/history.html:8
+msgid "Search History"
+msgstr "ស្វែងរកក្នុងប្រវត្តិ"
+
+#: templates/trips/history.html:16
+#, python-format
+msgid "Nothing in History matches “%(q)s”."
+msgstr "គ្មានអ្វីក្នុងប្រវត្តិត្រូវនឹង “%(q)s” ទេ។"
+
+#: templates/trips/history.html:20
+msgid "Nothing has changed yet."
+msgstr "មិនទាន់មានការផ្លាស់ប្ដូរនៅឡើយទេ។"
+
+#: templates/trips/history.html:23
+msgid "Show older"
+msgstr "បង្ហាញកំណត់ត្រាចាស់ជាងនេះ"
+
+#: templates/trips/home.html:18
+msgctxt "trip status"
+msgid "Settled"
+msgstr "បានទូទាត់បញ្ចប់"
+
+#: templates/trips/home.html:19
+msgctxt "trip status"
+msgid "Active"
+msgstr "កំពុងដំណើរការ"
+
+#: templates/trips/home.html:31
+msgid "No trips yet."
+msgstr "មិនទាន់មានដំណើរកម្សាន្តនៅឡើយទេ។"
+
+#: templates/trips/home.html:32 templates/trips/home.html:37
+#: templates/trips/trip_form.html:2 templates/trips/trip_form.html:5
+msgid "New trip"
+msgstr "ដំណើរកម្សាន្តថ្មី"
+
+#: templates/trips/home.html:33
+msgid "Your username:"
+msgstr "ឈ្មោះអ្នកប្រើរបស់អ្នក៖"
+
+#: templates/trips/home.html:33
+msgid "A trip Owner can use it to add you."
+msgstr "ម្ចាស់ដំណើរកម្សាន្តអាចប្រើវាដើម្បីបន្ថែមអ្នក។"
+
+#: templates/trips/invite.html:10
+#, python-format
+msgid "%(inviter)s invited you to this trip on Share Expense."
+msgstr "%(inviter)s បានអញ្ជើញអ្នកចូលរួមដំណើរកម្សាន្តនេះនៅលើ Share Expense។"
+
+#: templates/trips/invite.html:14
+#, python-format
+msgid "Join %(trip_name)s"
+msgstr "ចូលរួម %(trip_name)s"
+
+#: templates/trips/invite.html:18
+#, python-format
+msgid ""
+"This invite is for %(address)s. Continue with the Google account of this "
+"address."
+msgstr ""
+"ការអញ្ជើញនេះសម្រាប់ %(address)s។ សូមបន្តជាមួយគណនី Google "
+"ដែលប្រើអាសយដ្ឋាននេះ។"
+
+#: templates/trips/invite.html:25
+msgid "Log in with Google is not set up yet. Ask the Owner of the trip."
+msgstr ""
+"ការចូលគណនីតាម Google មិនទាន់បានរៀបចំនៅឡើយទេ។ សូមសួរម្ចាស់ដំណើរកម្សាន្ត។"
+
+#: templates/trips/invite_form.html:4 templates/trips/invite_form.html:7
+#: templates/trips/people.html:87
+msgid "Invite"
+msgstr "អញ្ជើញ"
+
+#: templates/trips/invite_form.html:11
+#, python-format
+msgid "Did you mean %(address)s?"
+msgstr "តើអ្នកចង់សំដៅលើ %(address)s មែនទេ?"
+
+#: templates/trips/invite_form.html:11
+#, python-format
+msgid "Use %(address)s"
+msgstr "ប្រើ %(address)s"
+
+#: templates/trips/invite_form.html:22
+msgid "Send the invite again"
+msgstr "ផ្ញើការអញ្ជើញម្ដងទៀត"
+
+#: templates/trips/invite_form.html:33
+msgctxt "button back to the invite form"
+msgid "Change"
+msgstr "កែប្រែ"
+
+#: templates/trips/invite_form.html:34
+msgid "Confirm"
+msgstr "បញ្ជាក់"
+
+#: templates/trips/invite_form.html:37
+msgid "Continue"
+msgstr "បន្ត"
+
+#: templates/trips/invite_gone.html:2 templates/trips/invite_gone.html:7
+msgid "This invite no longer works"
+msgstr "ការអញ្ជើញនេះលែងប្រើបានហើយ"
+
+#: templates/trips/invite_gone.html:8
+msgid "Ask the Owner of the trip for a new one."
+msgstr "សូមសុំការអញ្ជើញថ្មីពីម្ចាស់ដំណើរកម្សាន្ត។"
+
+#: templates/trips/invite_gone.html:9
+msgid "Go to my trips"
+msgstr "ទៅកាន់ដំណើរកម្សាន្តរបស់ខ្ញុំ"
+
+#: templates/trips/member_edit.html:6
+#, python-format
+msgid "Traveler: %(name)s"
+msgstr "អ្នកដំណើរ៖ %(name)s"
+
+#: templates/trips/member_edit.html:6
+msgid "No traveler · Viewer"
+msgstr "គ្មានអ្នកដំណើរ · អ្នកមើល"
+
+#: templates/trips/member_edit.html:6
+msgid "No traveler"
+msgstr "គ្មានអ្នកដំណើរ"
+
+#: templates/trips/member_edit.html:10
+msgid ""
+"This account is not linked to a traveler, so as a Member it can only view "
+"the trip. To link it, open a traveler on the Travelers page."
+msgstr ""
+"គណនីនេះមិនទាន់ភ្ជាប់ជាមួយអ្នកដំណើរណាម្នាក់ទេ ដូច្នេះក្នុងនាមជាសមាជិក "
+"វាអាចមើលដំណើរកម្សាន្តបានតែប៉ុណ្ណោះ។ ដើម្បីភ្ជាប់វា "
+"សូមបើកព័ត៌មានរបស់អ្នកដំណើរម្នាក់នៅទំព័រអ្នកដំណើរ។"
+
+#: templates/trips/member_edit.html:15
+msgid "Remove from trip"
+msgstr "ដកចេញពីដំណើរកម្សាន្ត"
+
+#: templates/trips/participant_form.html:2
+#: templates/trips/participant_form.html:5 templates/trips/people.html:86
+msgid "Add traveler"
+msgstr "បន្ថែមអ្នកដំណើរ"
+
+#: templates/trips/participant_form.html:5
+msgid "Edit traveler"
+msgstr "កែអ្នកដំណើរ"
+
+#: templates/trips/participant_form.html:8
+msgid "This trip is settled. You can change only the linked account."
+msgstr ""
+"ដំណើរកម្សាន្តនេះបានទូទាត់បញ្ចប់ហើយ។ "
+"អ្នកអាចប្ដូរបានតែគណនីដែលបានភ្ជាប់ប៉ុណ្ណោះ។"
+
+#: templates/trips/people.html:7
+#, python-format
+msgid "Invite link for %(email)s"
+msgstr "តំណអញ្ជើញសម្រាប់ %(email)s"
+
+#: templates/trips/people.html:9
+msgid "Invite link"
+msgstr "តំណអញ្ជើញ"
+
+#: templates/trips/people.html:12
+#, python-format
+msgid ""
+"This link works once and expires on %(day)s. Only the Google account of this"
+" address can use it."
+msgstr ""
+"តំណនេះប្រើបានតែម្ដង ហើយផុតកំណត់នៅ %(day)s។ មានតែគណនី Google "
+"ដែលប្រើអាសយដ្ឋាននេះប៉ុណ្ណោះដែលអាចប្រើវាបាន។"
+
+#: templates/trips/people.html:13
+msgid "Copied"
+msgstr "បានចម្លង"
+
+#: templates/trips/people.html:13 templates/trips/people.html:64
+msgid "Copy link"
+msgstr "ចម្លងតំណ"
+
+#: templates/trips/people.html:17
+msgid "All travelers"
+msgstr "អ្នកដំណើរទាំងអស់"
+
+#: templates/trips/people.html:25 templates/trips/people.html:44
+#: templates/trips/summary.html:43
+msgid "You"
+msgstr "អ្នក"
+
+#: templates/trips/people.html:26
+msgid "Account"
+msgstr "គណនី"
+
+#: templates/trips/people.html:33
+msgid "No travelers yet."
+msgstr "មិនទាន់មានអ្នកដំណើរនៅឡើយទេ។"
+
+#: templates/trips/people.html:38
+msgid "Accounts"
+msgstr "គណនី"
+
+#: templates/trips/people.html:55
+msgid "Pending invites"
+msgstr "ការអញ្ជើញកំពុងរង់ចាំ"
+
+#: templates/trips/people.html:61
+msgid "Expired"
+msgstr "ផុតកំណត់"
+
+#: templates/trips/people.html:61
+#, python-format
+msgid "expires on %(when)s"
+msgstr "ផុតកំណត់នៅ %(when)s"
+
+#: templates/trips/people.html:64
+msgid "Make a new link? The old link will stop working."
+msgstr "បង្កើតតំណថ្មីឬ? តំណចាស់នឹងលែងដំណើរការ។"
+
+#: templates/trips/people.html:65
+msgid "Send again"
+msgstr "ផ្ញើម្ដងទៀត"
+
+#: templates/trips/people.html:66
+#, python-format
+msgid "Cancel the invite for %(email)s? Its link will stop working."
+msgstr "បោះបង់ការអញ្ជើញសម្រាប់ %(email)s ឬ? តំណរបស់វានឹងលែងដំណើរការ។"
+
+#: templates/trips/people.html:75
+#, python-format
+msgid ""
+"Leave this trip? You will no longer see it, and the traveler %(name)s is "
+"unlinked from your account. Only the Owner can add you again."
+msgstr ""
+"ចាកចេញពីដំណើរកម្សាន្តនេះឬ? អ្នកនឹងលែងឃើញវាទៀត ហើយអ្នកដំណើរ %(name)s "
+"នឹងត្រូវផ្ដាច់ពីគណនីរបស់អ្នក។ មានតែម្ចាស់ប៉ុណ្ណោះដែលអាចបន្ថែមអ្នកវិញបាន។"
+
+#: templates/trips/people.html:75
+msgid ""
+"Leave this trip? You will no longer see it. Only the Owner can add you "
+"again."
+msgstr ""
+"ចាកចេញពីដំណើរកម្សាន្តនេះឬ? អ្នកនឹងលែងឃើញវាទៀត។ "
+"មានតែម្ចាស់ប៉ុណ្ណោះដែលអាចបន្ថែមអ្នកវិញបាន។"
+
+#: templates/trips/people.html:76
+msgid "Leave this trip"
+msgstr "ចាកចេញពីដំណើរកម្សាន្តនេះ"
+
+#: templates/trips/people.html:84
+msgid "Add"
+msgstr "បន្ថែម"
+
+#: templates/trips/settings.html:8
+msgid "Trip details"
+msgstr "ព័ត៌មានលម្អិតដំណើរកម្សាន្ត"
+
+#: templates/trips/settings.html:18
+msgid "Save trip"
+msgstr "រក្សាទុកដំណើរកម្សាន្ត"
+
+#: templates/trips/settings.html:23 templates/trips/trip_form.html:16
+msgid "Exchange rates"
+msgstr "អត្រាប្ដូរប្រាក់"
+
+#: templates/trips/settings.html:24
+#, python-format
+msgid ""
+"One fixed rate per currency for the whole trip. Expenses in other currencies"
+" are converted to %(base)s."
+msgstr ""
+"រូបិយប័ណ្ណនីមួយៗប្រើអត្រាថេរមួយពេញមួយដំណើរកម្សាន្ត។ "
+"ការចំណាយជារូបិយប័ណ្ណផ្សេងទៀតត្រូវបានប្ដូរទៅជា %(base)s។"
+
+#: templates/trips/settings.html:35
+msgid "No other currencies yet."
+msgstr "មិនទាន់មានរូបិយប័ណ្ណផ្សេងទៀតនៅឡើយទេ។"
+
+#: templates/trips/settings.html:37
+msgid "Locked while the trip is settled."
+msgstr "មិនអាចកែប្រែបានទេ ពេលដំណើរកម្សាន្តបានទូទាត់បញ្ចប់។"
+
+#: templates/trips/settings.html:53
+msgid "Save rate"
+msgstr "រក្សាទុកអត្រា"
+
+#: templates/trips/settings.html:58
+msgid "Delete this trip"
+msgstr "លុបដំណើរកម្សាន្តនេះ"
+
+#: templates/trips/settings.html:59
+msgid "This deletes all its expenses too."
+msgstr "វាក៏លុបការចំណាយទាំងអស់របស់វាដែរ។"
+
+#: templates/trips/summary.html:9
+msgid "Trip status"
+msgstr "ស្ថានភាពដំណើរកម្សាន្ត"
+
+#: templates/trips/summary.html:12
+msgid "Reopen this trip? Its expenses can be changed again."
+msgstr "បើកដំណើរកម្សាន្តនេះឡើងវិញឬ? ការចំណាយរបស់វាអាចកែប្រែបានម្ដងទៀត។"
+
+#: templates/trips/summary.html:13
+msgid "Reopen trip"
+msgstr "បើកដំណើរកម្សាន្តឡើងវិញ"
+
+#: templates/trips/summary.html:20
+msgid "Your balance"
+msgstr "សមតុល្យរបស់អ្នក"
+
+#: templates/trips/summary.html:24
+msgid "Breakdown"
+msgstr "ព័ត៌មានលម្អិត"
+
+#: templates/trips/summary.html:26
+msgid "You paid"
+msgstr "អ្នកបានបង់"
+
+#: templates/trips/summary.html:28 templates/trips/summary.html:46
+#, python-format
+msgid "Covered by %(by)s"
+msgstr "ឧបត្ថម្ភដោយ %(by)s"
+
+#: templates/trips/summary.html:29
+#, python-format
+msgid "You cover %(name)s"
+msgstr "អ្នកឧបត្ថម្ភ %(name)s"
+
+#: templates/trips/summary.html:30
+msgid "Balance"
+msgstr "សមតុល្យ"
+
+#: templates/trips/summary.html:37
+msgctxt "heading above the other travelers"
+msgid "Others"
+msgstr "អ្នកផ្សេងទៀត"
+
+#: templates/trips/summary.html:44
+msgctxt "amount a traveler paid"
+msgid "Paid"
+msgstr "បានបង់"
+
+#: templates/trips/summary.html:45
+msgctxt "traveler's part of the costs"
+msgid "Share"
+msgstr "ចំណែក"
+
+#: templates/trips/summary.html:51
+msgid "was owed"
+msgstr "ត្រូវទទួលកាលមុនទូទាត់"
+
+#: templates/trips/summary.html:51
+msgid "owed"
+msgstr "ជំពាក់កាលមុនទូទាត់"
+
+#: templates/trips/summary.html:51
+msgid "is owed"
+msgstr "ត្រូវទទួល"
+
+#: templates/trips/summary.html:51
+msgid "owes"
+msgstr "ជំពាក់"
+
+#: templates/trips/summary.html:51
+msgid "nothing owed"
+msgstr "សមតុល្យស្មើសូន្យ"
+
+#: templates/trips/summary.html:63
+#, python-format
+msgid "%(n)s open dispute blocks settling"
+msgid_plural "%(n)s open disputes block settling"
+msgstr[0] ""
+"មិនអាចទូទាត់បញ្ចប់បានទេ ដោយសារមានវិវាទ %(n)s ករណីដែលមិនទាន់បានដោះស្រាយ"
+
+#: templates/trips/summary.html:65
+msgid ""
+"Mark this trip as settled? Its expenses are locked until the trip is "
+"reopened."
+msgstr ""
+"កំណត់ដំណើរកម្សាន្តនេះថាបានទូទាត់បញ្ចប់ឬ? ការចំណាយរបស់វានឹងត្រូវចាក់សោ "
+"រហូតដល់ដំណើរកម្សាន្តត្រូវបានបើកឡើងវិញ។"
+
+#: templates/trips/summary.html:66
+msgid "Mark as settled"
+msgstr "កំណត់ថាបានទូទាត់បញ្ចប់"
+
+#: templates/trips/trip_form.html:17
+msgid "Optional. One fixed rate per currency for the whole trip."
+msgstr "អាចរំលងបាន។ រូបិយប័ណ្ណនីមួយៗប្រើអត្រាថេរមួយពេញមួយដំណើរកម្សាន្ត។"
+
+#: templates/trips/trip_form.html:27
+msgid "Add currency"
+msgstr "បន្ថែមរូបិយប័ណ្ណ"
+
+#: templates/trips/trip_form.html:36
+msgid "Create trip"
+msgstr "បង្កើតដំណើរកម្សាន្ត"
