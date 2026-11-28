@@ -582,6 +582,7 @@ def test_account_page_wording(crew):
     assert "no longer linked to Cara." in page
     page = ann.get(crew.url("member_edit", crew.members["eve"].id)).content.decode()
     assert "so as a Member it can only view the trip" in page
+    assert "No traveler · Viewer" in page  # The same word as the Accounts list.
     assert "no longer linked" not in page
     response = ann.post(
         crew.url("member_edit", crew.members["cara"].id), {"role": "editor"}, follow=True

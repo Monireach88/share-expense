@@ -753,3 +753,100 @@ def test_the_email_settings_come_from_the_environment():
         "DEFAULT_FROM_EMAIL",
     ):
         assert f'os.environ.get("{name}"' in source or f'env_bool("{name}"' in source, name
+
+
+def test_a_new_traveler_keeps_the_name_the_owner_typed(crew, google):  # noqa: F811
+    """The Owner's name for the new traveler wins over the person's Google name; the Google
+    name is only the account's name."""
+    link = invite_link(crew, "zoe@example.com", "new", new_name="XYZ")
+    google["given_name"] = "Zoe"
+    visitor = Client()
+    visitor.get(link)
+    accept_with_google(visitor, link, google, "zoe@example.com")
+    member = TripMember.objects.get(trip=crew.trip, user__email__iexact="zoe@example.com")
+    assert member.linked_traveler.name == "XYZ"
+    assert member.user.display_name == "Zoe"
+
+
+# The invite address checks (apps/trips/email_check.py).
+
+
+def test_an_address_whose_domain_receives_no_email_is_refused(crew, monkeypatch):
+    from apps.trips import email_check
+
+    monkeypatch.setattr(email_check, "receives_email", lambda domain: domain != "gmial.con")
+    page = post_invite(crew, "dan@gmial.con", confirm=False).content.decode()
+    assert "No email can be delivered to gmial.con. Check the address." in page
+    assert not Invite.objects.exists()
+
+
+def test_a_typo_of_a_common_provider_is_offered_and_can_be_used(crew):
+    page = post_invite(crew, "dan@gmial.com", confirm=False).content.decode()
+    assert "Invite dan@gmial.com?" in page
+    assert "Did you mean dan@gmail.com?" in page
+    page = (
+        crew.client("ann")
+        .post(
+            crew.url("invite_new"),
+            {
+                "who": "dan@gmial.com",
+                "traveler": "none",
+                "confirm": "1",
+                "use_suggestion": "dan@gmail.com",
+            },
+        )
+        .content.decode()
+    )
+    assert "Invite dan@gmail.com?" in page  # Asked again, with the corrected address.
+    assert not Invite.objects.exists()  # Nothing is made until Confirm.
+
+
+def test_the_typo_suggestion_can_be_ignored(crew):
+    post_invite(crew, "dan@gmial.com")
+    assert the_invite(crew).email == "dan@gmial.com"
+
+
+def test_suggestion_rules():
+    from apps.trips.email_check import suggestion
+
+    assert suggestion("dan@gmial.com") == "dan@gmail.com"
+    assert suggestion("dan@gmail.con") == "dan@gmail.com"
+    assert suggestion("dan@hotmial.com") == "dan@hotmail.com"
+    assert suggestion("dan@gmail.com") == ""
+    assert suggestion("dan@company.org") == ""
+
+
+@pytest.mark.real_email_check
+def test_receives_email_reads_dns(monkeypatch):
+    import dns.resolver
+
+    from apps.trips import email_check
+
+    class Record:
+        def __init__(self, exchange):
+            self.exchange = exchange
+
+    answers = {
+        ("mail.test", "MX"): [Record("mx.mail.test.")],
+        ("web.test", "A"): ["192.0.2.1"],
+        ("nullmx.test", "MX"): [Record(".")],
+    }
+
+    def resolve(self, domain, record):
+        if domain == "missing.test":
+            raise dns.resolver.NXDOMAIN
+        if domain == "down.test":
+            raise dns.resolver.LifetimeTimeout
+        if (domain, record) in answers:
+            return answers[(domain, record)]
+        raise dns.resolver.NoAnswer
+
+    monkeypatch.setattr(dns.resolver.Resolver, "resolve", resolve)
+    email_check.receives_email.cache_clear()
+    assert email_check.receives_email("mail.test")
+    assert email_check.receives_email("web.test")  # No MX: mail goes to the address record.
+    assert not email_check.receives_email("missing.test")
+    assert not email_check.receives_email("nullmx.test")
+    assert not email_check.receives_email("empty.test")
+    assert email_check.receives_email("down.test")  # A DNS outage never blocks an invite.
+    email_check.receives_email.cache_clear()

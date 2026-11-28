@@ -11,6 +11,7 @@ dependencies = [
     "django-axes>=8.3",
     "django-countries>=9.1.0",
     "django-htmx>=1.29",
+    "dnspython>=2.9.2",
     "gunicorn>=26",
     "openpyxl>=3.1.5",
     "psycopg[binary]>=3.3",
@@ -30,6 +31,7 @@ ignore = ["E501"]
 DJANGO_SETTINGS_MODULE = "config.settings"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+markers = ["real_email_check: run the invite email check without the test stub (the test mocks DNS itself)"]
 
 [dependency-groups]
 dev = [

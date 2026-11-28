@@ -384,10 +384,16 @@ def invite_new(request: HttpRequest, trip_id) -> HttpResponse:
     other email address gets a personal invite (its link is shown on the Travelers page)."""
     membership = get_membership(request, trip_id, owner_only=True)
     trip = membership.trip
-    form = InviteForm(request.POST or None, trip=trip)
+    data = request.POST or None
+    if data is not None and data.get("use_suggestion"):
+        # "Use dan@gmail.com" on the confirmation: ask again with the corrected address.
+        data = data.copy()
+        data["who"] = data["use_suggestion"]
+        data.pop("confirm", None)
+    form = InviteForm(data, trip=trip)
     question = None
     if request.method == "POST" and "back" not in request.POST and form.is_valid():
-        if "confirm" not in request.POST:
+        if "confirm" not in data:
             question = _question(form)
         elif form.user is not None:
             try:
@@ -441,7 +447,7 @@ def _question(form: InviteForm) -> dict:
         detail = _("As new traveler %(name)s") % {"name": form.new_traveler_name}
     else:
         detail = _("As Viewer")
-    return {"title": title, "detail": detail}
+    return {"title": title, "detail": detail, "suggestion": form.suggestion}
 
 
 def _open_invite(membership: TripMember, invite_id) -> Invite:
