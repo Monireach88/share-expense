@@ -3,7 +3,7 @@
 {% block back %}<a class="back" href="{% url 'people' trip.id %}">{% icon "chevron-left" %}<span>{% translate "Travelers" %}</span></a>{% endblock %}
 {% block content %}
 <h1 class="page-title">{{ member.user.display_name }}</h1>
-<p class="lead">{% if member.user.username|lower != member.user.display_name|lower %}{{ member.user.username }} · {% endif %}{% if member.linked_traveler %}{% blocktranslate with name=member.linked_traveler.name %}Traveler: {{ name }}{% endblocktranslate %}{% else %}{% translate "No traveler" %}{% endif %}</p>
+<p class="lead">{% if member.user.username|lower != member.user.display_name|lower %}{{ member.user.username }} · {% endif %}{% if member.linked_traveler %}{% blocktranslate with name=member.linked_traveler.name %}Traveler: {{ name }}{% endblocktranslate %}{% elif member.is_viewer %}{% translate "No traveler · Viewer" %}{% else %}{% translate "No traveler" %}{% endif %}</p>
 <form method="post" id="member-form" style="margin-top: 16px">{% csrf_token %}
   {% include "_form_errors.html" %}
   {% include "_checks.html" with field=form.role %}

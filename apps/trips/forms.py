@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import validate_email
 from django.utils.translation import gettext_lazy as _
 
+from . import email_check
 from .invites import google_user
 from .models import ExchangeRate, Invite, Participant, Trip, TripMember
 
@@ -161,6 +162,7 @@ class InviteForm(forms.Form):
         self.trip = trip
         self.user = None  # An approved account that joins at once.
         self.email = ""  # Or the address of a personal invite.
+        self.suggestion = ""  # "dan@gmail.com" when the typed domain looks like a typo of it.
         self.pending = None  # An open invite to the same address: offer Send again.
         self.participant = None
         invited = trip.invites.filter(state__in=Invite.OPEN_STATES, traveler__isnull=False).values(
@@ -206,6 +208,13 @@ class InviteForm(forms.Form):
             ).first()
             if self.pending is not None:
                 raise forms.ValidationError(_("This address already has an invite to this trip."))
+            domain = email.rpartition("@")[2]
+            if not email_check.receives_email(domain):
+                raise forms.ValidationError(
+                    _("No email can be delivered to %(domain)s. Check the address.")
+                    % {"domain": domain}
+                )
+            self.suggestion = email_check.suggestion(email)
         return email
 
     def clean_traveler(self):

@@ -7,6 +7,7 @@
 {% if question %}
 <form method="post" id="invite-form" class="stack" style="margin-top: 16px">{% csrf_token %}
   <div class="card stack"><p class="row-title history-line">{{ question.title }}</p><p class="row-sub">{{ question.detail }}</p></div>
+  {% if question.suggestion %}<div class="note">{% icon "triangle-alert" %}<div class="stack"><p>{% blocktranslate with address=question.suggestion %}Did you mean {{ address }}?{% endblocktranslate %}</p><div><button type="submit" name="use_suggestion" value="{{ question.suggestion }}" class="btn btn-secondary btn-sm">{% blocktranslate with address=question.suggestion %}Use {{ address }}{% endblocktranslate %}</button></div></div></div>{% endif %}
   <input type="hidden" name="who" value="{{ form.who.value }}">
   <input type="hidden" name="traveler" value="{{ form.traveler.value }}">
   <input type="hidden" name="new_name" value="{{ form.new_name.value|default:'' }}">

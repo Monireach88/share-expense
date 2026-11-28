@@ -43,3 +43,14 @@ def trip(make_trip, owner):
 def owner_client(client, owner):
     client.force_login(owner)
     return client
+
+
+@pytest.fixture(autouse=True)
+def no_dns(request, monkeypatch):
+    """Tests never ask real DNS: every invite domain receives email, unless a test opts out
+    with the "real_email_check" marker and mocks the resolver itself."""
+    if "real_email_check" in request.keywords:
+        return
+    from apps.trips import email_check
+
+    monkeypatch.setattr(email_check, "receives_email", lambda domain: True)
