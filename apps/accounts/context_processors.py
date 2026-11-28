@@ -11,6 +11,10 @@ def google_signin(request) -> dict:
     return {
         "google_signin": bool(settings.GOOGLE_CLIENT_ID),
         "google_email": SimpleLazyObject(
-            lambda: google_email(user) if user is not None and user.is_authenticated else ""
+            lambda: (
+                google_email(user, verified_only=False)
+                if user is not None and user.is_authenticated
+                else ""
+            )
         ),
     }

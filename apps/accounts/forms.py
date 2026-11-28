@@ -1,34 +1,38 @@
 from django import forms
+from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.utils.translation import gettext_lazy as _
 
-from .models import User
+from .backends import AccountClosed
 
 CLOSED = _("This account is closed. Ask the admin to restore it.")
 
 
-class LoginForm(AuthenticationForm):
-    """Sign-in accepts any letter case; the backend lowercases the name.
+class ClosedAccountMessage:
+    """A closed account with the right password sees that it is closed (spec section 6.5).
 
-    A closed account with the right password sees that it is closed (spec section 6.5). This is
-    checked before Django's ``authenticate``, so django-axes, which counts failures reported by
-    ``authenticate``, never counts it as a wrong password. A wrong password still counts.
+    The backend raises ``AccountClosed`` only after django-axes has allowed the attempt and the
+    password was right, so a locked login stays locked and the message never confirms a guessed
+    password. It is not reported as a failed login, so axes does not count it.
     """
+
+    def clean(self):
+        try:
+            return super().clean()
+        except AccountClosed:
+            raise forms.ValidationError(CLOSED, code="closed") from None
+
+
+class LoginForm(ClosedAccountMessage, AuthenticationForm):
+    """Sign-in accepts any letter case; the backend lowercases the name."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].widget.attrs.update(autocapitalize="none", spellcheck="false")
 
-    def clean(self):
-        username = self.cleaned_data.get("username")
-        password = self.cleaned_data.get("password")
-        if username and password:
-            closed = User.objects.filter(
-                username=username.strip().lower(), closed_at__isnull=False
-            ).first()
-            if closed is not None and closed.check_password(password):
-                raise forms.ValidationError(CLOSED, code="closed")
-        return super().clean()
+
+class AdminLoginForm(ClosedAccountMessage, AdminAuthenticationForm):
+    """Django's admin login, which would otherwise fail with an error page on a closed account."""
 
 
 class PlainPasswordChangeForm(PasswordChangeForm):

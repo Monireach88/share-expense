@@ -101,6 +101,10 @@ def accept_with_google(client, link, google, email):  # noqa: F811
     response = sign_in_with_google(client, link)
     while response.status_code == 302 and response["Location"].startswith("/"):
         response = client.get(response["Location"])
+    if response.status_code == 200 and b'name="join"' in response.content:
+        response = client.post(link)  # The "Join <trip>" button.
+        while response.status_code == 302 and response["Location"].startswith("/"):
+            response = client.get(response["Location"])
     return response
 
 
@@ -407,10 +411,15 @@ def test_signed_in_as_another_account(crew):
     assert not TripMember.objects.filter(trip=crew.trip, user=crew.users["sam"]).exists()
 
 
-def test_signed_in_with_the_invited_google_address_accepts_at_once(crew):
+def test_signed_in_with_the_invited_google_address_joins_with_one_button(crew):
     link = invite_link(crew, "sam@example.com")  # No account uses this address yet.
     link_google(crew.users["sam"], "SAM@example.com")  # Sam links Google afterwards.
-    response = crew.client("sam").get(link)
+    sam = crew.client("sam")
+    page = sam.get(link)  # Opening the link alone never joins.
+    assert page.status_code == 200 and "Join Crew trip" in page.content.decode()
+    assert 'name="csrfmiddlewaretoken"' in page.content.decode()
+    assert not TripMember.objects.filter(trip=crew.trip, user=crew.users["sam"]).exists()
+    response = sam.post(link)
     assert response.status_code == 302 and response["Location"] == crew.url("trip")
     assert TripMember.objects.get(trip=crew.trip, user=crew.users["sam"]).is_viewer
 
@@ -850,3 +859,58 @@ def test_receives_email_reads_dns(monkeypatch):
     assert not email_check.receives_email("empty.test")
     assert email_check.receives_email("down.test")  # A DNS outage never blocks an invite.
     email_check.receives_email.cache_clear()
+
+
+def test_a_locked_login_is_refused_even_with_a_closed_accounts_right_password(make_user, client):
+    make_user("cara", is_active=False, closed_at=timezone.now())
+    for _ in range(5):
+        client.post(reverse("login"), {"username": "cara", "password": "wrong"})
+    response = client.post(reverse("login"), {"username": "cara", "password": PASSWORD})
+    assert response.status_code == 429
+    assert "This account is closed" not in response.content.decode()
+
+
+def test_the_admin_login_does_not_break_on_a_closed_account(make_user, client):
+    make_user("boss", is_staff=True, is_active=False, closed_at=timezone.now())
+    response = client.post(reverse("admin:login"), {"username": "boss", "password": PASSWORD})
+    assert response.status_code == 200
+    assert "_auth_user_id" not in client.session
+
+
+@pytest.mark.parametrize("verified", [False, "false", None])
+def test_an_unverified_google_address_is_not_trusted(crew, verified):
+    from apps.trips import invites as invite_logic
+
+    account = link_google(crew.users["sam"], "sam@example.com")
+    account.extra_data["email_verified"] = verified
+    account.save()
+    assert invite_logic.google_email(crew.users["sam"]) == ""
+    assert invite_logic.google_user("sam@example.com") is None
+    ask = post_invite(crew, "sam@example.com", confirm=False).content.decode()
+    assert "Add Sam (sam) to this trip now?" not in ask  # Treated as a new address instead.
+    link = invite_link(crew, "sam@example.com")
+    page = crew.client("sam").get(link).content.decode()
+    assert "Log out first" in page
+    assert not TripMember.objects.filter(trip=crew.trip, user=crew.users["sam"]).exists()
+
+
+def test_a_verified_flag_sent_as_text_is_understood(crew):
+    from apps.trips import invites as invite_logic
+
+    account = link_google(crew.users["sam"], "sam@example.com")
+    account.extra_data["email_verified"] = "true"
+    account.save()
+    assert invite_logic.google_email(crew.users["sam"]) == "sam@example.com"
+    assert invite_logic.google_user("sam@example.com") == crew.users["sam"]
+
+
+def test_the_hourly_email_count_locks_the_senders_account_row(crew, email_on):
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    with CaptureQueriesContext(connection) as queries:
+        post_invite(crew, "one@example.com")
+    sql = [q["sql"] for q in queries.captured_queries]
+    lock = next(i for i, q in enumerate(sql) if "FOR UPDATE" in q and "accounts_user" in q)
+    count = next(i for i, q in enumerate(sql) if "COUNT(" in q and "inviteemailattempt" in q)
+    assert lock < count and len(email_on) == 1

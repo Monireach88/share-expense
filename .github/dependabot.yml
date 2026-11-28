@@ -1,6 +1,8 @@
-# Opens a pull request when a newer cloudflared image is released, so security
-# fixes (such as the 2026-10 eMudhra certificate advisory) are not missed.
-# Only cloudflared is watched: a postgres major upgrade needs a planned migration.
+# Opens pull requests into develop for newer versions, so security fixes are not missed:
+# - the cloudflared image (daily; for example the 2026-10 eMudhra certificate advisory).
+#   Only cloudflared is watched: a postgres major upgrade needs a planned migration.
+# - Python packages in uv.lock (weekly).
+# - the GitHub Actions used by .github/workflows (weekly).
 version: 2
 updates:
   - package-ecosystem: "docker-compose"
@@ -10,3 +12,13 @@ updates:
     target-branch: "develop"
     allow:
       - dependency-name: "cloudflare/cloudflared"
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "develop"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "develop"

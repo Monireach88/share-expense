@@ -5,7 +5,7 @@ from django.core.validators import validate_email
 from django.utils.translation import gettext_lazy as _
 
 from . import email_check
-from .invites import google_user
+from .invites import VERIFIED_GOOGLE_EMAIL, google_user
 from .models import ExchangeRate, Invite, Participant, Trip, TripMember
 
 DATE_INPUT = forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
@@ -197,7 +197,9 @@ class InviteForm(forms.Form):
         except forms.ValidationError:
             raise forms.ValidationError(self.NOT_AN_ACCOUNT) from None
         email = text.lower()
-        linked = SocialAccount.objects.filter(provider="google", extra_data__email__iexact=email)
+        linked = SocialAccount.objects.filter(
+            VERIFIED_GOOGLE_EMAIL, provider="google", extra_data__email__iexact=email
+        )
         if any(self._on_trip(account.user) for account in linked.select_related("user")):
             raise forms.ValidationError(_("This person is already on the trip."))
         self.user = google_user(email)

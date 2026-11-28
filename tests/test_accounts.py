@@ -73,3 +73,23 @@ def test_admin_carries_the_app_name(client, make_user):
     admin_user = make_user("boss", is_staff=True, is_superuser=True)
     client.force_login(admin_user)
     assert "Share Expense admin" in client.get(reverse("admin:index")).content.decode()
+
+
+def test_pages_send_a_content_security_policy_and_a_permissions_policy(client):
+    response = client.get(reverse("login"))
+    csp = response["Content-Security-Policy"]
+    directives = dict(part.strip().split(" ", 1) for part in csp.split(";"))
+    assert directives["default-src"] == "'self'"
+    assert directives["script-src"] == "'self'"  # No inline scripts and no eval.
+    assert directives["frame-ancestors"] == "'none'"
+    assert directives["object-src"] == "'none'"
+    assert directives["form-action"] == "'self' https://accounts.google.com"
+    assert "unsafe-eval" not in csp
+    assert "camera=()" in response["Permissions-Policy"]
+    assert "geolocation=()" in response["Permissions-Policy"]
+
+
+def test_htmx_runs_without_eval_and_the_csrf_cookie_is_hidden_from_scripts(client, settings):
+    page = client.get(reverse("login")).content.decode()
+    assert '"allowEval": false' in page and '"includeIndicatorStyles": false' in page
+    assert settings.CSRF_COOKIE_HTTPONLY is True

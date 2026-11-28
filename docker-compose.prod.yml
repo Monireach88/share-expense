@@ -11,7 +11,35 @@ services:
       context: .
       target: production
     image: share-expense:${IMAGE_TAG:-local}
-    env_file: .env.prod
+    # Only the variables the app reads (config/settings.py, scripts/start.sh), so the web
+    # container never holds the tunnel token. A name without a value takes its value from
+    # the --env-file (.env.prod); a name missing there stays unset and the app default
+    # applies. A new app variable goes here, in both compose files, and in .env.example.
+    environment:
+      - DJANGO_DEBUG
+      - DJANGO_SECRET_KEY
+      - DJANGO_ALLOWED_HOSTS
+      - DJANGO_CSRF_TRUSTED_ORIGINS
+      - DJANGO_SECURE_HSTS_SECONDS
+      - TIME_ZONE
+      - LOG_LEVEL
+      - DATABASE_URL
+      - AXES_FAILURE_LIMIT
+      - CLIENT_IP_HEADER
+      - DEEPSEEK_API_KEY
+      - DEEPSEEK_MODEL
+      - DEEPSEEK_DAILY_LIMIT
+      - GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET
+      - EMAIL_HOST
+      - EMAIL_PORT
+      - EMAIL_USE_SSL
+      - EMAIL_USE_TLS
+      - EMAIL_HOST_USER
+      - EMAIL_HOST_PASSWORD
+      - EMAIL_TIMEOUT
+      - DEFAULT_FROM_EMAIL
+      - GUNICORN_WORKERS
     expose:
       - "8000"
     depends_on:
@@ -24,6 +52,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
     deploy:
       resources:
         limits: {cpus: "1.0", memory: 512M}
@@ -33,10 +64,17 @@ services:
 
   postgres:
     image: postgres:18-alpine
-    env_file: .env.prod
+    # Only its own three variables, from the --env-file; never the app's secrets.
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env.prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env.prod}
     volumes:
       - postgres-data:/var/lib/postgresql
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
     deploy:
       resources:
         limits: {cpus: "1.0", memory: 512M}
@@ -60,6 +98,9 @@ services:
       web:
         condition: service_healthy
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
     deploy:
       resources:
         limits: {cpus: "0.5", memory: 128M}

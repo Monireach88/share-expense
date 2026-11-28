@@ -14,8 +14,10 @@ from datetime import timedelta
 
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -66,17 +68,34 @@ def link_for(request, token: str) -> str:
     return request.build_absolute_uri(reverse("invite", args=[token]))
 
 
-def google_email(user) -> str:
-    """The address of the Google account linked to ``user``, as Google last sent it, or ""."""
+# Google sends ``email_verified`` as a JSON true; text "true" is accepted too, to be safe.
+VERIFIED_GOOGLE_EMAIL = Q(extra_data__email_verified=True) | Q(extra_data__email_verified="true")
+
+
+def is_verified(extra_data: dict) -> bool:
+    flag = extra_data.get("email_verified")
+    return flag is True or (isinstance(flag, str) and flag.strip().lower() == "true")
+
+
+def google_email(user, *, verified_only: bool = True) -> str:
+    """The address of the Google account linked to ``user``, as Google last sent it, or "".
+
+    Only an address Google says it verified counts, unless ``verified_only`` is False (the
+    account menu shows the address either way).
+    """
     account = SocialAccount.objects.filter(user=user, provider="google").first()
-    return (account.extra_data.get("email") or "") if account else ""
+    if account is None or (verified_only and not is_verified(account.extra_data)):
+        return ""
+    return account.extra_data.get("email") or ""
 
 
 def google_user(email: str):
-    """The approved, not closed account that signs in with Google as ``email``, or None."""
+    """The approved, not closed account that signs in with Google as ``email``, which Google
+    verified, or None."""
     account = (
         SocialAccount.objects.select_related("user")
         .filter(
+            VERIFIED_GOOGLE_EMAIL,
             provider="google",
             extra_data__email__iexact=email,
             user__is_active=True,
@@ -323,16 +342,28 @@ def email_configured() -> bool:
     return bool(settings.EMAIL_HOST)
 
 
+def _count_email(sender) -> bool:
+    """Record one invite email by ``sender``; False when they reached the hourly limit.
+
+    The sender's account row is locked while counting, so two requests at the same moment
+    cannot both see 19 and both send.
+    """
+    since = timezone.now() - timedelta(hours=1)
+    with transaction.atomic():
+        get_user_model().objects.select_for_update().filter(pk=sender.pk).first()
+        sent = InviteEmailAttempt.objects.filter(sender=sender, created_at__gte=since).count()
+        if sent >= EMAILS_PER_HOUR:
+            return False
+        InviteEmailAttempt.objects.create(sender=sender)
+    return True
+
+
 def send_email(invite: Invite, link: str, sender) -> Outcome:
     """Send the invite email, unless email is not set up or ``sender`` reached the hourly limit.
     A failed send never loses the invite; the Owner copies the link instead."""
     if not email_configured():
         return Outcome(False, _("Email sending is not set up. Copy the link and send it yourself."))
-    since = timezone.now() - timedelta(hours=1)
-    if (
-        InviteEmailAttempt.objects.filter(sender=sender, created_at__gte=since).count()
-        >= EMAILS_PER_HOUR
-    ):
+    if not _count_email(sender):
         return Outcome(
             False,
             _(
@@ -340,7 +371,6 @@ def send_email(invite: Invite, link: str, sender) -> Outcome:
                 "again later."
             ),
         )
-    InviteEmailAttempt.objects.create(sender=sender)
     context = {
         "inviter": sender.display_name,
         "trip": invite.trip.name,
