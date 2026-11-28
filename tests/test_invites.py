@@ -866,3 +866,30 @@ def test_the_admin_login_does_not_break_on_a_closed_account(make_user, client):
     response = client.post(reverse("admin:login"), {"username": "boss", "password": PASSWORD})
     assert response.status_code == 200
     assert "_auth_user_id" not in client.session
+
+
+@pytest.mark.parametrize("verified", [False, "false", None])
+def test_an_unverified_google_address_is_not_trusted(crew, verified):
+    from apps.trips import invites as invite_logic
+
+    account = link_google(crew.users["sam"], "sam@example.com")
+    account.extra_data["email_verified"] = verified
+    account.save()
+    assert invite_logic.google_email(crew.users["sam"]) == ""
+    assert invite_logic.google_user("sam@example.com") is None
+    ask = post_invite(crew, "sam@example.com", confirm=False).content.decode()
+    assert "Add Sam (sam) to this trip now?" not in ask  # Treated as a new address instead.
+    link = invite_link(crew, "sam@example.com")
+    page = crew.client("sam").get(link).content.decode()
+    assert "Log out first" in page
+    assert not TripMember.objects.filter(trip=crew.trip, user=crew.users["sam"]).exists()
+
+
+def test_a_verified_flag_sent_as_text_is_understood(crew):
+    from apps.trips import invites as invite_logic
+
+    account = link_google(crew.users["sam"], "sam@example.com")
+    account.extra_data["email_verified"] = "true"
+    account.save()
+    assert invite_logic.google_email(crew.users["sam"]) == "sam@example.com"
+    assert invite_logic.google_user("sam@example.com") == crew.users["sam"]

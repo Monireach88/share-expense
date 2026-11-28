@@ -16,6 +16,7 @@ from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -66,17 +67,34 @@ def link_for(request, token: str) -> str:
     return request.build_absolute_uri(reverse("invite", args=[token]))
 
 
-def google_email(user) -> str:
-    """The address of the Google account linked to ``user``, as Google last sent it, or ""."""
+# Google sends ``email_verified`` as a JSON true; text "true" is accepted too, to be safe.
+VERIFIED_GOOGLE_EMAIL = Q(extra_data__email_verified=True) | Q(extra_data__email_verified="true")
+
+
+def is_verified(extra_data: dict) -> bool:
+    flag = extra_data.get("email_verified")
+    return flag is True or (isinstance(flag, str) and flag.strip().lower() == "true")
+
+
+def google_email(user, *, verified_only: bool = True) -> str:
+    """The address of the Google account linked to ``user``, as Google last sent it, or "".
+
+    Only an address Google says it verified counts, unless ``verified_only`` is False (the
+    account menu shows the address either way).
+    """
     account = SocialAccount.objects.filter(user=user, provider="google").first()
-    return (account.extra_data.get("email") or "") if account else ""
+    if account is None or (verified_only and not is_verified(account.extra_data)):
+        return ""
+    return account.extra_data.get("email") or ""
 
 
 def google_user(email: str):
-    """The approved, not closed account that signs in with Google as ``email``, or None."""
+    """The approved, not closed account that signs in with Google as ``email``, which Google
+    verified, or None."""
     account = (
         SocialAccount.objects.select_related("user")
         .filter(
+            VERIFIED_GOOGLE_EMAIL,
             provider="google",
             extra_data__email__iexact=email,
             user__is_active=True,
