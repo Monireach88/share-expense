@@ -32,13 +32,16 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #0f1115; --surface: #1a1d23; --fg: #e9ebef; --muted: #a3aab6; --line: #2f343d;
     --field: #6b7383; --accent: #8fa6ff; --on-accent: #0f1115; --accent-soft: #1f2846;
     --pos: #5fd38a; --pos-soft: #13301f; --neg: #ff8f85; --on-neg: #0f1115; --neg-soft: #3a1a18;
     --warn: #f2c14e; --warn-soft: #33290f; --shadow: none;
   }
 }
+:root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --bg: #0f1115; --surface: #1a1d23; --fg: #e9ebef; --muted: #a3aab6; --line: #2f343d;
   --field: #6b7383; --accent: #8fa6ff; --on-accent: #0f1115; --accent-soft: #1f2846;
   --pos: #5fd38a; --pos-soft: #13301f; --neg: #ff8f85; --on-neg: #0f1115; --neg-soft: #3a1a18;
@@ -129,6 +132,15 @@ body:has(.bottom-bar) main.container { padding-bottom: calc(var(--bar-h) + var(-
   color: var(--fg); font: inherit; text-decoration: none; cursor: pointer; text-align: left; white-space: nowrap;
 }
 .menu-item:hover { background: var(--bg); }
+.menu-appearance { padding: var(--s2) var(--s3); border-top: 1px solid var(--line); margin-top: var(--s1); }
+.menu-appearance .seg { display: flex; gap: var(--s1); margin-top: var(--s1); }
+.menu-appearance .seg button {
+  flex: 1; min-height: 40px; border: 1px solid var(--line); border-radius: var(--r-field);
+  background: none; color: var(--fg); font: inherit; font-size: 15px; cursor: pointer;
+}
+.menu-appearance .seg button[aria-pressed="true"] {
+  background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 600;
+}
 
 /* ---------- Header actions and the trip tab bar ---------- */
 .icon-btn {
