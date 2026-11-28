@@ -850,3 +850,19 @@ def test_receives_email_reads_dns(monkeypatch):
     assert not email_check.receives_email("empty.test")
     assert email_check.receives_email("down.test")  # A DNS outage never blocks an invite.
     email_check.receives_email.cache_clear()
+
+
+def test_a_locked_login_is_refused_even_with_a_closed_accounts_right_password(make_user, client):
+    make_user("cara", is_active=False, closed_at=timezone.now())
+    for _ in range(5):
+        client.post(reverse("login"), {"username": "cara", "password": "wrong"})
+    response = client.post(reverse("login"), {"username": "cara", "password": PASSWORD})
+    assert response.status_code == 429
+    assert "This account is closed" not in response.content.decode()
+
+
+def test_the_admin_login_does_not_break_on_a_closed_account(make_user, client):
+    make_user("boss", is_staff=True, is_active=False, closed_at=timezone.now())
+    response = client.post(reverse("admin:login"), {"username": "boss", "password": PASSWORD})
+    assert response.status_code == 200
+    assert "_auth_user_id" not in client.session
