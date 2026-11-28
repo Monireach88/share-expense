@@ -893,3 +893,15 @@ def test_a_verified_flag_sent_as_text_is_understood(crew):
     account.save()
     assert invite_logic.google_email(crew.users["sam"]) == "sam@example.com"
     assert invite_logic.google_user("sam@example.com") == crew.users["sam"]
+
+
+def test_the_hourly_email_count_locks_the_senders_account_row(crew, email_on):
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    with CaptureQueriesContext(connection) as queries:
+        post_invite(crew, "one@example.com")
+    sql = [q["sql"] for q in queries.captured_queries]
+    lock = next(i for i, q in enumerate(sql) if "FOR UPDATE" in q and "accounts_user" in q)
+    count = next(i for i, q in enumerate(sql) if "COUNT(" in q and "inviteemailattempt" in q)
+    assert lock < count and len(email_on) == 1
